@@ -212,3 +212,6 @@ To compensate for this, you can attach an event listener to the document which w
    ?name=Bob<script src='https://demoapp.loc/js/script?v=1.7.3.css%2522/>%2527)%3Balert(%2522Yeah!%2520Chaining!%2522)%3B//'></script>
   
  NOTE:    allow try to copying CSRF token from a different browser session and see if you can reuse it // this could to lead to chainging xss with csrf AND CSRF BYPASS
+
+
+ hello, how are ypu doing this
