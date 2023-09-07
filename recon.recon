@@ -1,0 +1,360 @@
+URL encoding. It allows us to put any characters into a URL without breaking the URL    
+    example
+    http://localhost:8000/?name=%3Cimg%20src=%22https://www.bugcrowd.com/wp-content/uploads/2019/04/bugcrowd-logo.svg%22%3E
+
+
+
+understand the scope
+if small, dont do subdomain analysis, move into appliction analysis 
+#check for sharing authentication
+complex issue    //login issues been overlooked 
+
+tools to check out
+container plugins
+paramsfinder
+fuff
+photon
+
+
+
+
+
+how to use a tool everywhere
+$ chmod +x (tool)
+# mv (tool) /usr/local/bin
+
+
+
+
+recon with bill  (summary)
+
+githubtesting049@gmail.com
+
+
+place all the target in burpdsite
+
+Use Wappalyzer to check CMS or Builtwith or Retire.js or Ghostery
+
+check for languages and framwork used tools -wapplyzer and also server running
+
+ whatweb -a 3 (url)
+ ping -c 1 (ip)
+fping -g (ip)/24  
+nmap -PEPM -sP -n (ip)/24 
+
+nmap --scripts "discovery,ftp*,ssh*,http-vuln*,mysql-vuln*,imap-*,pop3-* -il ./nmap_input.txt
+masscan -p1-65535 -il  ./dnsprobe_ip.txt -ol ./masscan_output.txt
+
+ theHarvester -d  digitalpacific.com.au -b "anubis, baidu, bing, binaryedge, bingapi, bufferoverun, censys, certspotter, crtsh, dnsdumpster, duckduckgo, fullhunt, github-code, google, hackertarget, hunter, intelx, linkedin, linkedin_links, n45ht, omnisint, otx, pentesttools, projectdiscovery, qwant, rapiddns, rocketreach, securityTrails, spyse, sublist3r, threatcrowd, threatminer, trello, twitter, urlscan, virustotal, yahoo, zoomeye"
+
+
+
+Scan each individual IP address associated with their subdomains and having the output saved to a file  &&
+CHECK FOR OPEN PORT TOOLS, PORT COMMONLY USED 80, 441, 81   &&
+Look for any services running on unusual ports or any service running on default ports which could be vulnerable (FTP, SSH, etc). Look for the version info on services running in order to determine whether anything is outdated and potentially vulnerable
+
+DIG,WHOIS,WHATWEB,MAP, masscan. arjun
+
+subdomain eneumeration
+
+sublist3r example.com -o output ... $ cat output foo.example.com bar.example.com
+
+amass
+amass -d domain.com
+amass enum [-active] [-ip] -d target
+amass enum -d tesla.com | grep target
+     
+
+subrute.py
+./subbrute.py cloudflare.com -o cloudflare.names
+
+subfinder -d google.com -all > subdomain.txt
+ httpx -l subdomains.txt -ports 80,8080,8000,8888 -threads 200 > subdomains_alive.txt
+ 
+ ./dnsrecon.py -d securitytrails.com
+ 
+
+ for hidden subdomain 
+#From https://github.com/allyshka/vhostbrute
+vhostbrute.py --url="example.com" --remoteip="10.1.1.15" --base="www.example.com" --vhosts="vhosts_full.list"
+
+
+ Check which domains resolve
+Use httprobe $ cat output | httprobe | tee -a domains
+
+
+
+Directory Bruteforcing
+
+Dirbuster b) gobuster 3) Burp Intruder 4) Burp Scanner
+
+gobusster dir -u (url) -w /usr/share/wordlist/dirbuster/directory-list-2.3-medium.txt
+gobuster vhost -u (url)  -w /usr/share/wordlist/seclists/Discovery/web-content/directory-list-2.3-medium.txt
+
+fuff -u (url)/fuzz  -w /usr/share/wordlist/dirbuster/directory-list-2.3-medium.txt
+
+
+gobuster vhost -u https://mysite.com -t 50 -w subdomains.txt
+gobuster dns -d mysite.com -t 50 -w subdomains.txt
+
+finding files
+gobusster dir -u (url) -w /usr/share/wordlist/dirbuster/directory-list-2.3-medium.txt -x,html,css,.js
+fuff -u (url)/fuzz  -w /usr/share/wordlist/dirbuster/directory-list-2.3-medium.txt -e .html,.css,.js.conf
+
+Vhost enumeration
+fuff -u (url)  -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -H "HOST:FUZZ.EXAMPLE.COM"
+gobuster vhost -u (url)  -w /usr/share/wordlist/seclists/Discovery/DNS/subdomains-top1million-20000.txt --append-domain
+
+
+
+
+
+Check for how many subdomains are alive/online ?
+certspotter corp.yahoo.com | httprobe
+
+
+whoxy.com   //asset discovery  for root domain
+
+Perform reverse DNS lookups on the IP’s you discover through these search engines and see if you can identify IPs, ASN’s, root domains, or other unlinked company owned assets. (shodan , censys, and whoxy.com)
+
+
+Ports:8443, 8080 Title: "Dashboard[Jenkins]" Product: Tomcat Hostname: example.com Org: google ssl:Google
+
+Censys
+Look for SSL certificate:
+
+Shodan for bug hunting
+https://www.shodan.io/search?query=ssl%3A%22Paypal%22
+
+https://www.shodan.io/search?query=ssl%3A%22Paypal%22+200
+
+You can also negative search for specific content you don’t wish to search for by append — in our query followed by the pattern.
+https://www.shodan.io/search?query=org%3A%22Amazon%22+ssl%3A%22Paypal%22
+https://www.shodan.io/search?query=http.component%3A%22jenkins%22
+https://www.shodan.io/search?query=html%3A%22Dashboard+Jenkins%22
+
+waybackurl for bug hunting
+ttps://web.archive.org/web/*/facebook.com/*
+.zip
+.backup
+.config
+.csv
+.pdf
+/api
+/admin/
+grep "\.txt"
+~ "\.log"
+~ "\.cache"
+~ "\.secret"
+~ "\.db"
+~ "\.backup"
+~ "\.yml"
+~ "\.json"
+~ "\.gz"
+~ "\.rar"
+~ "\.zip"
+~ "\.config"
+
+
+
+Broad domain search w/ negative search
+site:example.com -www -shop -share -ir -mfa
+
+google dorks
+
+PHP extension w/ parameters
+site:example.com ext:php inurl:?
+
+Disclosed XSS and Open Redirects
+site:openbugbounty.org inurl:reports intext:"example.com"
+
+Juicy Extensions
+site:"example[.]com" ext:log | ext:txt | ext:conf | ext:cnf | ext:ini | ext:env | ext:sh | ext:bak | ext:backup | ext:swp | ext:old | ext:~ | ext:git | ext:svn | ext:htpasswd | ext:htaccess
+
+XSS prone parameters
+inurl:q= | inurl:s= | inurl:search= | inurl:query= | inurl:keyword= | inurl:lang= inurl:& site:example.com
+
+Open Redirect prone parameters
+inurl:url= | inurl:return= | inurl:next= | inurl:redirect= | inurl:redir= | inurl:ret= | inurl:r2= | inurl:page= inurl:& inurl:http site:example.com
+
+SQLi Prone Parameters
+inurl:id= | inurl:pid= | inurl:category= | inurl:cat= | inurl:action= | inurl:sid= | inurl:dir= inurl:& site:example.com
+
+SSRF Prone Parameters
+inurl:http | inurl:url= | inurl:path= | inurl:dest= | inurl:html= | inurl:data= | inurl:domain= | inurl:page= inurl:& site:example.com
+
+LFI Prone Parameters
+inurl:include | inurl:dir | inurl:detail= | inurl:file= | inurl:folder= | inurl:inc= | inurl:locate= | inurl:doc= | inurl:conf= inurl:& site:example.com
+
+RCE Prone Parameters
+inurl:cmd | inurl:exec= | inurl:query= | inurl:code= | inurl:do= | inurl:run= | inurl:read= | inurl:ping= inurl:& site:example.com
+
+High % inurl keywords
+inurl:config | inurl:env | inurl:setting | inurl:backup | inurl:admin | inurl:php site:example[.]com
+
+Sensitive Parameters
+inurl:email= | inurl:phone= | inurl:password= | inurl:secret= inurl:& site:example[.]com
+
+API Docs
+inurl:apidocs | inurl:api-docs | inurl:swagger | inurl:api-explorer site:"example[.]com"
+
+Code Leaks
+site:pastebin.com "example.com"
+
+site:jsfiddle.net "example.com"
+
+site:codebeautify.org "example.com"
+
+site:codepen.io "example.com"
+
+Cloud Storage
+site:s3.amazonaws.com "example.com"
+
+site:blob.core.windows.net "example.com"
+
+site:googleapis.com "example.com"
+
+site:drive.google.com "example.com"
+
+site:dev.azure.com "example[.]com"
+
+site:onedrive.live.com "example[.]com"
+
+site:digitaloceanspaces.com "example[.]com"
+
+site:sharepoint.com "example[.]com"
+
+site:s3-external-1.amazonaws.com "example[.]com"
+
+site:s3.dualstack.us-east-1.amazonaws.com "example[.]com"
+
+site:dropbox.com/s "example[.]com"
+
+site:box.com/s "example[.]com"
+
+site:docs.google.com inurl:"/d/" "example[.]com"
+
+JFrog Artifactory
+site:jfrog.io "example[.]com"
+
+Firebase
+site:firebaseio.com "example[.]com"
+
+File upload endpoints
+site:example.com ”choose file”
+
+Dorks that work better w/o domain
+Bug Bounty programs and Vulnerability Disclosure Programs
+"submit vulnerability report" | "powered by bugcrowd" | "powered by hackerone"
+
+Apache Server Status Exposed
+site:*/server-status apache
+
+WordPress
+inurl:/wp-admin/admin-ajax.php
+
+Drupal
+intext:"Powered by" & intext:Drupal & inurl:user
+
+Joomla
+site:*/joomla/login
+
+
+
+
+
+## use WaybackRust        .. a too made with rust 
+   waybackrust urls [FLAGS] [OPTIONS] <domain.com or file.txt or stdin>
+
+FLAGS:
+    -h, --help       Prints help information
+    -n, --nocheck    Don't check the HTTP status
+    -p, --nocolor    Don't colorize HTTP status
+        --silent     Disable informations prints
+    -s, --subs       Get subdomains too
+    -V, --version    Prints version information
+     -b, --blacklist <extensions to blacklist>        The extensions you want to blacklist (ie: -b png,jpg,txt)
+    -d, --delay <delay in milliseconds>             
+    -o, --output <FILE>
+            Name of the file to write the list of urls (default: print on stdout)
+
+    -t, --threads <Number of concurrent requests>    
+    -w, --whitelist <extensions to whitelist> 
+
+
+
+Github For Recon 
+
+search for token,key, secret, password
+search?q={COMPANY_NAME}-&type=Users
+"Company name" send_keys or sendkeys
+"company.com" "dev"
+"dev.company.com"
+"company.com" API_key
+"company.com" password
+"api.company.com" authorization
+TIP:
+1- check those dorks in github, you will always find somthing interesting 
+"Company name" language:python
+"Company name" language:bash
+2- keep monitoring js files for changes to find new endpoints
+3- bruteforce and search for hiddin js files other that whats called in app.
+
+*"target(.)com" password
+*"target(.)com" "pass" 'email'
+*"target(.)com" "api"
+*"target(.)com" FTP
+*"target(.)com" SMTP
+*"target(.)com" LDAP
+*"target(.)com" PEM (For Keys)
+Try to remove the (.)com and do the same thing. 
+Big domains? Give spaces between them, like "target xyz" and do the 
+
+
+
+Perform dirsearch for all subdomains
+JSParser -  for reading javascript files
+extracting links from JS file LinkFinder(https://github.com/GerbenJavado/LinkFinder) - extracting endpoints from JS files
+Check robots.txt page
+
+ END End 
+
+ 
+ Javascript Enumeration
+ burpsuite -> sitemap -> enagement-> find scritps -> export options-> save scripts
+  
+ waybackurls target.com | grep "\\.js" | xargs -n1 -I@ curl -k @ | tee -a content.txt         //nt download ... check back later about this tool
+ 
+ pip install jsbeautifier. Then, you run it with js-beautify -o outfile.txt scripts.txt. This will output the file outfile.txt which you can easily browse through.
+ 
+ Now that we have a readable version of all the JavaScript code in one place, I like to start with Grep to get a feel of what I am expecting. The general command is grep --color -i term outfile.txt. You just change the word term with what you’re looking for. For example, try words like secret, admin, password or token to find hardcoded secrets. Alternatively, you can use a path prefix to look for endpoints. Say you noticed that all API endpoints start with /api/v1. In this case, you can substitute the word term in the grep command with /api/v1 to collect all the API endpoints.
+ 
+ 
+ onliner to extract endpoints from JS files of a given host
+ ./js at my kali/scan/
+ 
+ using subjs
+ $ cat urls.txt | subjs 
+$ subjs -i urls.txt
+$ cat hosts.txt | gau | subjs
+
+
+content discovery/params discovery  for bug hunting
+
+
+
+gau $mytarget|egrep -iv '\.json'|grep -iE '\.js'|antiburl|awk '{print $4}' | xargs -I %% bash -c 'python3 SecretFinder.py -i %% -o cli -r "$anything"'
+
+ check  ./cruze         //cruze : a script to automate all the lazy recon flow of the hunter with the tools great people have developed.
+ ./cruze.sh example.com
+ 
+ 
+ BOKEN LINK HIJACKING
+Manually find and click external links on the target site ( For Example:- Some Links to Social Media Accounts or Some external Media Link)
+
+While Doing Manual work also put broken-link-checker in background using below Command interminal.
+
+blc -rof --filter-level 3 https://example.com/
+Ouput will be like Something.
+─BROKEN─ https://www.linkedin.com/company/ACME-inc-/ (HTTP_999)
+Now you need to check if company has the page or not , if no then register as the company or try to get that username or url.
