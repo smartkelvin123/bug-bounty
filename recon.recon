@@ -1,6 +1,9 @@
 URL encoding. It allows us to put any characters into a URL without breaking the URL    
     example
     http://localhost:8000/?name=%3Cimg%20src=%22https://www.bugcrowd.com/wp-content/uploads/2019/04/bugcrowd-logo.svg%22%3E
+    
+    extension
+    Use Wappalyzer to check CMS or Builtwith or Retire.js or Ghostery ,shodan, knoxss
 
 
 
@@ -41,7 +44,7 @@ place all the target in burpdsite
 
   subfinder
 
-Use Wappalyzer to check CMS or Builtwith or Retire.js or Ghostery
+
 
 check for languages and framwork used tools -wapplyzer and also server running
 
@@ -52,8 +55,29 @@ check for languages and framwork used tools -wapplyzer and also server running
 fping -g (ip)/24  
 nmap -PEPM -sP -n (ip)/24 
 
+
+   PORT SCANNING 
+   NMAP 
+   nmap (url) -p80, 443 -F -A
+   nmpa (url) --top -ports 2000
+   nmap url -sV
+   nmap url -sV --version -intensity 8
+   nmap url -Sv --version - all
+    
+ check /usr/share/nmap    for SCRIPTS 
+ 
+ nmap url --scripts =http-sql-injection
+  nmap url --scripts =firewall-bypass -sw
 nmap --scripts "discovery,ftp*,ssh*,http-vuln*,mysql-vuln*,imap-*,pop3-* -il ./nmap_input.txt
 masscan -p1-65535 -il  ./dnsprobe_ip.txt -ol ./masscan_output.txt
+
+     NAABU
+    naabu -host url -p8080
+    
+    MAASSCAN
+    masscan ip/24 p80, 443
+    masscan ip/24 --top -ports
+    
 
 Dangerously fast dns/network/port scanner, all-in-one.        check it more  and also not  yet download
 skanuvaty --target nmap.org --concurrency 16 --subdomains-file /usr/share/dnsenum/dns.txt       
@@ -183,7 +207,7 @@ grep "\.txt"
 
       
       AUTOMATION FOR REPLACING PARAMETERS WITH PAYLOADS
-      QSREPLACE
+      QSREPLACE (check github for more guidance)
       cat file.txt | qsreplace "<script>alert(1) </script>"  
       
       
@@ -196,7 +220,43 @@ grep "\.txt"
      whois.com
      mxtoolbox.com
      
-     emkel.c2       //// fakemails
+     emkel.c2       //// fakemails 
+     
+     
+     
+     Directory Bruteforcing / content discovery
+     
+     dirb tesla.com (wordlist)
+
+
+
+gobusster dir -u (url) -w /usr/share/wordlist/dirbuster/directory-list-2.3-medium.txt
+gobuster vhost -u (url)  -w /usr/share/wordlist/seclists/Discovery/web-content/directory-list-2.3-medium.txt
+
+fuff -u (url)/fuzz  -w /usr/share/wordlist/dirbuster/directory-list-2.3-medium.txt
+ fuff -u (url)/fuzz  -w /usr/share/wordlist/dirbuster/directory-list-2.3-medium.txt ml 200, 301
+
+
+gobuster vhost -u https://mysite.com -t 50 -w subdomains.txt
+gobuster dns -d mysite.com -t 50 -w subdomains.txt
+
+finding files
+gobusster dir -u (url) -w /usr/share/wordlist/dirbuster/directory-list-2.3-medium.txt -x,html,css,.js
+fuff -u (url)/fuzz  -w /usr/share/wordlist/dirbuster/directory-list-2.3-medium.txt -e .html,.css,.js.conf
+
+Vhost enumeration
+fuff -u (url)  -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -H "HOST:FUZZ.EXAMPLE.COM"
+gobuster vhost -u (url)  -w /usr/share/wordlist/seclists/Discovery/DNS/subdomains-top1million-20000.txt --append-domain
+     
+     
+     SUBDOMAIN TAKEOVER
+     Hostilesubruteforce
+     ruby sub-brute.rb
+     
+     sub404
+     python3 sub404.py  -f
+     
+     subjack
 
    
  
@@ -225,26 +285,7 @@ vhostbrute.py --url="example.com" --remoteip="10.1.1.15" --base="www.example.com
 
 
 
-Directory Bruteforcing
 
-Dirbuster b) gobuster 3) Burp Intruder 4) Burp Scanner
-
-gobusster dir -u (url) -w /usr/share/wordlist/dirbuster/directory-list-2.3-medium.txt
-gobuster vhost -u (url)  -w /usr/share/wordlist/seclists/Discovery/web-content/directory-list-2.3-medium.txt
-
-fuff -u (url)/fuzz  -w /usr/share/wordlist/dirbuster/directory-list-2.3-medium.txt
-
-
-gobuster vhost -u https://mysite.com -t 50 -w subdomains.txt
-gobuster dns -d mysite.com -t 50 -w subdomains.txt
-
-finding files
-gobusster dir -u (url) -w /usr/share/wordlist/dirbuster/directory-list-2.3-medium.txt -x,html,css,.js
-fuff -u (url)/fuzz  -w /usr/share/wordlist/dirbuster/directory-list-2.3-medium.txt -e .html,.css,.js.conf
-
-Vhost enumeration
-fuff -u (url)  -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -H "HOST:FUZZ.EXAMPLE.COM"
-gobuster vhost -u (url)  -w /usr/share/wordlist/seclists/Discovery/DNS/subdomains-top1million-20000.txt --append-domain
 
 
 
