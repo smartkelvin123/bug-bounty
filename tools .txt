@@ -1,0 +1,76 @@
+  tools for subdomain 
+  amass
+  findomain
+  subfinder
+  sublist3r
+  assetfinder
+  bbot
+  
+  for port scanning
+  naabu
+  masscan
+  nmap
+  skanuvaty 
+  
+  director bruteforce
+  gobuster
+  fuff
+  dirb
+  
+  xss bruteforce
+  qsreplace
+  xss-vibes
+  
+  sensitive discovery in js files
+  SecretFinder.py
+  photon
+  
+   
+  
+   TOOLS FOR PARAMters spidering of url
+   arjun
+   paramspider
+   katana 
+   hawkrawler
+   gosipder
+   
+   filtering out live domain
+   httpx
+   httprobe
+   
+   sorting out url
+   gf
+   
+  tools for  geting  way backurl
+  waybackurl
+  gau
+  photon
+  
+    tools for  SUBDOMAIN TAKEOVER
+     Hostilesubruteforce
+     ruby sub-brute.rb
+     sub404
+     python3 sub404.py  -f
+      subjack
+       https://github.com/sarveshkapre/subdomain_takeover
+       subzy
+      
+     tools for  asset discory
+     crt.sh
+     cenys
+     shodan
+      
+  
+    FOOTPRINTING WEBSITES 
+      whatweb (url) -v a4
+      osint framwork.com
+     netcratf.com
+     securityheaders.com
+     Dnsdumster.com
+     whois.com
+     mxtoolbox.com
+     emkel.c2       //// fakemails 
+     
+     visual recon 
+     gowitness
+     https screenshoot
