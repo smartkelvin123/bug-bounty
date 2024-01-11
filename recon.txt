@@ -579,6 +579,45 @@ Github For Recon
 "Target. com" language:yml "root"
 "Target. com" language:yml "host"
 
+api_key
+authorization_bearer:
+authentication
+auth
+token
+client_secret
+secret
+private_key
+username
+api_token
+client_id
+password
+user_pass
+user_password
+OTP
+DB_DATABASE=
+DB_PASSWORD=
+DB_PW=
+DB_USER=dotfiles
+filename:sftp-config.json password
+filename:.s3cfg
+filename:config.php dbpasswd
+filename:.bashrc password
+filename:.esmtprc password
+filename:.netrc password
+filename:_netrc password
+filename:.npmrc _auth
+filename:WebServers.xml
+filename:sftp-config.json
+filename:.esmtprc password
+filename:passwd path:etc
+filename:prod.secret.exs
+filename:sftp-config.json
+filename:proftpdpasswd
+filename:travis.yml
+filename:vim_settings.xml
+filename:sftp.json path:.vscode
+filename:secrets.yml password
+
 
 
 
