@@ -2198,32 +2198,38 @@ Takeaways: Don't ignore workflows involving payments; you might discover workaro
      add Token Parameter
      {
      email: "smaty@gmail.com",
-     Token: "ggsgsgsfaagagagcz vzzvzzczcczczczc"                               any giberish
+     token: "ggsgsgsfaagagagcz vzzvzzczcczczczcthisismytoken"                               any giberish
      }
      
      check if the crafted token is sent or not , if yes report for account takeover
     
    
-    3)
-     
-   
-   
+    3)RESET PASSWORD POISONING
+    go to reset password function,
+    enter your email
+    intercet the request
+       change the Host header to some other Header such AS at Attacker.com,
+       Example:
+       Host: Taget.com  -> Host: attacker.com
+    Along with this, you can try to add new Headers   NOTE: dont change the header ( Host: Taget.com)
+        X-forword-Host: attacker.com,
+        Referrer:  https://attacker.com
+        
+    4) RESPONSE MANIPULATION
+      try with correct username and password
+        check the response status and body
       
+      try wrong username and passwrod
+      change the reponse code and body with the response of the correct username and password
+      forward the request
       
+    5) TRY CSRF ON MAJOR ENDPOINT
+     try Csrf on passowrd change
+     try csrf on email change
+     try csrf on phone no change 
+     try csrf on securlity change 
       
-      
-       
-      
-      
-      
-      
-      
-   
-  
-  
-  
-  
-  
+    
   TIP
   ///ZSEANO TOOLKIT AND METHODOLOGY //
     discovery subdomain and content
