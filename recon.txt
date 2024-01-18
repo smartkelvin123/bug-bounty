@@ -2264,6 +2264,8 @@ ffuf -u https://notes.readcted.com/FUZZ -w ~/wordlists/domino.txt -mc 200 -fw 1
        
        
        
+
+       
        
 
      5MIN ADMIN PANEL ACCESSED PAYLOAD
