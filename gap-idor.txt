@@ -1,0 +1,187 @@
+Smartkelvin@bugcrowdninja.com
+Smartkelvin+demo@bugcrowdninja.com
+Smartkelvin+Test@bugcrowdninja.com
+
+
+
+
+ 1)  i undesratnd that it has three  signatory, in order to make a valid request, two must be present
+ 
+
+bag
+purchase id    this is only import id     /bananarepublic.gap.com/
+     unknownShopperId=F5C9AB10C62811EE8B43DD955B184556|||;
+ Cookie:  ktn=0f0b4e6f37e8f764fd1db9693526538ac698af00; cam=7a757e74f16646379fe8fbf42eeb83a7|||;
+ 
+ 
+ shoe
+ demo-yellow
+   unknownShopperId=5678CC20C62911EE9BC151FADACF181D|||;
+ ktn=b4c3fba2c56a37a9b7564f45245ccfeba0894772; cam=39a94b038b26426aa2fe02bcb4c54b72|||;
+
+   finds 
+1 )   good cookies + bad cam  =  401 
+2) good cookies + good ktn + bad cam = a new product 
+3)cam must be 24 long string 
+4)  good cookie + ktn = a new product 
+5)  good cookie + bad ktn = a new product       1same
+6)  good cookie  = a new product                1same
+7) different cookie + ddiffen ktn   = new product
+8) same cookie + differnet ktn + same ktn  = new product       2same
+9)  same cookie + same ktn + same cam = new product            2same
+10  differnt ktn + different cam   =         new p roduct      2same
+11   same ktn + same cam       = new product                   2same
+12 good cookie and good cam = new product                      2same
+13)  different cookie and differnt cam = new product
+same cookie and same cam = new product
+
+
+
+
+
+
+
+
+
+
+ 
+ 
+
+
+
+
+note 
+
+in reset password parameter
+  i will check if i can  add doulbe email and password 
+
+POST /my-account/xapi/v2/account-settings-page/send-otp HTTP/2               /api/parameter
+change of email
+i understand the the ktn value is the most import 
+when chnage/edit email flied, i intercept the response, created two account, change the ktn value between two account and got 200 ok response, 
+when i swap the two email after change the ktn parameter of both, i got internal server error
+
+
+
+POST /my-account/xapi/v2/change-password HTTP/2        passwordchange/api
+observation
+   the server saves two last password,
+   i added additional  email to  parameter/object to the body of the request and it was 400 bad request
+   i added its own email and it was 400 bad request
+
+
+#gap.com
+
+
+
+
+#pointer
+it uses differneret cookies(name) in each accout 
+ 
+alatly38@gmail.com = IdentityFirst.previous.subjects
+smartkelvin66@gamil.com  = unknownShopperId
+for an account to be succefull on login. there are precondition that a are needed to be met
+
+during update, firstname and lastName can be change but not email
+
+cant change email with already existing email 
+the api call fro update lastname and first name is the same with the update email
+
+token expiration is 15minutes
+
+i will check if the token given to username 1 can be use to change user2
+
+
+
+
+
+
+#accounts
+alastly@gmail.com
+ httponly = false
+ secure = false
+
+#accounts
+smartkelvin66@gmail.com
+
+#personal  info 
+
+
+
+
+
+#mechasinm
+GET
+
+
+
+post 
+UPDATE  = POST /my-account/xapi/v2/account-settings-page 
+POST /my-account/xapi/v2/account-settings-page 
+
+
+fuzz for hidden parameters
+
+# user object
+
+{"firstName":"alast",
+"lastName":"smitttten",
+"email":"alastly38@gmail.com",
+"locale":"en_US",
+"registrationBrand":"GP",
+"hasEmailChanged":false,
+"isTextRewards":false
+}
+
+
+
+#payment method
+ api    =  POST /my-account/xapi/v2/get-gap-cards 
+ 
+ only this 4 cookies are import 
+ Cookie: unknownShopperId=7EA195A098B711EE8EFC31280D6BC172|||;;  JSESSIONID=76745f38-4424-451f-b327-f809babf1231; ktn=3803b3fffec1ee7a49198fbea12aaf441e4e5e9a; cam=d1aca3c6e02442709d544158a1a2e808|||
+ 
+ #payment card object 
+ POST /my-account/xapi/v2/get-gap-cards 
+ 
+ 
+ gift card balance
+ GET /my-account/gift-cards-balance HTTP/2
+ 
+ POST /commerce/vault/vault-entries 
+ 
+ check giftcard balance
+ 
+ 
+ ACCESS CONTROL VIOLATION 
+ IT HAS MUITLPLE USER ROLES
+ 
+ #ENVIROMENT
+ 
+ MY-aCOUNT
+ 
+ Only designed for single User
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
