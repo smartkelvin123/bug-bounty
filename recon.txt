@@ -8,8 +8,12 @@ sudo cp ~smartkelvin/go/bin/pdtm  /usr/local/bin
 
 
  $ chmod +x (tool)
-how to use files everywhere
-# mv (tool) /usr/local/bin
+how to use files everywhere   
+# mv (tool) /usr/local/
+
+smartkelvin
+
+
                                                    
    breif summary of my recon
    nmap
