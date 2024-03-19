@@ -1,0 +1,557 @@
+
+  API TESTING AND  METHODOLOGY        API TESTING AND  METHODOLOGY        API TESTING AND  METHODOLOGY            API TESTING AND  METHODOLOGY 
+
+ 
+  ACTIVE-API-RECONNAISSANCE-UNVEILING-VULNERABILITIES-
+  nmap -sC -sV [target address or network range      //we gain insights into open ports and the associated services running on them
+  amass enum -active -d [target] | grep api
+  gobuster dir -u [target URL] -w /path/to/api/wordlist         This approach aids in discovering URL paths and understanding the server’s responses
+  kr scan [target URL] -w /path/to/kiterunner/wordlist   Kiterunner’s in-depth scanning reveals interesting paths, helping us identify potential endpoints and resources.
+  
+   Leveraging DevTools for Analysis
+Google Chrome’s DevTools proves to be a valuable asset for analyzing web applications. Open DevTools, navigate to the Network tab, and filter responses to identify terms like “API,” “v1,” or “graphql.” This filter narrows down requests related to API interactions.
+
+  
+     ***** UNCOVERING ELUSIVE API TARGETS VIA VHOST DISCOVERY ***
+            it is  concept of hosting multiple versions of an API on the same server is called virtual hosting
+            
+        nmap --script http-vhosts -p 80,443 --script-args http-vhosts.domain=crapi.site,http-vhosts.filelist=/opt/SecLists/Discovery/DNS/subdomains-top1million-5000.txt www.crapi.site
+        
+        gobuster vhost -k --append-domain -u crapi.site -w /opt/SecLists/Discovery/DNS/subdomains-top1million-20000.txt
+          if needed  --proxy http://127.0.0.1:8080    // to proxy to burp
+         
+         parsing out the server’s SSL certificate from the production URL, looking for subdomains that might be listed in the Subject Alternative Name (SAN) metadata properties.
+         openssl s_client -connect www.crapi.site:443 2>&1 < /dev/null | openssl x509 -noout -text | grep -i dns
+     
+     ****finding endpoint***     create your wordlist or copy 
+     using burp intruder, copy and paste api wordlist and start attack
+     
+     using  ffuf
+     ffuf -w wordlist.txt -u (url)/api/FUZZ/6 -0 output.txt -x http://12.0.0.1/8080       for burp proxy
+     
+     arjun
+     python arjun.py -u https://tesla.com: 8000/api/users --post -o data/result.json     //check arjun docs   
+     NOTE : arjun alwys find mass assignment.. allos check its endpoint
+     
+     NOTE
+         keep an eye for
+                webapp with mobile app
+                        with desktop app
+           check mobile app
+        a page that takes longet time to  load
+        a web app with  developer documention
+        
+        
+        
+   VULNERBILITY IN API FRAMEWORK AND HOW TO DETECT API FRAMEWORK /LANGAUGE     https://danaepp.com/how-to-detect-the-programming-language-of-an-api
+   JSON deserialization in REST APIs, especially through Javascript. ie: NodeJS/Express
+   PHP object injection from unsafe unserialize() from params or POST bodies. OWASP covers this threat quite well.
+    
+            XXE Injection
+       If an API supports the changing of Content-Type to application/xml, you may have an opportunity to abuse that for XXE.
+            
+    If an API allows the usage of a standard XML parser to process the data, then an injected external entity will be processed on the server side and could lead to information disclosure, LFI, and maybe even escalate to Server Side Request Forgery (SSRF).        
+            
+    1) Check the HTTP response headers
+         curl -I https://api.spacex.land/graphql/
+         
+     PHP/x.x.x – the API is written in PHP
+     ASP.NET – the API is written in C#
+    Express – this API is written in NodeJS
+     Next.js – this API is written in NodeJS for use with the React framework
+    PleskLin – this API was written in PHP        
+       TIP: Don’t rely on this header on its own. Most API security hardening guidelines include recommendations to remove this header or change it to something that it isn’t.
+       
+       Server – this header will occasionally contain information about the server software being used. For example, Microsoft-IIS/x.x or nginx.
+X-AspNet-Version – this header will be present if the API is written in ASP.NET and can help you determine which version is being used.
+X-AspNetMvc-Version – this header is present when an API is written in ASP.NET MVC.
+Set-Cookie – while it’s not a guarantee, some languages have distinct cookie patterns that may give away what technology is in use. For example, ASP.NET_SessionId, JSESSIONID or PHPSESSID
+X-Runtime – this header is often used in Ruby on Rails applications and can give you a good indication that the API is written in Ruby.
+            
+            
+      2) – Observe and Force Errors   /  send an empty payload 
+      curl 'http://crapi.apisec.ai/identity/api/auth/signup' -H 'Content-Type: application/json' --data-raw '{}' --insecure -s | jq
+      
+      3) – Look for anomalous behavior in how the API reacts to data
+           example, PHP limits you to a maximum of 1,000 GET parameters, and a maximum POST size of 8MB. Express (NodeJS) on the other hand has a maximum    POST size of 100KB.
+           The point is if you have indicators of a specific language and you want to check to see, look at the language’s documentation, focusing on the   data limits for GET params and POST body size. You might be surprised how quickly you can test this way. 
+            
+      4 Test Parameter Pollution    check link  https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/07-Input_Validation_Testing/04-Testing_for_HTTP_Parameter_Pollution
+      
+        HTTP Parameter Pollution (HPP) tests the API’s response to receiving multiple HTTP parameters with the same name; for example, if the parameter name is included in the GET or POST parameters twice.
+As an example, imagine this GET request:
+        https://api.target.domain/users?name=bob&name=alice
+        
+      5) check how API handles booleans
+      An API built with a more strongly typed language will generally consume a boolean using true and false values. When it’s not (like in Perl or PHP for example), it might use 1s and 0s.
+
+You can take that further and determine what is going on by how true/false values are used. Are the values strings, or actual JSON-based bools? Are they expecting lower case (ie: true/false in Java, Javascript etc) or capital first letter (ie: True/False in Python)?
+
+All great ways to help isolate what programming language is being used.
+        
+        
+     
+  
+ 
+API documentation is often publicly available, particularly if the API is intended for use by external developers. If this is the case, always start your recon by reviewing the documentation. 
+  
+    
+   if you identify the resource endpoint of /api/swagger/v1/users/123, then you should investigate the following paths:  or fuzz  directly fuzz for documentation. 
+    /api/swagger/v1/users/123,
+    /api/swagger/v1
+    /api/swagger
+    /api
+    
+        /api/tasks 
+    GET /api/tasks - Retrieves a list of tasks.
+    POST /api/tasks - Creates a new task.
+    DELETE /api/tasks/1 - Deletes a task.
+    
+    
+   check for patterns that suggest API endpoints in the URL structure, such as /api/. Also look out for JavaScript files, it could  contain  API endpoints that you haven't triggered directly via the web browse
+
+    /api/tasks 
+    GET /api/tasks - Retrieves a list of tasks.
+    POST /api/tasks - Creates a new task.
+    DELETE /api/tasks/1 - Deletes a task.
+
+ tip tip
+ API endpoints often expect data in a specific format, it may therefore behave differently depending on the content type of the data provided in a request. Changing the content type may enable you to: 
+ 
+    Trigger errors that disclose useful information.
+    Bypass flawed defenses.
+    Take advantage of differences in processing logic. For example, an API may be secure when handling JSON data but susceptible to injection attacks when dealing with XML.
+    
+    mass assignment  vuln
+    PATCH REQUEST
+    {
+    "username": "smart",
+    "email": "smart@example.com",
+    "isAdmin": false,
+}
+ TO  And the watch the behaviour
+ {
+    "username": "smart",
+    "email": "smart@example.com",
+    "isAdmin": "foo",
+}
+ TO
+ {
+    "username": "smart",
+    "email": "smart@example.com",
+    "isAdmin": true,
+}
+  browse the application as smart to see whether you can access admin functionality
+
+NOTE 
+  make sure you are recording all requests and responses. This will help to download and save all the client side code, cookies, and session data while allowing you to collect all the routes, endpoints, parameters, and JSON data to help you get a good picture of what is going on. and it  So important to make sure you click on every link, feature, and function that you can.
+  
+  It’s always a good idea to use the highest tier of the application you are testing and enable all features and functions that you can. This will help expose you to the largest surface area of the application.
+   don’t just assume you’ve seen it all. Always look for indicators of more functionality
+   ****  Check if  removing a paging parameter bring back the entire recordset? Could it make the application unresponsive as it tries to query and pull back all the data? Or does it bring back a known set of data? What if you modify it to bring back an unreasonable number of records? How does that impact application behavior?
+  check  how the application itself handles authentication and authorization 
+  
+  ***Token misuse :  how are API requests authorized? JSON Web Tokens (JWT) or some other opaque data? Are they passed in by an authorization header, some other header, or maybe through a cookie
+  
+  ***Missing or Mismatched AuthZ : use burpsuite  authorize to find this issues, sometimes developers forget to add logic to authorize requests
+  
+  ****Cross Tenant Data Leakage : check using CeWL as  a custom word list generator         //https://danaepp.com/a-cewl-way-for-api-discovery
+           feed cewl to the url , eample below
+           cewl 'https://developer.microsoft.com/en-us/graph/changelog/rss/search=&filterBy=beta,Addition' -m 10 -w graph-beta-adds.txt
+         cewl 'https://developer.microsoft.com/en-us/graph/changelog/rss/?search=&filterBy=beta,Addition,Identity%20and%20access' -m 10 -w graph-beta-iam-adds.txt
+  and then  feed the wordlist to your favorite API discovery bruteforcer like Burp Intruder, feroxbuster, ffuf, gobuster, kiterunner   
+           
+  
+  
+  
+  note: always map how data is passed arround the app, check the structure and schema of objects being passed around. Or how the front end may include logic for input validation that the API itself may not.security controls like rate limiting may impact how much data can be pulled back from an API. Or the fact an API might return too much data that developers may filter out in the front end code, far too late in the process.
+  .......... Discovering the patterns developers use to handle data can help inform how you construct your attack payloads, Watch how data is structured
+  As an example, do they access data through query parameters on a resource like 
+  https://api.example.com/users?name=dana  or do they use a more RESTful URI structure like 
+  https://api.example.com/users/dana    that uses route paths as the params? , check how it handles  json to xml or yaml data
+  
+  
+ 
+  
+  ****CRAFT ROGUE API DOCS FOR A TARGET WHEN THEY DON’T EXIST******     create you own api   
+                  https://danaepp.com/how-to-craft-rogue-api-docs-for-a-target-when-they-dont-exist
+  parsing live traffic to and from a web service to  burp and zap
+  and also from dev tools and collect all this traffic and then save it to files for processing later
+  
+tools to check -->  https://github.com/alufers/mitmproxy2swagger
+  steps  
+ ***  install https://github.com/alufers/mitmproxy2swagger
+ ***  set Once in devtools, make sure you select to “Preserve log” and “Disable cache“ in the network tab, This will ensure you record all requests across pageload
+ ***  Use the application normally to collect traffic, sign-up, register,password reset, profile update, possible signup for an account with admin privileges, 
+           if confident that you have figured out everything the application can do, we can start moving towards weaponizing all this data.
+ 
+ ***  Generate an HTTP Archive (HAR):   use the export tool, which typically looks like a down arrow in devtools 
+       
+ ***   Import HAR file to create OpenAPI definition :  leverage mitmproxy2swagger to convert the HAR into a rough OpenAPI definition file
+       example-> mitmproxy2swagger -i crapi.apisec.ai.har -o crapi.yaml -p http://crapi.apisec.ai -e -f har
+       
+ ****    Edit the definition files to describe API endpoints
+            Open the YAML definition file in your favorite editor and take a look.
+           Notice you have a ton of lines that start with “- ignore:/” under the x-path-templates. 
+           Go through the file and remove the “ignore:” on any request that appears to be an API call
+           
+ *****     Generate OpenAPI documentation from the definition
+             Now run the same command line to execute a second pass against the definition file:
+             mitmproxy2swagger -i crapi.apisec.ai.har -o crapi.yaml -p http://crapi.apisec.ai -e -f har
+               Open up the YAML file again. Look how much it has changed.
+               
+ ****      Test the OpenAPI document in Swagger Editor  -->   https://editor.swagger.io
+            Expand any  of the endpoints and take a look at how well defined it is:
+            
+            ***HOW TO USE YOUR ROGUE API DOCS IN POSTMAN ***
+             hook up Postman and BurpSuite together
+             Start up Postman. Click on Workspaces → Create Workspace and name it something unique that represents your engagemen
+             Import OpenAPI definition file
+                On the top left side of the workspace, beside the name you called it, is an Import button. Click that. When prompted use the explorer to 
+                find the YAML file you have created. Then hit the Import button.
+                can start firing off requests! Don’t forget to start up Burp
+                
+            ****   ***    ***
+            With a little effort, you should now have your own custom API documentation that follows the OpenAPI specification. This allows you to use Postman and BurpSuite together to attack the target API with more precision, and allows you to test endpoints that may or may not be know from any existing or old documentation
+            
+            Finding Hidden API Endpoints Using Path Prediction
+         TIP: Test with both privileged and unprivileged users  and also on paid features  on apps
+            When testing API security, prioritize securing both privileged (highest admin access) and standard user access before diving into endpoint recon
+          
+ *** path prediction -- involves studying the URL structure, endpoint patterns, and other discernible indicators within the API documentation or code
+   when seen  
+      /api/users/get 
+      /api/users/update,
+      prediction
+      /api/users/delete
+      /api/users/add.
+      
+                       API hierarchical relationships
+                           /api/users
+                           /api/users/{id}
+                           /api/users/{id}/profile
+               note that During recon, make sure you map all hierarchical relationships to understand where data can be accessed. Sometimes the same resources can be accessed using different URIs, which may have different access controls or business logic.
+               
+               also fuzz 
+               fuzzing for:
+
+             /api/users/{id}/registereddevices
+           /api/users/{id}/registered_devices
+              /api/users/{id}/registered-devices
+      
+   ....   finding admin endpoints may change the context of access for such resources. As an example, if you know that /api/users allows access for end users to manage their resources, what does /api/admin/users do?
+   generating a wordlist for fuzzing admin predictable paths 
+   administration
+adminpanel
+backend
+config
+console
+controlpanel
+dashboard
+maintenance
+management
+master
+operations
+privileged
+root
+superuser
+system      
+
+                     HOW TO FIND ACCESS CONTROL ISSUES IN APIS
+                   ****  Document every role the application uses
+                   ****   Map roles to permissions
+           check  how administrative access differs from normal user access. Are there separate API endpoints, or does the access control mechanism handle this through session management with things like an access control token (ie: JSON web token) or maybe through unique parameters?
+     TIP:
+      Use a spreadsheet. Define individual permissions by column and roles by row. Then map out which role has which permissions. As an example, I like to color code sensitive perms and quickly cross reference who has access to what, and when. This lets me quickly figure out which user roles I need to attack in my own accounts to get clear vertical privilege escalation for a feature I want to abuse, or users data that I want to access.
+     
+                **** Determine how authentication and session management impacts access    
+                check out this point  
+                Is it based on metadata in the request?
+                Are roles defined in a claim of the access token?
+                What about additional headers or parameters?
+               How does a given user differ from other users?
+                Is it based on a unique identifier?
+                
+                RESOURCE-LEVEL ACCESS CONTROL
+                
+                
+         looking for api
+         https://target.domain/api
+https://target.domain/v1, https://target.domain/v2 etc
+https://target.domain/graphql
+https://target.domain/swagger
+https://target.domain/docs
+https://target.domain/rest
+
+  google dorking 
+  intitle:"index of" intext:"api" ← Find API artifacts exposed on a web server, like keys and config
+inurl:"/api/*" intext:"index of" ← Find interesting API directories
+intext:api filetype:env ← Find possible environment variables relating to API, including keys and tokens
+intitle:"index of" api_key OR "api key" OR apiKey -pool ← Find potential API keys
+intext:APIKey ext:js | xml | yaml | txt | conf | py intitle:"index of" ← Find API keys in interesting files.
+intitle:"index of" "api.yaml" ← Find potential API configs
+"api" ext:log ← Find log files that may be leaking information about API artifacts
+
+    
+    Cross Tenant Data Leak (CTDL)    in API
+    CTDL can happen due to configuration issues where multiple tenants use the same infrastructure. For example, if a service provider sets up a cloud-based service for several clients but fails to configure it securely, CTDL can result. Additionally, CTDL can happen due to vulnerabilities in the application software itself, which an attacker can exploit to gain unauthorized access to data from other client accounts.
+
+   methdology
+   There is no single methodology for detecting Cross-Tenant Data Leakage (CTDL) in an API. It all comes down to understanding what sensitive data and resources exist in the system, how it’s being protected, and determining how tenant isolation is being maintained.
+   
+  ****  checking  for authentication and authorization with burp authorize and use the same approach to check for horizontal privilege escalation across tenants and help find CTDL
+  
+  ***** Pay attention to the security controls for tenant isolation.
+    have a good luck on how url that download pdf reposrt, this pdfs may be store in azure storage or aws s3 bucket behind the scenes, check how  api fetches data,Does it include a unique identifier that represents the tenant in the URL?, Is it dynamically constructed based on data in cookies or tokens? Can that be tampered with to allow you to fetch someone else’s data?   
+     
+     note-- It’s really nothing more than another form of a BOLA vulnerability but with far greater implications.
+     https://danaepp.com/cross-tenant-data-leaks-ctdl-why-api-hackers-should-be-on-the-lookout
+     
+     aTTACKING-APIS-BY-TAINTING-DATA-IN-WEIRD-PLACES
+     host header injection 
+     Host: admin.example.com    change and  replace the Host header with admin.example.com on every request
+      check if you could manipuate
+      Referer
+      Cookie
+      X-Forwarded-For
+      User-Agent
+      
+      hpp polution
+      Consider an example of pulling back your account data by passing in your id. If we also pass in the admin’s account id, what happens?
+       GET /api/account?id=<your account id>&id=<admin account id>
+NOTE -> 
+   Some web servers include BOTH via comma-separated concatenation. So if your id was 2 and the admin id was 1, you would actually end up with id=2,1.
+   
+   sql attack using hpp
+   GET /api/products?prodID=9 UNION SELECT 1,2,3 FROM Users WHERE id=3 --
+           |
+          \|/ bypass
+     GET /api/products?prodID=9 /*&prodID=*/UNION /*&prodID=*/SELECT 1 &prodID=2 &prodID=3 FROM /*&prodID=*/Users /*&prodID=*/ WHERE id=3 --
+     
+     
+     NOTE
+     Sometimes you can abuse an API by simply removing a parameter. If the API does not fail securely when a parameter is missing and instead just sets some defaults, it may be possible to taint the request and have the API behave differently than expected.
+    ***** Taint the Payload content type
+     check the response body, if it json, change to xml
+     check if  expose a path to insecure deserialization? Does its input validation routines understand things like XML External Entities (XXE) and adequately safeguard against XXE injection?
+     
+     ***  polluting JSON properties
+     example
+     {
+         "accountType":"user",
+            "userName":"dana",
+          "pwd":"password"
+     }
+     
+      change password fixtures
+      PUT /api/user
+       [...]
+
+    {
+       "userName":"dana",
+       "pwd":"password"
+    }
+    what happen when you change the json parameter to this below 
+    PUT /api/user
+     [...]
+
+     {
+        "accountType":"user",
+         "userName":"dana",
+           "pwd":"password",
+         "accountType":"admin"
+   }
+   You can go further than that though. You can manipulate the JSON properties by changing their data type..
+   below is an example of how to use username to taint parameter
+   {"userName": "dana"}
+   {"userName": true}
+   {"userName": null}
+   {"userName": 1}
+   {"userName": [true]}
+   {"userName": ["dana", true]}
+   {"userName": {"$eq": "dana"}}
+   Try to taint anything and everything you can and observe how the API responds. The failure code paths are usually not as well tested and can expose some interesting vulnerabilities for you to exploit.
+   
+   How about forcing the parameter pollution right in the first request by forcing a JSON object to be sent instead of raw form data?
+POST /myprofile
+Content-Type: application/json
+
+{"name"="Dana\",\"role\":\"admin"}
+
+   BYPASSING-API-AUTH-USING-NOSQL-INJECTION
+     tools
+     https://github.com/codingo/NoSQLMap
+     https://github.com/torque59/Nosql-Exploitation-Framework
+     https://github.com/C4l1b4n/NoSQL-Attack-Suite
+     https://portswigger.net/bappstore/605a859f0a814f0cbbdce92bc64233b4  - NoSQLi Scanner 
+     
+     Bypassing Authentication with NoSQL Injection
+     When looking at bypassing authentication in an API, you should start by finding the endpoint responsible for accepting and validating credentials during a user’s login attempt
+ NOTE    in MongoDB, you might utilize the ‘$ne‘ operator, equivalent to ‘!=‘,
+  A basic bypass for a Content-Type of application/x-www-form-urlencoded might look like this:
+  user[$ne]=fu&pass[$ne]=bar,
+  If the login endpoint is accepting JSON, it might look something like this:
+   {"user": {"$ne": "fu"}, "pass": {"$ne": "bar" }}
+   if you know the user account you want to log in as you can modify the query accordingly. For a user named Bob, it might look like this:
+   {"user": "bob", "pass": {"$ne": null }}
+   
+   
+   DETECTING UNCOMMON HEADERS IN AN API USING BURP BAMBDA FILTERS
+   
+   
+   ssrf
+   Common vulnerable parameter names
+dest
+redirect
+uri
+path
+continue
+url
+window
+next
+data
+reference
+site
+html
+val
+validate
+domain
+callback
+return
+page
+feed
+host
+port
+to
+out
+view
+dir
+show
+navigation
+open
+   
+     note  During your recon, ensure you collect all parameter names in requests and look for these parameters when searching for sensitive information. They are a good indicator of a parameter that might be vulnerable to an SSRF attack. Send custom data tainting those parameters and see what happens.
+     check my recon file for more 
+     
+     Webhooks
+     An API might use a combination of user-controlled data and third-party service URL fragments to construct a URL it will call out to. By manipulating these webhooks, hackers can use an SSRF attack to gain unauthorized access to a server and potentially steal sensitive data or cause other damage.
+                
+  File Imports
+   if an API relies on a URL to import a file, it may be vulnerable to server-side request forgery.
+One easy way to test for this is to enter a URL of http://169.254.169.254, the typical cloud metadata service. If the expected file is in any way echoed out or stored for retrieval later, you will be able to see the results from the metadata service request.
+      Another way is to use localhost (127.0.0.1) 
+    
+    PDF Generators
+    An attacker can taint the data so that when the PDF is rendered, it may load arbitrary data in the form of server-side XSS. If that XSS contains javascript or embeds an iframe, it may be able to make requests to internal servers and store the results in the PDF.
+  
+  Local File Read
+When looking at SSRF vulnerabilities, it’s good to think outside the box regarding what exactly is causing the server to make a request. If it is fetching a URL with headless server-side code or tools like curl or get, you may be able to leverage alternative protocols to access resources.
+
+As an example, you may be able to replace the http:// protocol with file://, allowing you to access files on the server’s file system. Common examples include something like “?url=file:///etc/passwd“ on a ‘nix-based system or “?url=file://C:/boot.ini” on a Windows-based system.
+  note =  you can switch to more complex protocols like gopher://
+  
+  Accessing Cloud Metadata
+  For most cloud services like AWS, Azure, Digital Ocean, RackSpace, HP, etc., this is usually 169.254.169.254
+For Oracle, it’s 192.0.0.192
+For Alibaba, it’s 100.100.100.200
+            
+     There is a great cloud metadata dictionary published in a GitHub gist by BuffaloWill that you can use during SSRF testing. A quick Intruder payload created in Burp Suite could try to abuse a potential SSRF vulnerability by replacing the target URL with inputs from that dictionary.
+            
+            Ways to bypass SSRF Protection
+            Use Exotic URL Schemas
+            dict://
+file://
+ftp://
+gopher://
+ldap://
+smtp://
+telnet://
+tftp://
+
+   Using Hostname Instead of IP
+   Non-Standard IP Notation
+   Hexadecimal – 0xa9fea9fe
+Integer – 2852039166
+IPv6 – ::ffff:a9fe:a9fe
+Octal – 025177524776
+
+
+  Open Redirects
+And last but certainly not least is abusing open redirects to bypass SSRF user input filter protections. If we can host a simple script on a domain we can control and access with an HTTP redirect, we may be able to cause a 302 redirect to the internal servers we wish to access that might otherwise be filtered.
+      
+      
+         ****   search for public/ microsoft api                        https://danaepp.com/attacking-microsoft-graph-with-postman
+            Open up the desktop version of Postman
+         Click the Explore menu item
+        Click inside the search field, and select to search in the Public API Network
+        Now select to search for Collections.
+        Type in Microsoft Graph
+       
+       
+     NOTE ;
+     If an API is allowing access directly to or from the Internet, it may be a clean attack vector to gain access to loads of services and data that developers didn’t intend for you to access directly.
+     
+     
+ SERVER-SIDE PROTOTYPE POLLUTION (SSPP).   in wepapp-> check if the backend is built with express or node  https://danaepp.com/how-to-exploit-an-api-using-prototype-pollution
+     Detecting Server Side Prototype Pollution
+    ****      NOTE ***
+      When testing client-side prototype pollution, you can easily reverse all your changes and return to a clean environment by simply refreshing the target web page.
+That’s more challenging when testing prototype pollution on the server side.
+Once you pollute a prototype on the server, this change will persist for the entire lifetime of the Node process, and you don’t have any way of resetting it. This means it can impact production workloads and can negatively impact the API you are testing.
+
+   
+    TEST FOR POLLUTED PROPERTY REFLECTION
+Look for API endpoints that reflect an object that is created or updated. You can usually find this where objects are created in a POST operation or are updated in a PUT operation.
+
+Consider this example:  
+     POST /api/user HTTP/1.1
+     Host: vuln-api.com
+...
+    {
+     "user":"bob",
+     "firstName":"Bob",
+     "lastName":"Smith",
+     "__proto__":{
+          "foo":"bar"
+     }
+  }
+    and the response
+    If the target is vulnerable to SSPP, then you may see a new property called foo with the value of bar reflected in the response:
+    HTTP/1.1 200 OK
+...
+   {
+     "username":"bob",
+     "firstName":"Bob",
+     "lastName":"Smith",
+     "foo":"bar"
+}
+  
+  Test for poisoned server configuration changes
+     poison configuration  to see if you can abuse the cache control in Express
+     Here is how it works. When you send a request with the “If-None-Match” header, you should expect to receive a 304 (not modified) response.
+     However, if you found SSPP, you can attempt to pollute the Object prototype on the server by adding cache-control=”no-cache”.   check the above url for this exploit   
+      
+      If it works, when you send the original request that returned a 304, you SHOULD now get a 200 back with that data and a corresponding ETag, demonstrating its vulnerable.
+            
+            
+      Testing for JSON spaces override
+      So Express offers a lot of configurable options in its server framework. One example of this is the fact you can configure how many spaces a JSON object will use to indent any data in the response. You can test this by attempting to pollute the Object prototype by adding “json spaces” and setting it to a larger number than average, like 10 or 15.
+
+If you are testing this with Burp Suite, remember to look at the Raw tab, as the Pretty tab will strip out the extra spaces as it tries to give you easy-to-read JSON output.
+
+This methodology has recently been fixed in Express 4.17.4. But for all those older Express instances out there, you can still abuse this.  
+
+
+      
+      
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            

