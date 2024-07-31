@@ -8640,4 +8640,5 @@ Stay tuned for my API hacking post and let me know what I missed <3
 "Client-IP": "test{payload}",
 "X-Forwarded-Server": "test{payload}",
 "X-Arbitrary": "test{payload}",
+smart
 "X-Real-IP": "test{payload}"
